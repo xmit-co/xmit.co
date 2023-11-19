@@ -1,0 +1,26 @@
+{
+  "name": "site",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "deploy": "tsc && vite build && xmit xmit.co",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@preact/signals": "^1.2.1",
+    "cbor-x": "^1.5.4",
+    "preact": "^10.19.1",
+    "preact-router": "^4.1.2",
+    "sockette": "^2.0.6"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.6.0",
+    "@vitejs/plugin-basic-ssl": "^1.0.2",
+    "prettier": "^3.1.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.0"
+  }
+}
