@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, ProxyOptions } from "vite";
 import preact from "@preact/preset-vite";
 import basicSsl from "@vitejs/plugin-basic-ssl";
 
@@ -11,6 +11,9 @@ export default defineConfig({
         changeOrigin: true,
         headers: {
           origin: "https://xmit.co",
+        },
+        configure: (_, options: ProxyOptions) => {
+          options.cookieDomainRewrite = "localhost";
         },
       },
       "/api/web/socket": {
