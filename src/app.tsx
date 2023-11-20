@@ -1,5 +1,5 @@
 import "./app.css";
-import Router from "preact-router";
+import Router, { Route } from "preact-router";
 import { Decoder, Encoder } from "cbor-x";
 import { signal } from "@preact/signals";
 import Sockette from "sockette";
@@ -52,9 +52,7 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
       errors.push(error.get(1)!);
     }
   }
-  const res = { ...state, ready, kv, errors };
-  console.log("ingested message", msg, "into state", res);
-  return res;
+  return { ...state, ready, kv, errors };
 }
 
 export function connect() {
@@ -82,7 +80,6 @@ export function disconnect() {
   if (sock === undefined) {
     return;
   }
-  console.log("disconnecting");
   sock.close();
   state.value = {
     ...state.value,
@@ -99,20 +96,19 @@ export function sendUpdate(key: string, value: any) {
   const payload = encoder.encode(msg);
   const sock = state.value.sock;
   if (sock === undefined) {
-    console.log("socket not ready");
+    console.log("socket not ready!?");
     return;
   }
   sock.send(payload);
 }
 
 export function App() {
-  console.log("rerendering app with state", state);
   return (
     <StateCtx.Provider value={state}>
       <Router>
-        <Home path="/" />
-        <Admin path="/admin" />
-        <Docs path="/docs" />
+        <Route path="/" component={Home} />
+        <Route path="/admin" component={Admin} />
+        <Route path="/docs" component={Docs} />
       </Router>
     </StateCtx.Provider>
   );

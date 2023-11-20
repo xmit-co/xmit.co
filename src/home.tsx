@@ -3,7 +3,7 @@ import { route } from "preact-router";
 import { enroll, signin } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
 
-export function Home({}: { path: string }) {
+export function Home() {
   const state = useContext(StateCtx);
   const session = state.value.kv.get("session");
   if (session !== undefined && session.get(1) !== undefined) {

@@ -1,6 +1,6 @@
 import { Header } from "./header.tsx";
 
-export function Docs({}: { path: string }) {
+export function Docs() {
   return (
     <div class="with-header">
       <Header />

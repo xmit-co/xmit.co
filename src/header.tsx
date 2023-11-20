@@ -5,7 +5,6 @@ import { useContext } from "preact/hooks";
 
 export function Header() {
   const state = useContext(StateCtx);
-  console.log("rerendering header with state", state);
   const session = state.value.kv.get("session");
   let loggedIn = false;
   if (session !== undefined && session.get(1) !== undefined) {
