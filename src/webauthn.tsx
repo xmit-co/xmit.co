@@ -61,8 +61,7 @@ export async function signin() {
     },
   })) as PublicKeyCredential | null;
   if (creds == null) {
-    window.alert("Could not get credentials");
-    return;
+    throw new Error("Could not get credentials");
   }
   const id = creds.id;
   const response = creds.response as AuthenticatorAssertionResponse;
