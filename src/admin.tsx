@@ -14,7 +14,10 @@ export function Admin() {
   return (
     <div class="with-header">
       <Header />
-      <div class="body">{session.get(1)}</div>
+      <div class="body">
+        User #{session.get(1)}. Admin interface incoming 😅 Check out our{" "}
+        <a href="https://demo.xmit.co/landed.html">prototype</a>.
+      </div>
     </div>
   );
 }

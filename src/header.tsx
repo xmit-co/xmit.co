@@ -16,11 +16,11 @@ export function Header() {
       <div class="header">
         <h1>🛰 xmit — launch fast</h1>
         <div>
-          <Link activeClassName="header-active" href="/admin">
-            🛠 admin
-          </Link>
           <Link activeClassName="header-active" href="/docs">
             📚 docs
+          </Link>
+          <Link activeClassName="header-active" href="/admin">
+            🛠 admin
           </Link>
           <Link onClick={() => signout().then(disconnect)}>🔓 sign out</Link>
         </div>
