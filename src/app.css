@@ -11,11 +11,14 @@ body {
   min-height: 100vh;
 }
 
-div.errors p {
+div.errors {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
+}
+
+div.errors p {
   background-color: #800;
   color: #fff;
   padding: 0;
