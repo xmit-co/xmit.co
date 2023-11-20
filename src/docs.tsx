@@ -60,7 +60,7 @@ export function Docs() {
             If you use a CDN, create a <code>TXT "xmit=42"</code>.
           </li>
         </ul>
-        <h2>⚙️ Configure Single Page Applications</h2>
+        <h2>⚡️ Single Page Applications</h2>
         <p>
           Create in the root directory (<code>public</code> for Vite) a file
           called <code>xmit.toml</code> with:
