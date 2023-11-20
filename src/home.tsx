@@ -1,9 +1,11 @@
-import { connect, State } from "./app.tsx";
+import { connect, StateCtx } from "./app.tsx";
 import { route } from "preact-router";
 import { enroll, signin } from "./webauthn.tsx";
+import { useContext } from "preact/hooks";
 
-export function Home({ state }: { state: State; path: string }) {
-  const session = state.kv.get("session");
+export function Home({}: { path: string }) {
+  const state = useContext(StateCtx);
+  const session = state.value.kv.get("session");
   if (session !== undefined && session.get(1) !== undefined) {
     route("/admin");
     return <></>;

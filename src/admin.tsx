@@ -1,9 +1,11 @@
 import { Header } from "./header.tsx";
-import { State } from "./app.tsx";
+import { StateCtx } from "./app.tsx";
 import { route } from "preact-router";
+import { useContext } from "preact/hooks";
 
-export function Admin({ state }: { state: State; path: string }) {
-  const session = state.kv.get("session");
+export function Admin({}: { path: string }) {
+  const state = useContext(StateCtx);
+  const session = state.value.kv.get("session");
   if (session === undefined || session.get(1) === undefined) {
     route("/");
     return <></>;
@@ -11,7 +13,7 @@ export function Admin({ state }: { state: State; path: string }) {
 
   return (
     <div class="with-header">
-      <Header state={state} />
+      <Header />
       <div class="body">{session.get(1)}</div>
     </div>
   );

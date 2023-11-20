@@ -6,6 +6,7 @@ import Sockette from "sockette";
 import { Admin } from "./admin.tsx";
 import { Docs } from "./docs.tsx";
 import { Home } from "./home.tsx";
+import { createContext } from "preact";
 
 const CBOROptions = {
   useRecords: false,
@@ -28,6 +29,8 @@ const state = signal<State>({
   errors: [],
 });
 
+export const StateCtx = createContext(state);
+
 function ingestMessage(state: State, msg: Map<number, any>): State {
   let { ready, kv, errors } = state;
   if (msg.get(1) != undefined) {
@@ -49,7 +52,9 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
       errors.push(error.get(1)!);
     }
   }
-  return { ...state, ready, kv, errors };
+  const res = { ...state, ready, kv, errors };
+  console.log("ingested message", msg, "into state", res);
+  return res;
 }
 
 export function connect() {
@@ -101,11 +106,14 @@ export function sendUpdate(key: string, value: any) {
 }
 
 export function App() {
+  console.log("rerendering app with state", state);
   return (
-    <Router>
-      <Home state={state.value} path="/" />
-      <Admin state={state.value} path="/admin" />
-      <Docs state={state.value} path="/docs" />
-    </Router>
+    <StateCtx.Provider value={state}>
+      <Router>
+        <Home path="/" />
+        <Admin path="/admin" />
+        <Docs path="/docs" />
+      </Router>
+    </StateCtx.Provider>
   );
 }

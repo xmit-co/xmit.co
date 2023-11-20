@@ -1,9 +1,12 @@
 import { Link } from "preact-router/match";
-import { disconnect, State } from "./app.tsx";
+import { disconnect, StateCtx } from "./app.tsx";
 import { signout } from "./webauthn.tsx";
+import { useContext } from "preact/hooks";
 
-export function Header({ state }: { state: State }) {
-  const session = state.kv.get("session");
+export function Header() {
+  const state = useContext(StateCtx);
+  console.log("rerendering header with state", state);
+  const session = state.value.kv.get("session");
   let loggedIn = false;
   if (session !== undefined && session.get(1) !== undefined) {
     loggedIn = true;
