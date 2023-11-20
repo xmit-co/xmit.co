@@ -1,9 +1,10 @@
 import { Header } from "./header.tsx";
+import { State } from "./app.tsx";
 
-export function Docs({}: { path: string }) {
+export function Docs({ state }: { state: State; path: string }) {
   return (
     <div class="with-header">
-      <Header />
+      <Header state={state} />
       <div class="body docs">
         <h2>
           📥 Install <code>xmit</code>

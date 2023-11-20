@@ -1,9 +1,9 @@
 import { Header } from "./header.tsx";
-import { state } from "./app.tsx";
+import { State } from "./app.tsx";
 import { route } from "preact-router";
 
-export function Admin({}: { path: string }) {
-  const session = state.value.kv.get("session");
+export function Admin({ state }: { state: State; path: string }) {
+  const session = state.kv.get("session");
   if (session === undefined || session.get(1) === undefined) {
     route("/");
     return <></>;
@@ -11,7 +11,7 @@ export function Admin({}: { path: string }) {
 
   return (
     <div class="with-header">
-      <Header />
+      <Header state={state} />
       <div class="body">{session.get(1)}</div>
     </div>
   );

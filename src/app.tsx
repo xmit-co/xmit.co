@@ -22,7 +22,7 @@ export interface State {
   sock?: Sockette;
 }
 
-export const state = signal<State>({
+const state = signal<State>({
   ready: false,
   kv: new Map(),
   errors: [],
@@ -103,9 +103,9 @@ export function sendUpdate(key: string, value: any) {
 export function App() {
   return (
     <Router>
-      <Home path="/" />
-      <Admin path="/admin" />
-      <Docs path="/docs" />
+      <Home state={state.value} path="/" />
+      <Admin state={state.value} path="/admin" />
+      <Docs state={state.value} path="/docs" />
     </Router>
   );
 }
