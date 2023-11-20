@@ -64,7 +64,7 @@ export function connect() {
     onreconnect: () => {
       state.value = { ...state.value, ready: false, kv: new Map() };
     },
-    onerror: (e) => console.log(e),
+    onerror: (e) => logError("Socket error: " + (e as ErrorEvent).message),
     onmessage: async (e) => {
       const msg = decoder.decode(new Uint8Array(await e.data.arrayBuffer()));
       state.value = ingestMessage(state.value, msg);
@@ -89,6 +89,15 @@ export function disconnect() {
   };
 }
 
+export function logError(msg: string | Error) {
+  if (msg instanceof Error) {
+    msg = msg.message;
+  }
+  const errors = [...state.value.errors];
+  errors.push(msg);
+  state.value = { ...state.value, errors };
+}
+
 export function sendUpdate(key: string, value: any) {
   const vbytes = value === undefined ? undefined : encoder.encode(value);
   const updates = new Map([[key, vbytes]]);
@@ -96,15 +105,36 @@ export function sendUpdate(key: string, value: any) {
   const payload = encoder.encode(msg);
   const sock = state.value.sock;
   if (sock === undefined) {
-    console.log("socket not ready!?");
+    logError("Socket not connected");
     return;
   }
   sock.send(payload);
 }
 
+function Errors() {
+  const errors = state.value.errors;
+  if (errors.length == 0) {
+    return <></>;
+  }
+  const elems = errors.map((e, idx) => (
+    <p>
+      {e}{" "}
+      <a
+        onClick={() =>
+          (state.value = { ...state.value, errors: errors.toSpliced(idx, 1) })
+        }
+      >
+        ❌
+      </a>
+    </p>
+  ));
+  return <div class="errors">{elems}</div>;
+}
+
 export function App() {
   return (
     <StateCtx.Provider value={state}>
+      <Errors />
       <Router>
         <Route path="/" component={Home} />
         <Route path="/admin" component={Admin} />

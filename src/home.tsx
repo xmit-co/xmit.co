@@ -1,4 +1,4 @@
-import { connect, StateCtx } from "./app.tsx";
+import { connect, logError, StateCtx } from "./app.tsx";
 import { route } from "preact-router";
 import { enroll, signin } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
@@ -16,10 +16,10 @@ export function Home() {
       <h1>🛰 xmit — launch fast</h1>
       <p>
         <button onClick={() => route("/docs")}>📚 docs</button>
-        <button onClick={() => enroll().then(connect).catch(console.log)}>
+        <button onClick={() => enroll().then(connect).catch(logError)}>
           🤗 first time
         </button>
-        <button onClick={() => signin().then(connect).catch(console.log)}>
+        <button onClick={() => signin().then(connect).catch(logError)}>
           🧐 returning
         </button>
       </p>
