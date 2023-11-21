@@ -8,8 +8,10 @@ function EditableText({
   value,
   placeholder,
   submit,
+  whenMissing,
 }: {
   value: string | undefined;
+  whenMissing?: string | undefined;
   placeholder?: string | undefined;
   submit: (v: string) => void;
 }) {
@@ -40,7 +42,7 @@ function EditableText({
   }
   return (
     <>
-      {value || <em>{placeholder}</em>}{" "}
+      {value || <em>{whenMissing}</em>}{" "}
       <button onClick={() => setEditing(true)}>✎</button>
     </>
   );
@@ -105,12 +107,14 @@ function AdminBody({ state }: { state: State }) {
               <br />
               <EditableText
                 value={user.get(6)}
+                whenMissing="No phone #"
                 placeholder="Phone #"
                 submit={(v) => sendUpdate(`/u/${uid}`, new Map([[6, v]]))}
               />
               <br />
               <EditableText
                 value={user.get(7)}
+                whenMissing="No E-mail"
                 placeholder="Email"
                 submit={(v) => sendUpdate(`/u/${uid}`, new Map([[7, v]]))}
               />
