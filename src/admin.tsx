@@ -47,7 +47,7 @@ function JoinTeam() {
     return (
       <input
         type="text"
-        placeholder="Enter invite"
+        placeholder="Invite code"
         ref={(e) => e && e.focus()}
         onfocusout={() => setEditing(false)}
         onKeyDown={(e) => {
@@ -67,30 +67,28 @@ function JoinTeam() {
 function AdminBody({ state }: { state: State }) {
   const session = state.kv.get("session");
   const uid = session.get(1);
-  const user = state.kv.get(`/u/${uid}`) || {
-    get: (k: number) => `field ${k}`,
-  };
+  const user = state.kv.get(`/u/${uid}`) || { get: () => undefined };
   return (
     <>
-      <p>
-        Admin interface incoming 😅 Check out our{" "}
-        <a href="https://demo.xmit.co/landed.html">prototype</a>.
-      </p>
       <div class="section">
         <h2>
           👤 #{uid}:{" "}
           <EditableText
-            value={user.get(2)}
+            value={user.get(2) || "anonymous"}
             submit={(v) => sendUpdate(`/u/${uid}`, new Map([[2, v]]))}
           />
         </h2>
       </div>
-      <p style={{ textAlign: "center" }}>
+      <div style={{ textAlign: "center" }}>
         <button onClick={() => sendUpdate("createTeam", undefined)}>
           + new team
         </button>
         <JoinTeam />
-      </p>
+      </div>
+      <div>
+        Admin interface incoming 😅 Check out our{" "}
+        <a href="https://demo.xmit.co/landed.html">prototype</a>.
+      </div>
     </>
   );
 }
