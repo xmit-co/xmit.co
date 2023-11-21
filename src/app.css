@@ -16,14 +16,14 @@ div.errors {
   top: 0;
   left: 0;
   right: 0;
-  box-shadow: 0 0 8pt #000;
 }
 
-div.errors p {
-  background-color: #800;
+div.errors > div {
+  background-color: #600;
   color: #fff;
-  padding: 0;
-  margin: 0 0 0.1em 0;
+  padding: 0.5em;
+  margin: 0 0 4pt 0;
+  box-shadow: 0 0 4pt #000;
 }
 
 h1 {
@@ -70,7 +70,8 @@ div.header {
 }
 
 a,
-button {
+button,
+div.errors {
   cursor: pointer;
 }
 

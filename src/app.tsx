@@ -117,16 +117,13 @@ function Errors() {
     return <></>;
   }
   const elems = errors.map((e, idx) => (
-    <p>
-      {e}{" "}
-      <a
-        onClick={() =>
-          (state.value = { ...state.value, errors: errors.toSpliced(idx, 1) })
-        }
-      >
-        ❌
-      </a>
-    </p>
+    <div
+      onClick={() =>
+        (state.value = { ...state.value, errors: errors.toSpliced(idx, 1) })
+      }
+    >
+      {e}
+    </div>
   ));
   return <div class="errors">{elems}</div>;
 }
