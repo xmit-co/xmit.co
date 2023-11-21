@@ -60,14 +60,14 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
   if (msg.get(1) != undefined) {
     ready = msg.get(1);
   }
-  const updates = msg.get(2) as [[any, ArrayBuffer | undefined]] | undefined;
+  const updates = msg.get(2) as [[any, any]] | undefined;
   if (updates !== undefined) {
     for (const [k, v] of updates.values()) {
       if (v == undefined) {
         kv.delete(JSON.stringify(k));
         continue;
       }
-      kv.set(JSON.stringify(k), decoder.decode(new Uint8Array(v)));
+      kv.set(JSON.stringify(k), decoder.decode(v));
     }
   }
   const errs = msg.get(3) as Array<Map<number, string>> | undefined;
@@ -122,7 +122,7 @@ export function logError(msg: string | Error) {
 }
 
 export function sendUpdate(key: any, value?: any) {
-  const msg = new Map([[2, [[key, value]]]]);
+  const msg = new Map([[2, [[key, encoder.encode(value)]]]]);
   const payload = encoder.encode(msg);
   const sock = state.value.sock;
   if (sock === undefined) {
