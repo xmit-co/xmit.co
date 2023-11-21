@@ -122,7 +122,9 @@ export function logError(msg: string | Error) {
 }
 
 export function sendUpdate(key: any, value?: any) {
-  const msg = new Map([[2, [[key, encoder.encode(value)]]]]);
+  const msg = new Map([
+    [2, [[key, value === undefined ? undefined : encoder.encode(value)]]],
+  ]);
   const payload = encoder.encode(msg);
   const sock = state.value.sock;
   if (sock === undefined) {

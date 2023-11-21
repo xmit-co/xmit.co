@@ -118,7 +118,7 @@ function AdminBody({
           <EditableText
             value={user?.name}
             whenMissing="Anonymous"
-            submit={(v) => sendUpdate(`/u/${uid}`, new Map([[2, v]]))}
+            submit={(v) => sendUpdate(["u", uid], new Map([[2, v]]))}
           />
         </h2>
         <div class="ssections">
@@ -133,7 +133,7 @@ function AdminBody({
           <div>
             <h3>
               🔑 API keys{" "}
-              <button onClick={() => sendUpdate(`/u/${uid}/k`)}>+</button>
+              <button onClick={() => sendUpdate(["u", uid, "k"])}>+</button>
             </h3>
           </div>
           <div>
@@ -146,7 +146,7 @@ function AdminBody({
                 whenMissing="No phone #"
                 placeholder="Phone #"
                 autocomplete="tel"
-                submit={(v) => sendUpdate(`/u/${uid}`, new Map([[6, v]]))}
+                submit={(v) => sendUpdate(["u", uid], new Map([[6, v]]))}
               />
               <br />
               <EditableText
@@ -154,7 +154,7 @@ function AdminBody({
                 whenMissing="No E-mail"
                 placeholder="Email"
                 autocomplete="email"
-                submit={(v) => sendUpdate(`/u/${uid}`, new Map([[7, v]]))}
+                submit={(v) => sendUpdate(["u", uid], new Map([[7, v]]))}
               />
             </div>
           </div>
