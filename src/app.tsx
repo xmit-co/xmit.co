@@ -101,7 +101,7 @@ export function logError(msg: string | Error) {
   state.value = { ...state.value, errors };
 }
 
-export function sendUpdate(key: string, value: any) {
+export function sendUpdate(key: string, value?: any) {
   const vbytes = value === undefined ? undefined : encoder.encode(value);
   const updates = new Map([[key, vbytes]]);
   const msg = new Map([[2, updates]]);

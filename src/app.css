@@ -126,3 +126,15 @@ select {
   padding: 1pt;
   border-radius: 2pt;
 }
+
+div.ssections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2em;
+}
+
+div.ssections > div {
+  min-width: 15em;
+  flex-basis: 0;
+  flex-grow: 1;
+}

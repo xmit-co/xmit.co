@@ -1,13 +1,16 @@
 import { Header } from "./header.tsx";
-import { sendUpdate, State, StateCtx } from "./app.tsx";
+import { connect, logError, sendUpdate, State, StateCtx } from "./app.tsx";
 import { route } from "preact-router";
 import { useContext, useState } from "preact/hooks";
+import { enroll } from "./webauthn.tsx";
 
 function EditableText({
   value,
+  placeholder,
   submit,
 }: {
   value: string | undefined;
+  placeholder?: string | undefined;
   submit: (v: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -16,6 +19,7 @@ function EditableText({
       <input
         type="text"
         value={value}
+        placeholder={placeholder}
         ref={(e) => e && e.focus()}
         onfocusin={(e) => (e.target as HTMLInputElement).select()}
         onfocusout={() => setEditing(false)}
@@ -36,7 +40,8 @@ function EditableText({
   }
   return (
     <>
-      {value} <button onClick={() => setEditing(true)}>✎</button>
+      {value || <em>{placeholder}</em>}{" "}
+      <button onClick={() => setEditing(true)}>✎</button>
     </>
   );
 }
@@ -78,11 +83,43 @@ function AdminBody({ state }: { state: State }) {
             submit={(v) => sendUpdate(`/u/${uid}`, new Map([[2, v]]))}
           />
         </h2>
+        <div class="ssections">
+          <div>
+            <h3>
+              🔐 Web passkeys{" "}
+              <button onClick={() => enroll().then(connect).catch(logError)}>
+                +
+              </button>
+            </h3>
+          </div>
+          <div>
+            <h3>
+              🔑 API keys{" "}
+              <button onClick={() => sendUpdate(`/u/${uid}/k`)}>+</button>
+            </h3>
+          </div>
+          <div>
+            <h3>📇 Contact</h3>
+            <div>
+              If we <em>need</em> to reach out?
+              <br />
+              <EditableText
+                value={user.get(6)}
+                placeholder="Phone #"
+                submit={(v) => sendUpdate(`/u/${uid}`, new Map([[6, v]]))}
+              />
+              <br />
+              <EditableText
+                value={user.get(7)}
+                placeholder="Email"
+                submit={(v) => sendUpdate(`/u/${uid}`, new Map([[7, v]]))}
+              />
+            </div>
+          </div>
+        </div>
       </div>
       <div style={{ textAlign: "center" }}>
-        <button onClick={() => sendUpdate("createTeam", undefined)}>
-          + new team
-        </button>
+        <button onClick={() => sendUpdate("createTeam")}>+ new team</button>
         <JoinTeam />
       </div>
       <div>
