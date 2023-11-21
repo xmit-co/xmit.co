@@ -37,7 +37,7 @@ export function load(
   mapping: Record<string, number>,
 ): Record<string, any> | undefined {
   const v = state.kv.get(JSON.stringify(key));
-  if (v === undefined) {
+  if (v === undefined || v === null) {
     return undefined;
   }
   const r: Record<string, any> = {};
@@ -63,7 +63,7 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
   const updates = msg.get(2) as [[any, any]] | undefined;
   if (updates !== undefined) {
     for (const [k, v] of updates.values()) {
-      if (v == undefined) {
+      if (v === undefined || v === null) {
         kv.delete(JSON.stringify(k));
         continue;
       }
