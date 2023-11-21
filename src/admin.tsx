@@ -17,10 +17,12 @@ function EditableText({
   placeholder,
   submit,
   whenMissing,
+  autocomplete,
 }: {
   value: string | undefined;
   whenMissing?: string | undefined;
   placeholder?: string | undefined;
+  autocomplete?: string | undefined;
   submit: (v: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -30,6 +32,7 @@ function EditableText({
         type="text"
         value={value}
         placeholder={placeholder}
+        autocomplete={autocomplete}
         ref={(e) => e && e.focus()}
         onfocusin={(e) => (e.target as HTMLInputElement).select()}
         onfocusout={() => setEditing(false)}
@@ -123,6 +126,7 @@ function AdminBody({
                 value={user.get(6)}
                 whenMissing="No phone #"
                 placeholder="Phone #"
+                autocomplete="tel"
                 submit={(v) => sendUpdate(`/u/${uid}`, new Map([[6, v]]))}
               />
               <br />
@@ -130,6 +134,7 @@ function AdminBody({
                 value={user.get(7)}
                 whenMissing="No E-mail"
                 placeholder="Email"
+                autocomplete="email"
                 submit={(v) => sendUpdate(`/u/${uid}`, new Map([[7, v]]))}
               />
             </div>
