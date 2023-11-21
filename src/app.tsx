@@ -31,19 +31,43 @@ const state = signal<State>({
 
 export const StateCtx = createContext(state);
 
+export function load(
+  state: State,
+  key: any,
+  mapping: Record<string, number>,
+): Record<string, any> | undefined {
+  const v = state.kv.get(JSON.stringify(key));
+  if (v === undefined) {
+    return undefined;
+  }
+  const r: Record<string, any> = {};
+  for (const [k, i] of Object.entries(mapping)) {
+    r[k] = v.get(i);
+  }
+  return r;
+}
+
+export interface Session {
+  uid: number;
+}
+
+export function loadSession(state: State) {
+  return load(state, "s", { uid: 1 }) as Session | undefined;
+}
+
 function ingestMessage(state: State, msg: Map<number, any>): State {
   let { ready, kv, errors } = state;
   if (msg.get(1) != undefined) {
     ready = msg.get(1);
   }
-  const updates = msg.get(2) as Map<string, ArrayBuffer> | undefined;
+  const updates = msg.get(2) as [[any, ArrayBuffer | undefined]] | undefined;
   if (updates !== undefined) {
-    for (const [k, v] of updates.entries()) {
+    for (const [k, v] of updates.values()) {
       if (v == undefined) {
-        kv.delete(k);
+        kv.delete(JSON.stringify(k));
         continue;
       }
-      kv.set(k, decoder.decode(new Uint8Array(v)));
+      kv.set(JSON.stringify(k), decoder.decode(new Uint8Array(v)));
     }
   }
   const errs = msg.get(3) as Array<Map<number, string>> | undefined;
@@ -61,9 +85,8 @@ export function connect() {
     previous.close();
   }
   const sock = new Sockette(`wss://${window.location.host}/api/web/socket`, {
-    onerror: (e) => {
+    onerror: () => {
       state.value = { ...state.value, ready: false };
-      console.log(e);
     },
     onmessage: async (e) => {
       const msg = decoder.decode(new Uint8Array(await e.data.arrayBuffer()));
@@ -98,10 +121,8 @@ export function logError(msg: string | Error) {
   state.value = { ...state.value, errors };
 }
 
-export function sendUpdate(key: string, value?: any) {
-  const vbytes = value === undefined ? undefined : encoder.encode(value);
-  const updates = new Map([[key, vbytes]]);
-  const msg = new Map([[2, updates]]);
+export function sendUpdate(key: any, value?: any) {
+  const msg = new Map([[2, [[key, value]]]]);
   const payload = encoder.encode(msg);
   const sock = state.value.sock;
   if (sock === undefined) {

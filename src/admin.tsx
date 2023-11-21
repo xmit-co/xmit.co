@@ -1,5 +1,13 @@
 import { Header } from "./header.tsx";
-import { connect, logError, sendUpdate, State, StateCtx } from "./app.tsx";
+import {
+  connect,
+  loadSession,
+  logError,
+  sendUpdate,
+  Session,
+  State,
+  StateCtx,
+} from "./app.tsx";
 import { route } from "preact-router";
 import { useContext, useState } from "preact/hooks";
 import { enroll } from "./webauthn.tsx";
@@ -60,7 +68,7 @@ function JoinTeam() {
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             const v = (e.target as HTMLInputElement).value;
-            sendUpdate("joinTeam", v);
+            sendUpdate("j", v);
           } else if (e.key === "Escape") {
             setEditing(false);
           }
@@ -71,9 +79,14 @@ function JoinTeam() {
   return <button onClick={() => setEditing(true)}>⨝ join a team</button>;
 }
 
-function AdminBody({ state }: { state: State }) {
-  const session = state.kv.get("session");
-  const uid = session.get(1);
+function AdminBody({
+  session,
+  state,
+}: {
+  session?: Session | undefined;
+  state: State;
+}) {
+  const uid = session?.uid;
   const user = state.kv.get(`/u/${uid}`) || { get: () => undefined };
   return (
     <>
@@ -124,7 +137,7 @@ function AdminBody({ state }: { state: State }) {
         </div>
       </div>
       <div style={{ textAlign: "center" }}>
-        <button onClick={() => sendUpdate("createTeam")}>+ new team</button>
+        <button onClick={() => sendUpdate("j")}>+ new team</button>
         <JoinTeam />
       </div>
       <div>
@@ -137,18 +150,19 @@ function AdminBody({ state }: { state: State }) {
 
 export function Admin() {
   const state = useContext(StateCtx);
-  const session = state.value.kv.get("session");
-  if (session === undefined || session.get(1) === undefined) {
+  const session = loadSession(state.value);
+  const uid = session?.uid;
+  if (uid === undefined) {
     route("/");
     return <></>;
   }
 
   return (
     <div class="with-header">
-      <Header />
+      <Header session={session} />
       <div class="body">
         {state.value.ready ? (
-          <AdminBody state={state.value} />
+          <AdminBody session={session} state={state.value} />
         ) : (
           <div style={{ textAlign: "center" }}>
             <em>Loading…</em>

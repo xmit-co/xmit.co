@@ -1,9 +1,13 @@
 import { Header } from "./header.tsx";
+import { loadSession, StateCtx } from "./app.tsx";
+import { useContext } from "preact/hooks";
 
 export function Docs() {
+  const state = useContext(StateCtx);
+  const session = loadSession(state.value);
   return (
     <div class="with-header">
-      <Header />
+      <Header session={session} />
       <div className="body docs">
         <div className="section">
           <h2>
