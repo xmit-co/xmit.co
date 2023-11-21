@@ -16,6 +16,7 @@ div.errors {
   top: 0;
   left: 0;
   right: 0;
+  box-shadow: 0 0 8pt #000;
 }
 
 div.errors p {
