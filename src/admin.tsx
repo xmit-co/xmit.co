@@ -16,7 +16,8 @@ function EditableText({
       <input
         type="text"
         value={value}
-        autofocus={true}
+        ref={(e) => e && e.focus()}
+        onfocusin={(e) => (e.target as HTMLInputElement).select()}
         onfocusout={() => setEditing(false)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -40,6 +41,29 @@ function EditableText({
   );
 }
 
+function JoinTeam() {
+  const [editing, setEditing] = useState(false);
+  if (editing) {
+    return (
+      <input
+        type="text"
+        placeholder="Enter invite"
+        ref={(e) => e && e.focus()}
+        onfocusout={() => setEditing(false)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            const v = (e.target as HTMLInputElement).value;
+            sendUpdate("joinTeam", v);
+          } else if (e.key === "Escape") {
+            setEditing(false);
+          }
+        }}
+      />
+    );
+  }
+  return <button onClick={() => setEditing(true)}>⨝ join a team</button>;
+}
+
 function AdminBody({ state }: { state: State }) {
   const session = state.kv.get("session");
   const uid = session.get(1);
@@ -48,6 +72,10 @@ function AdminBody({ state }: { state: State }) {
   };
   return (
     <>
+      <p>
+        Admin interface incoming 😅 Check out our{" "}
+        <a href="https://demo.xmit.co/landed.html">prototype</a>.
+      </p>
       <div class="section">
         <h2>
           👤 #{uid}:{" "}
@@ -57,8 +85,12 @@ function AdminBody({ state }: { state: State }) {
           />
         </h2>
       </div>
-      Admin interface incoming 😅 Check out our{" "}
-      <a href="https://demo.xmit.co/landed.html">prototype</a>.
+      <p style={{ textAlign: "center" }}>
+        <button onClick={() => sendUpdate("createTeam", undefined)}>
+          + new team
+        </button>
+        <JoinTeam />
+      </p>
     </>
   );
 }
