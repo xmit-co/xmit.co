@@ -142,3 +142,14 @@ div.ssections > div {
   flex-basis: 0;
   flex-grow: 1;
 }
+
+p,
+pre {
+  margin: 2pt 0;
+  padding: 0;
+}
+
+ul {
+  margin: 2pt 0 2pt 1em;
+  padding: 0;
+}
