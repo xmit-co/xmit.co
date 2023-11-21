@@ -1,6 +1,7 @@
 import { Header } from "./header.tsx";
 import {
   connect,
+  load,
   loadSession,
   logError,
   sendUpdate,
@@ -82,6 +83,16 @@ function JoinTeam() {
   return <button onClick={() => setEditing(true)}>⨝ join a team</button>;
 }
 
+interface User {
+  id: number;
+  name: string | undefined;
+  teams: Map<number, undefined> | undefined;
+  apiKeys: Map<string, Map<number, any>> | undefined;
+  webKeys: Map<string, Map<number, any>> | undefined;
+  phone: string | undefined;
+  email: string | undefined;
+}
+
 function AdminBody({
   session,
   state,
@@ -90,14 +101,22 @@ function AdminBody({
   state: State;
 }) {
   const uid = session?.uid;
-  const user = state.kv.get(`/u/${uid}`) || { get: () => undefined };
+  const user = load(state, ["u", uid], {
+    id: 1,
+    name: 2,
+    teams: 3,
+    apiKeys: 4,
+    webKeys: 5,
+    phone: 6,
+    email: 7,
+  }) as User | undefined;
   return (
     <>
       <div class="section">
         <h2>
           👤 #{uid}:{" "}
           <EditableText
-            value={user.get(2)}
+            value={user?.name}
             whenMissing="Anonymous"
             submit={(v) => sendUpdate(`/u/${uid}`, new Map([[2, v]]))}
           />
@@ -123,7 +142,7 @@ function AdminBody({
               If we <em>need</em> to reach out?
               <br />
               <EditableText
-                value={user.get(6)}
+                value={user?.phone}
                 whenMissing="No phone #"
                 placeholder="Phone #"
                 autocomplete="tel"
@@ -131,7 +150,7 @@ function AdminBody({
               />
               <br />
               <EditableText
-                value={user.get(7)}
+                value={user?.email}
                 whenMissing="No E-mail"
                 placeholder="Email"
                 autocomplete="email"
