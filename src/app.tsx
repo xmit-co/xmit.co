@@ -61,9 +61,6 @@ export function connect() {
     previous.close();
   }
   const sock = new Sockette(`wss://${window.location.host}/api/web/socket`, {
-    onreconnect: () => {
-      state.value = { ...state.value, ready: false, kv: new Map() };
-    },
     onerror: (e) => {
       state.value = { ...state.value, ready: false };
       console.log(e);

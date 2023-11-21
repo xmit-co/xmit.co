@@ -138,8 +138,7 @@ function AdminBody({ state }: { state: State }) {
 export function Admin() {
   const state = useContext(StateCtx);
   const session = state.value.kv.get("session");
-  let ready = state.value.ready;
-  if (ready && (session === undefined || session.get(1) === undefined)) {
+  if (session === undefined || session.get(1) === undefined) {
     route("/");
     return <></>;
   }
@@ -148,7 +147,11 @@ export function Admin() {
     <div class="with-header">
       <Header />
       <div class="body">
-        {ready ? <AdminBody state={state.value} /> : <em>Initializing…</em>}
+        {state.value.ready ? (
+          <AdminBody state={state.value} />
+        ) : (
+          <em>Initializing…</em>
+        )}
       </div>
     </div>
   );
