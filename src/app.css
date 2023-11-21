@@ -138,7 +138,7 @@ div.ssections {
 }
 
 div.ssections > div {
-  min-width: 15em;
+  min-width: 20em;
   flex-basis: 0;
   flex-grow: 1;
 }
