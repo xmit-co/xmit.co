@@ -4,8 +4,8 @@ export function Docs() {
   return (
     <div class="with-header">
       <Header />
-      <div class="body docs">
-        <div class="section">
+      <div className="body docs">
+        <div className="section">
           <h2>
             📥 Install <code>xmit</code>
           </h2>
@@ -44,7 +44,7 @@ export function Docs() {
             </li>
           </ul>
         </div>
-        <div class="section">
+        <div className="section">
           <h2>🔑 Set your API key</h2>
           <p>
             For developer machines, create an API key for your user and store it
@@ -55,7 +55,7 @@ export function Docs() {
             team and set the environment variable <code>XMIT_KEY</code>.
           </p>
         </div>
-        <div class="section">
+        <div className="section">
           <h2>📇 Configure DNS</h2>
           <p>Assuming your team number is 42:</p>
           <ul>
@@ -68,13 +68,21 @@ export function Docs() {
             </li>
           </ul>
         </div>
-        <div class="section">
-          <h2>⚡️ Single Page Applications</h2>
+        <div className="section">
+          <h2>1️⃣ Single Page Applications</h2>
           <p>
-            Create in the root directory (<code>public</code> for Vite) a file
-            called <code>xmit.toml</code> with:
+            Create in the uploaded directory (in <code>public</code> for Vite) a
+            file called <code>xmit.toml</code> with:
           </p>
           <pre>fallback = "index.html"</pre>
+        </div>
+        <div className="section">
+          <h2>😔 Custom 404</h2>
+          <p>
+            Create in the uploaded directory a file called{" "}
+            <code>xmit.toml</code> with:
+          </p>
+          <pre>404 = "404.html"</pre>
         </div>
       </div>
     </div>
