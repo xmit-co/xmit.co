@@ -18,7 +18,7 @@ export function Home() {
       <h1>
         🛰 xmit — launch fast <span class="mark"> {mark}</span>
       </h1>
-      <p>
+      <div>
         <button onClick={() => route("/docs")}>📚 docs</button>
         <button onClick={() => enroll().then(connect).catch(logError)}>
           🤗 first time
@@ -26,7 +26,7 @@ export function Home() {
         <button onClick={() => signin().then(connect).catch(logError)}>
           🧐 returning
         </button>
-      </p>
+      </div>
     </div>
   );
 }
