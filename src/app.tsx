@@ -52,7 +52,7 @@ export interface Session {
 }
 
 export function loadSession(state: State) {
-  return load(state, "s", { uid: 1 }) as Session | undefined;
+  return load(state, "S", { uid: 1 }) as Session | undefined;
 }
 
 function ingestMessage(state: State, msg: Map<number, any>): State {

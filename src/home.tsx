@@ -1,11 +1,11 @@
-import { connect, load, logError, StateCtx } from "./app.tsx";
+import { connect, loadSession, logError, StateCtx } from "./app.tsx";
 import { route } from "preact-router";
 import { enroll, signin } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
 
 export function Home() {
   const state = useContext(StateCtx);
-  const session = load(state.value, "s", { uid: 1 });
+  const session = loadSession(state.value);
   const uid = session?.uid;
   if (uid !== undefined) {
     route("/admin");
