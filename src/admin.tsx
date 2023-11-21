@@ -19,7 +19,12 @@ function EditableText({
         value={value}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            submit((e.target as HTMLInputElement).value);
+            const v = (e.target as HTMLInputElement).value;
+            if (v == value) {
+              setEditing(false);
+            } else {
+              submit(v);
+            }
           }
         }}
       />

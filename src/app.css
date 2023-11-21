@@ -122,3 +122,13 @@ div.section {
   margin: 0 0 0.5em 0;
   gap: 1em;
 }
+
+input,
+select {
+  border: 1px solid white;
+  color: #fff;
+  background-color: #000;
+  font-size: inherit;
+  padding: 1pt;
+  border-radius: 2pt;
+}
