@@ -131,7 +131,7 @@ select {
 div.ssections {
   display: flex;
   flex-wrap: wrap;
-  gap: 2em;
+  gap: 1em;
 }
 
 div.ssections > div {
