@@ -33,6 +33,10 @@ h1 {
   font-size: 200%;
 }
 
+h1 .mark {
+  font-size: 6pt;
+}
+
 div.header {
   text-align: center;
 }

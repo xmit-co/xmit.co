@@ -64,7 +64,10 @@ export function connect() {
     onreconnect: () => {
       state.value = { ...state.value, ready: false, kv: new Map() };
     },
-    onerror: (e) => console.log(e),
+    onerror: (e) => {
+      state.value = { ...state.value, ready: false };
+      console.log(e);
+    },
     onmessage: async (e) => {
       const msg = decoder.decode(new Uint8Array(await e.data.arrayBuffer()));
       state.value = ingestMessage(state.value, msg);

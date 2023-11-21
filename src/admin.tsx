@@ -5,12 +5,10 @@ import { useContext } from "preact/hooks";
 
 export function Admin() {
   const state = useContext(StateCtx);
-  if (state.value.ready) {
-    const session = state.value.kv.get("session");
-    if (session === undefined || session.get(1) === undefined) {
-      route("/");
-      return <></>;
-    }
+  const session = state.value.kv.get("session");
+  if (session === undefined || session.get(1) === undefined) {
+    route("/");
+    return <></>;
   }
 
   return (
