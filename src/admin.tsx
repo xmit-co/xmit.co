@@ -72,7 +72,8 @@ function JoinTeam() {
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             const v = (e.target as HTMLInputElement).value;
-            sendUpdate("j", v);
+            if (v !== "") sendUpdate("j", v);
+            setEditing(false);
           } else if (e.key === "Escape") {
             setEditing(false);
           }
