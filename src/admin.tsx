@@ -15,8 +15,9 @@ function EditableText({
     return (
       <input
         type="text"
-        autofocus
         value={value}
+        autofocus={true}
+        onfocusout={() => setEditing(false)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             const v = (e.target as HTMLInputElement).value;
@@ -25,6 +26,8 @@ function EditableText({
             } else {
               submit(v);
             }
+          } else if (e.key === "Escape") {
+            setEditing(false);
           }
         }}
       />
@@ -63,25 +66,17 @@ function AdminBody({ state }: { state: State }) {
 export function Admin() {
   const state = useContext(StateCtx);
   const session = state.value.kv.get("session");
-  let lockedAndLoaded = true;
-  if (session === undefined || session.get(1) === undefined) {
-    if (state.value.ready) {
-      route("/");
-      return <></>;
-    } else {
-      lockedAndLoaded = false;
-    }
+  let ready = state.value.ready;
+  if (ready && (session === undefined || session.get(1) === undefined)) {
+    route("/");
+    return <></>;
   }
 
   return (
     <div class="with-header">
       <Header />
       <div class="body">
-        {lockedAndLoaded ? (
-          <AdminBody state={state.value} />
-        ) : (
-          <em>Loading…</em>
-        )}
+        {ready ? <AdminBody state={state.value} /> : <em>Initializing…</em>}
       </div>
     </div>
   );
