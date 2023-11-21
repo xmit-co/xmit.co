@@ -150,7 +150,9 @@ export function Admin() {
         {state.value.ready ? (
           <AdminBody state={state.value} />
         ) : (
-          <em>Initializing…</em>
+          <div style={{ textAlign: "center" }}>
+            <em>Loading…</em>
+          </div>
         )}
       </div>
     </div>
