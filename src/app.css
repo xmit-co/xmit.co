@@ -114,3 +114,11 @@ a {
   color: #ff0;
   text-decoration: none;
 }
+
+div.section {
+  border-radius: 0.5em;
+  background-color: #181818;
+  padding: 0.25em 1em;
+  margin: 0 0 0.5em 0;
+  gap: 1em;
+}
