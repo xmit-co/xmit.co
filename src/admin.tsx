@@ -81,7 +81,8 @@ function AdminBody({ state }: { state: State }) {
         <h2>
           👤 #{uid}:{" "}
           <EditableText
-            value={user.get(2) || "anonymous"}
+            value={user.get(2)}
+            whenMissing="Anonymous"
             submit={(v) => sendUpdate(`/u/${uid}`, new Map([[2, v]]))}
           />
         </h2>
