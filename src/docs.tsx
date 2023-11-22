@@ -2,6 +2,20 @@ import { Header } from "./header.tsx";
 import { loadSession, StateCtx } from "./app.tsx";
 import { useContext } from "preact/hooks";
 
+function CopiableCode({ children }: { children: string }) {
+  return (
+    <code
+      class="clickable"
+      onClick={() => {
+        navigator.clipboard.writeText(children);
+      }}
+    >
+      {children}
+      <button>📋</button>
+    </code>
+  );
+}
+
 export function Docs() {
   const state = useContext(StateCtx);
   const session = loadSession(state.value);
@@ -20,7 +34,7 @@ export function Docs() {
           <ul>
             <li>
               Add a dependency with{" "}
-              <code>npm install --save-dev @xmit.co/xmit</code>;
+              <CopiableCode>npm install --save-dev @xmit.co/xmit</CopiableCode>;
             </li>
             <li>
               Create a <code>deploy</code> script in <code>package.json</code>{" "}
@@ -32,12 +46,12 @@ export function Docs() {
               </pre>
             </li>
             <li>
-              Invoke it with <code>npm run deploy</code>.
+              Invoke it with <CopiableCode>npm run deploy</CopiableCode>.
             </li>
           </ul>
           <h4>globally</h4>
           <p>
-            Invoke with <code>npx @xmit.co/xmit</code>.
+            Invoke with <CopiableCode>npx @xmit.co/xmit</CopiableCode>.
           </p>
           <h3>
             with <code>go</code>
@@ -45,7 +59,10 @@ export function Docs() {
           <ul>
             <li>
               Install with{" "}
-              <code>go install github.com/xmit-co/xmit@latest</code>;
+              <CopiableCode>
+                go install github.com/xmit-co/xmit@latest
+              </CopiableCode>
+              ;
             </li>
             <li>
               Make sure your <code>PATH</code> includes{" "}
@@ -61,7 +78,7 @@ export function Docs() {
               already;
             </li>
             <li>
-              Run <code>brew install xmit-co/tap/xmit</code>.
+              Run <CopiableCode>brew install xmit-co/tap/xmit</CopiableCode>.
             </li>
           </ul>
           <h3>from an archive (Windows &amp; Linux)</h3>
