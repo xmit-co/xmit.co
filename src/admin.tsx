@@ -56,10 +56,9 @@ function EditableText({
     );
   }
   return (
-    <>
-      {value || <em>{whenMissing}</em>}{" "}
-      <button onClick={() => setEditing(true)}>✎</button>
-    </>
+    <span class="clickable" onClick={() => setEditing(true)}>
+      {value || <em>{whenMissing}</em>} <button>✎</button>
+    </span>
   );
 }
 

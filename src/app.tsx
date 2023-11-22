@@ -130,6 +130,7 @@ function Errors() {
   }
   const elems = errors.map((e, idx) => (
     <div
+      class="clickable"
       onClick={() =>
         (state.value = { ...state.value, errors: errors.toSpliced(idx, 1) })
       }
