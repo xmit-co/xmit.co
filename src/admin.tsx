@@ -1,6 +1,5 @@
 import { Header } from "./header.tsx";
 import {
-  connect,
   load,
   loadSession,
   logError,
@@ -126,9 +125,7 @@ function AdminBody({
           <div>
             <h3>
               🔐 Web passkeys{" "}
-              <button onClick={() => enroll().then(connect).catch(logError)}>
-                +
-              </button>
+              <button onClick={() => enroll().catch(logError)}>+</button>
             </h3>
           </div>
           <div>

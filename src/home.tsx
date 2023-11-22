@@ -1,10 +1,4 @@
-import {
-  connect,
-  loadSession,
-  logError,
-  reconnectBC,
-  StateCtx,
-} from "./app.tsx";
+import { loadSession, logError, reconnectChannel, StateCtx } from "./app.tsx";
 import { route } from "preact-router";
 import { enroll, signin } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
@@ -29,21 +23,13 @@ export function Home() {
         <button
           onClick={() =>
             enroll()
-              .then(() => reconnectBC.postMessage(undefined))
+              .then(() => reconnectChannel.postMessage(undefined))
               .catch(logError)
           }
         >
           🤗 first time
         </button>
-        <button
-          onClick={() =>
-            signin()
-              .then(() => reconnectBC.postMessage(undefined))
-              .catch(logError)
-          }
-        >
-          🧐 returning
-        </button>
+        <button onClick={() => signin().catch(logError)}>🧐 returning</button>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { encoder } from "./app.tsx";
+import { encoder, reconnectChannel } from "./app.tsx";
 
 const userName = "anonymous";
 const userID = new TextEncoder().encode(userName);
@@ -83,6 +83,7 @@ export async function signin() {
     const body = await resp.text();
     throw new Error(`Could not sign in: ${body}`);
   }
+  reconnectChannel.postMessage(undefined);
 }
 
 export async function signout() {
@@ -91,4 +92,5 @@ export async function signout() {
     const body = await resp.text();
     throw new Error(`Could not sign out: ${body}`);
   }
+  reconnectChannel.postMessage(undefined);
 }

@@ -1,5 +1,5 @@
 import { Link } from "preact-router/match";
-import { connect, Session, StateCtx } from "./app.tsx";
+import { logError, Session, StateCtx } from "./app.tsx";
 import { signout } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
 
@@ -22,7 +22,7 @@ export function Header({ session }: { session?: Session }) {
           <Link activeClassName="header-active" href="/admin">
             🛠 admin
           </Link>
-          <Link onClick={() => signout().then(connect)}>🔓 sign out</Link>
+          <Link onClick={() => signout().catch(logError)}>🔓 sign out</Link>
         </div>
       </div>
     );

@@ -16,8 +16,8 @@ export const encoder = new Encoder(CBOROptions);
 
 export const decoder = new Decoder(CBOROptions);
 
-export const reconnectBC = new BroadcastChannel("reconnect");
-reconnectBC.onmessage = () => connect();
+export const reconnectChannel = new BroadcastChannel("reconnect");
+new BroadcastChannel("reconnect").onmessage = connect;
 
 export interface State {
   ready: boolean;
@@ -82,7 +82,7 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
   return { ...state, ready, kv, errors };
 }
 
-export function connect() {
+function connect() {
   const previous = state.value.sock;
   if (previous !== undefined) {
     previous.close();
@@ -100,20 +100,6 @@ export function connect() {
 }
 
 connect();
-
-export function disconnect() {
-  const sock = state.value.sock;
-  if (sock === undefined) {
-    return;
-  }
-  sock.close();
-  state.value = {
-    ...state.value,
-    ready: false,
-    kv: new Map(),
-    sock: undefined,
-  };
-}
 
 export function logError(msg: string | Error) {
   if (msg instanceof Error) {
