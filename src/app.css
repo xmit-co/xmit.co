@@ -140,10 +140,12 @@ select {
 div.ssections {
   display: flex;
   flex-wrap: wrap;
-  gap: 1em;
+  gap: 2em;
+  padding: 1em;
 }
 
 div.ssections > div {
+  position: relative;
   min-width: 20em;
   flex-basis: 0;
   flex-grow: 1;
@@ -158,4 +160,14 @@ pre {
 ul {
   margin: 2pt 0 2pt 1em;
   padding: 0;
+}
+
+h2 {
+  position: relative;
+}
+
+span.icon {
+  display: block;
+  position: absolute;
+  left: -1.2em;
 }

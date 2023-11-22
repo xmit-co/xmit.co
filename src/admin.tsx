@@ -113,18 +113,20 @@ function AdminBody({
   return (
     <>
       <div class="section">
-        <h2>
-          👤 #{uid}:{" "}
-          <EditableText
-            value={user?.name}
-            whenMissing="Anonymous"
-            submit={(v) => sendUpdate(["u", uid], new Map([[2, v]]))}
-          />
-        </h2>
+        <div class="ssections">
+          <h2>
+            <span class="icon">👤</span>#{uid}:{" "}
+            <EditableText
+              value={user?.name}
+              whenMissing="Anonymous"
+              submit={(v) => sendUpdate(["u", uid], new Map([[2, v]]))}
+            />
+          </h2>
+        </div>
         <div class="ssections">
           <div>
             <h3>
-              🔐 Web passkeys{" "}
+              <span class="icon">🔐</span>Web passkeys{" "}
               <button onClick={() => enroll().catch(logError)}>+</button>
             </h3>
             <div>
@@ -133,7 +135,7 @@ function AdminBody({
           </div>
           <div>
             <h3>
-              🔑 API keys{" "}
+              <span class="icon">🔑</span>API keys{" "}
               <button onClick={() => sendUpdate(["u", uid, "k"])}>+</button>
             </h3>
             <div>
@@ -141,7 +143,9 @@ function AdminBody({
             </div>
           </div>
           <div>
-            <h3>📇 Contact</h3>
+            <h3>
+              <span class="icon">📇</span>Contact
+            </h3>
             <div>
               If we <em>need</em> to reach out?
               <br />
