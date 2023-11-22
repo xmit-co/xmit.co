@@ -16,6 +16,9 @@ export const encoder = new Encoder(CBOROptions);
 
 export const decoder = new Decoder(CBOROptions);
 
+export const reconnectBC = new BroadcastChannel("reconnect");
+reconnectBC.onmessage = () => connect();
+
 export interface State {
   ready: boolean;
   kv: Map<string, any>;
