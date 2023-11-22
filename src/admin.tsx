@@ -19,6 +19,7 @@ function EditableText({
   whenMissing,
   autocomplete,
 }: {
+  class?: string | undefined;
   value: string | undefined;
   whenMissing?: string | undefined;
   placeholder?: string | undefined;
@@ -47,6 +48,10 @@ function EditableText({
           } else if (e.key === "Escape") {
             setEditing(false);
           }
+        }}
+        onInput={(e) => {
+          const t = e.target as HTMLInputElement;
+          t.style.width = `max(10em, ${t.value.length}ch)`;
         }}
       />
     );

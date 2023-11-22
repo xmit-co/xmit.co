@@ -137,6 +137,11 @@ select {
   border-radius: 2pt;
 }
 
+input[type="text"] {
+  font-family: monospace;
+  width: 10em;
+}
+
 div.ssections {
   display: flex;
   flex-wrap: wrap;
