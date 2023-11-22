@@ -85,6 +85,7 @@ button {
   margin: 2pt;
   border-radius: 2pt;
   display: inline-block;
+  font-size: 9pt;
 }
 
 div.header a:hover,
@@ -146,7 +147,7 @@ div.ssections {
   display: flex;
   flex-wrap: wrap;
   gap: 2em;
-  padding: 1em;
+  padding: 0.5em 1em;
 }
 
 div.ssections > div {

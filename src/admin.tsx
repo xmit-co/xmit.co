@@ -135,7 +135,7 @@ function AdminBody({
               <button onClick={() => enroll().catch(logError)}>+</button>
             </h3>
             <div>
-              <em>None yet.</em>
+              <em>None.</em>
             </div>
           </div>
           <div>
@@ -144,7 +144,7 @@ function AdminBody({
               <button onClick={() => sendUpdate(["u", uid, "k"])}>+</button>
             </h3>
             <div>
-              <em>None yet.</em>
+              <em>None.</em>
             </div>
           </div>
           <div>
