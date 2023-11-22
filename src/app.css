@@ -177,3 +177,25 @@ span.icon {
   position: absolute;
   left: -1.2em;
 }
+
+.docs h2,
+.docs h3 {
+  margin-left: 1.5rem;
+}
+
+.docs h4 {
+  margin-left: 3rem;
+}
+
+.docs p,
+.docs pre {
+  margin-left: 5rem;
+}
+
+.docs ul pre {
+  margin-left: 0;
+}
+
+.docs ul {
+  margin-left: 6rem;
+}

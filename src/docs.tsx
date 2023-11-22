@@ -11,9 +11,37 @@ export function Docs() {
       <div className="body docs">
         <div className="section">
           <h2>
-            📥 Install <code>xmit</code>
+            <span class="icon">📥</span>Install <code>xmit</code>
           </h2>
-          <h3>Go developers</h3>
+          <h3>
+            with <code>npm</code>
+          </h3>
+          <h4>in a project</h4>
+          <ul>
+            <li>
+              Add a dependency with{" "}
+              <code>npm install --save-dev @xmit.co/xmit</code>;
+            </li>
+            <li>
+              Create a <code>deploy</code> script in <code>package.json</code>{" "}
+              like this example:
+              <pre>
+                {
+                  '{\n  "scripts": {\n    "deploy":  "tsc && vite build && xmit example.com"\n  }\n}'
+                }
+              </pre>
+            </li>
+            <li>
+              Invoke it with <code>npm run deploy</code>.
+            </li>
+          </ul>
+          <h4>globally</h4>
+          <p>
+            Invoke with <code>npx @xmit.co/xmit</code>.
+          </p>
+          <h3>
+            with <code>go</code>
+          </h3>
           <ul>
             <li>
               Install with{" "}
@@ -24,7 +52,9 @@ export function Docs() {
               <code>$(go env GOPATH)/bin</code>.
             </li>
           </ul>
-          <h3>On Mac</h3>
+          <h3>
+            with <code>brew</code> (Mac)
+          </h3>
           <ul>
             <li>
               Install <a href="https://brew.sh/">brew</a> if you haven't
@@ -34,7 +64,7 @@ export function Docs() {
               Run <code>brew install xmit-co/tap/xmit</code>.
             </li>
           </ul>
-          <h3>On Windows and Linux</h3>
+          <h3>from an archive (Windows &amp; Linux)</h3>
           <ul>
             <li>
               Download from the{" "}
@@ -49,31 +79,39 @@ export function Docs() {
           </ul>
         </div>
         <div className="section">
-          <h2>🔑 Set your API key</h2>
+          <h2>
+            <span class="icon">🔑</span>Set your API key
+          </h2>
           <p>
             For developer machines, create an API key for your user and store it
             with <code>xmit set-key</code>.
           </p>
           <p>
-            In shared environments like automation, create an API key for your
-            team and set the environment variable <code>XMIT_KEY</code>.
+            In shared environments like CI, create an API key for your team and
+            set the environment variable <code>XMIT_KEY</code> through the
+            environment's secrets.
           </p>
         </div>
         <div className="section">
-          <h2>📇 Configure DNS</h2>
+          <h2>
+            <span class="icon">📇</span>Configure DNS
+          </h2>
           <p>Assuming your team number is 42:</p>
           <ul>
             <li>
-              Point your domain(s) to our services by creating a{" "}
-              <code>CNAME 42.xmit.co</code>;
+              Point your domain(s) to our services by creating CNAMEs like:
+              <pre>{"@ CNAME 42.xmit.co.\n* CNAME 42.xmit.co."}</pre>
             </li>
             <li>
-              If you use a CDN, create a <code>TXT "xmit=42"</code>.
+              If you use a CDN, the CNAMEs won't be visible; create{" "}
+              <code>@ TXT "xmit=42"</code>.
             </li>
           </ul>
         </div>
         <div className="section">
-          <h2>1️⃣ Single Page Applications</h2>
+          <h2>
+            <span class="icon">1️⃣</span>Single Page Applications
+          </h2>
           <p>
             Create in the uploaded directory (in <code>public</code> for Vite) a
             file called <code>xmit.toml</code> with:
@@ -81,7 +119,9 @@ export function Docs() {
           <pre>fallback = "index.html"</pre>
         </div>
         <div className="section">
-          <h2>😔 Custom 404</h2>
+          <h2>
+            <span class="icon">😔</span>Custom 404
+          </h2>
           <p>
             Create in the uploaded directory a file called{" "}
             <code>xmit.toml</code> with:
