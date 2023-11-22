@@ -186,9 +186,10 @@ function AdminBody({
 
 export function Admin() {
   const state = useContext(StateCtx);
+  const ready = state.value.ready;
   const session = loadSession(state.value);
   const uid = session?.uid;
-  if (uid === undefined) {
+  if (ready && uid === undefined) {
     route("/");
     return <></>;
   }
@@ -197,7 +198,7 @@ export function Admin() {
     <div class="with-header">
       <Header session={session} />
       <div class="body">
-        {state.value.ready ? (
+        {ready ? (
           <AdminBody session={session} state={state.value} />
         ) : (
           <div style={{ textAlign: "center" }}>
