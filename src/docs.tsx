@@ -25,7 +25,23 @@ export function Docs() {
       <div className="body docs">
         <div className="section">
           <h2>
-            <span class="icon">📥</span>Install <code>xmit</code>
+            <span className="icon">📇</span>Configure DNS
+          </h2>
+          <p>Assuming your team number is 42:</p>
+          <ul>
+            <li>
+              Point your domain(s) to our services by creating CNAMEs like:
+              <pre>{"@ CNAME 42.xmit.co.\n* CNAME 42.xmit.co."}</pre>
+            </li>
+            <li>
+              If you use a CDN, the CNAMEs won't be visible; create{" "}
+              <code>@ TXT "xmit=42"</code>.
+            </li>
+          </ul>
+        </div>
+        <div className="section">
+          <h2>
+            <span className="icon">📥</span>Install <code>xmit</code>
           </h2>
           <h3>
             with <code>npm</code>
@@ -97,7 +113,7 @@ export function Docs() {
         </div>
         <div className="section">
           <h2>
-            <span class="icon">🔑</span>Set your API key
+            <span className="icon">🔑</span>Set your API key
           </h2>
           <p>
             For developer machines, create an API key for your user and store it
@@ -111,23 +127,7 @@ export function Docs() {
         </div>
         <div className="section">
           <h2>
-            <span class="icon">📇</span>Configure DNS
-          </h2>
-          <p>Assuming your team number is 42:</p>
-          <ul>
-            <li>
-              Point your domain(s) to our services by creating CNAMEs like:
-              <pre>{"@ CNAME 42.xmit.co.\n* CNAME 42.xmit.co."}</pre>
-            </li>
-            <li>
-              If you use a CDN, the CNAMEs won't be visible; create{" "}
-              <code>@ TXT "xmit=42"</code>.
-            </li>
-          </ul>
-        </div>
-        <div className="section">
-          <h2>
-            <span class="icon">1️⃣</span>Single Page Applications
+            <span className="icon">1️⃣</span>Single Page Applications
           </h2>
           <p>
             Create in the uploaded directory (in <code>public</code> for Vite) a
@@ -137,7 +137,7 @@ export function Docs() {
         </div>
         <div className="section">
           <h2>
-            <span class="icon">😔</span>Custom 404
+            <span className="icon">😔</span>Custom 404
           </h2>
           <p>
             Create in the uploaded directory a file called{" "}
