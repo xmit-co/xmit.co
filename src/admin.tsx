@@ -122,7 +122,7 @@ function AdminBody({
             <EditableText
               type="text"
               value={user?.name}
-              whenMissing="Anonymous"
+              whenMissing="anonymous"
               submit={(v) => sendUpdate(["u", uid], new Map([[2, v]]))}
             />
           </h2>
