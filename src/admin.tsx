@@ -127,12 +127,18 @@ function AdminBody({
               🔐 Web passkeys{" "}
               <button onClick={() => enroll().catch(logError)}>+</button>
             </h3>
+            <div>
+              <em>None yet.</em>
+            </div>
           </div>
           <div>
             <h3>
               🔑 API keys{" "}
               <button onClick={() => sendUpdate(["u", uid, "k"])}>+</button>
             </h3>
+            <div>
+              <em>None yet.</em>
+            </div>
           </div>
           <div>
             <h3>📇 Contact</h3>

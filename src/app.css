@@ -87,6 +87,11 @@ button {
   display: inline-block;
 }
 
+div.header a:hover,
+button:hover {
+  background-color: #888;
+}
+
 div.header a.header-active {
   color: #fff;
   background-color: #080;
