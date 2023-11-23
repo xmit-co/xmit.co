@@ -34,8 +34,8 @@ export function Docs() {
               <pre>{"@ CNAME 42.xmit.co.\n* CNAME 42.xmit.co."}</pre>
             </li>
             <li>
-              If you use a CDN, the CNAMEs won't be visible; create{" "}
-              <code>@ TXT "xmit=42"</code>.
+              If you use a CDN or want to upload before changing what your
+              domain points to, create <code>@ TXT "xmit=42"</code>.
             </li>
           </ul>
         </div>
