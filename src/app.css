@@ -199,3 +199,7 @@ span.icon {
 .docs ul {
   margin-left: 6rem;
 }
+
+pre {
+  white-space: pre-wrap;
+}
