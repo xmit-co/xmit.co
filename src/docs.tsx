@@ -154,7 +154,11 @@ export function Docs() {
             Create in the uploaded directory (in <code>public</code> for Vite) a
             file called <code>xmit.toml</code> with, for example:
           </p>
-          <pre>{'[headers]\naccess-control-allow-origin = "*"'}</pre>
+          <pre>
+            {
+              '[headers]\naccess-control-allow-origin = "*"\nreferrer-policy: "" # unsets the header'
+            }
+          </pre>
         </div>
       </div>
       <Footer />
