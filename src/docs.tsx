@@ -1,6 +1,7 @@
 import { Header } from "./header.tsx";
 import { loadSession, StateCtx } from "./app.tsx";
 import { useContext } from "preact/hooks";
+import { Footer } from "./footer.tsx";
 
 function CopiableCode({ children }: { children: string }) {
   return (
@@ -30,12 +31,13 @@ export function Docs() {
           <p>Assuming your team number is 42:</p>
           <ul>
             <li>
-              Point your domain(s) to our services by creating CNAMEs like:
+              Point your domains to our services by creating CNAMEs like:
               <pre>{"@ CNAME 42.xmit.co.\n* CNAME 42.xmit.co."}</pre>
+              (we need a <code>*</code> or <code>www</code> record for any
+              domain that doesn't start with <code>www</code>)
             </li>
             <li>
-              If you use a CDN or want to upload before changing what your
-              domain points to, create <code>@ TXT "xmit=42"</code>.
+              If you use a CDN, also create <code>@ TXT "xmit=42"</code>.
             </li>
           </ul>
         </div>
@@ -121,8 +123,7 @@ export function Docs() {
           </p>
           <p>
             In shared environments like CI, create an API key for your team and
-            set the environment variable <code>XMIT_KEY</code> through the
-            environment's secrets.
+            set the environment variable <code>XMIT_KEY</code>.
           </p>
         </div>
         <div className="section">
@@ -146,6 +147,7 @@ export function Docs() {
           <pre>404 = "404.html"</pre>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

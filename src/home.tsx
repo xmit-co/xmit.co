@@ -2,6 +2,7 @@ import { loadSession, logError, reconnectChannel, StateCtx } from "./app.tsx";
 import { route } from "preact-router";
 import { enroll, signin } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
+import { Footer } from "./footer.tsx";
 
 export function Home() {
   const state = useContext(StateCtx);
@@ -31,6 +32,7 @@ export function Home() {
         </button>
         <button onClick={() => signin().catch(logError)}>🧐 returning</button>
       </div>
+      <Footer />
     </div>
   );
 }

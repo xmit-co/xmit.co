@@ -29,8 +29,8 @@ devDependencies:
     specifier: ^1.0.2
     version: 1.0.2(vite@5.0.0)
   '@xmit.co/xmit':
-    specifier: 0.1.8-0
-    version: 0.1.8-0
+    specifier: 0.2.3-0
+    version: 0.2.3-0
   prettier:
     specifier: ^3.1.0
     version: 3.1.0
@@ -744,8 +744,8 @@ packages:
       vite: 5.0.0
     dev: true
 
-  /@xmit.co/xmit@0.1.8-0:
-    resolution: {integrity: sha512-g+i54jKlx+7C9dbFYw2KT65sxJ5FdbRO0KFx3VrqBFMJdYsuj9pzrhStElgHSLq01K+K4sntAQ0+HObByiD+dw==}
+  /@xmit.co/xmit@0.2.3-0:
+    resolution: {integrity: sha512-1FxH8InyWwyfkgz0tKjpFLMajAvqsd21QoG4OkSaZlyVoqbUz3nOoe5YGCo7q7Jk3rx4Sbx+QD0QmFtb1mzPgg==}
     hasBin: true
     requiresBuild: true
     dependencies:

@@ -11,6 +11,7 @@ import {
 import { route } from "preact-router";
 import { useContext, useState } from "preact/hooks";
 import { enroll } from "./webauthn.tsx";
+import { Footer } from "./footer.tsx";
 
 function EditableText({
   value,
@@ -176,10 +177,7 @@ function AdminBody({
         <button onClick={() => sendUpdate("j")}>+ new team</button>
         <JoinTeam />
       </div>
-      <div>
-        Admin interface incoming 😅 Check out our{" "}
-        <a href="https://demo.xmit.co/landed.html">prototype</a>.
-      </div>
+      <Footer />
     </>
   );
 }

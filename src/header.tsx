@@ -11,7 +11,7 @@ export function Header({ session }: { session?: Session }) {
 
   if (uid !== undefined) {
     return (
-      <div class="header">
+      <header>
         <h1>
           🛰 xmit — launch fast <span class="mark">{mark}</span>
         </h1>
@@ -24,11 +24,11 @@ export function Header({ session }: { session?: Session }) {
           </Link>
           <Link onClick={() => signout().catch(logError)}>🔓 sign out</Link>
         </div>
-      </div>
+      </header>
     );
   }
   return (
-    <div class="header">
+    <header>
       <h1>
         🛰 xmit — launch fast <span className="mark">{mark}</span>
       </h1>
@@ -40,6 +40,6 @@ export function Header({ session }: { session?: Session }) {
           🚪 enter
         </Link>
       </div>
-    </div>
+    </header>
   );
 }
