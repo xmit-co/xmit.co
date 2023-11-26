@@ -146,6 +146,16 @@ export function Docs() {
           </p>
           <pre>404 = "404.html"</pre>
         </div>
+        <div className="section">
+          <h2>
+            <span className="icon">🏷️</span>Custom headers
+          </h2>
+          <p>
+            Create in the uploaded directory (in <code>public</code> for Vite) a
+            file called <code>xmit.toml</code> with, for example:
+          </p>
+          <pre>{'[headers]\naccess-control-allow-origin = "*"'}</pre>
+        </div>
       </div>
       <Footer />
     </div>
