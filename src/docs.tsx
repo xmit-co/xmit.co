@@ -160,6 +160,20 @@ export function Docs() {
             }
           </pre>
         </div>
+        <div className="section">
+          <h2>
+            <span className="icon">↪️</span>Redirects
+          </h2>
+          <p>
+            Create in the uploaded directory (in <code>public</code> for Vite) a
+            file called <code>xmit.toml</code> with, for example:
+          </p>
+          <pre>
+            {
+              '[[redirects]]\nfrom = "/login"\nto = "https://login.acme.com"\n\n[[redirects]]\nfrom = "/new/(.*)"\nto = "/$1"\npermanent = true'
+            }
+          </pre>
+        </div>
       </div>
       <Footer />
     </div>
