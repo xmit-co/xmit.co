@@ -116,6 +116,10 @@ function AdminBody({
   }) as User | undefined;
   return (
     <>
+      <p>
+        Not functional yet. See{" "}
+        <a href="https://demo.xmit.co/landed.html">a fuller preview</a>.
+      </p>
       <div class="section">
         <div class="ssections">
           <h2>
