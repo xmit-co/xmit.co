@@ -134,6 +134,8 @@ div.section {
 
 input,
 select {
+  font-family: monospace;
+  width: 10em;
   border: 1px solid white;
   color: #fff;
   background-color: #000;
@@ -141,11 +143,6 @@ select {
   padding: 1pt;
   margin: 2pt;
   border-radius: 2pt;
-}
-
-input[type="text"] {
-  font-family: monospace;
-  width: 10em;
 }
 
 div.ssections {

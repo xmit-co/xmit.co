@@ -156,7 +156,7 @@ export function Docs() {
           </p>
           <pre>
             {
-              '[headers]\naccess-control-allow-origin = "*"\nreferrer-policy: "" # unsets the header'
+              '[[headers]]\nname = "access-control-allow-origin"\nvalue = "*"\n\n[[headers]]\n# unsets the header\nname = "referrer-policy"'
             }
           </pre>
         </div>
