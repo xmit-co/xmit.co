@@ -101,7 +101,7 @@ button:hover {
 header a.header-active {
   color: #fff;
   background-color: #080;
-  border: none;
+  border: 1px solid #080;
 }
 
 div.home {
