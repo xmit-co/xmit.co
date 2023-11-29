@@ -156,7 +156,7 @@ export function Docs() {
           </p>
           <pre>
             {
-              '[[headers]]\nname = "access-control-allow-origin"\nvalue = "*"\n\n[[headers]]\n# unsets the header\nname = "referrer-policy"'
+              '[[headers]] # cache assets for a year\nname = "cache-control"\nvalue = "public, max-age=31536000"\non = "/assets/.*"\n\n[[headers]] # add CORS\nname = "access-control-allow-origin"\nvalue = "*"\n\n[[headers]] # unset referrer-policy\nname = "referrer-policy"'
             }
           </pre>
         </div>
