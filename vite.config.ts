@@ -3,7 +3,7 @@ import preact from "@preact/preset-vite";
 import basicSsl from "@vitejs/plugin-basic-ssl";
 
 export default defineConfig({
-  plugins: [preact({ devtoolsInProd: true }), basicSsl()],
+  plugins: [preact(), basicSsl()],
   server: {
     proxy: {
       "/api/web": {
