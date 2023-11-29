@@ -22,7 +22,7 @@ export function Header({ session }: { session?: Session }) {
           <Link activeClassName="header-active" href="/admin">
             🛠 admin
           </Link>
-          <Link onClick={() => signout().catch(logError)}>🔓 sign out</Link>
+          <Link onClick={() => signout().catch(logError)}>🚪 sign out</Link>
         </div>
       </header>
     );

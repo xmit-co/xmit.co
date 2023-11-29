@@ -58,7 +58,8 @@ function EditableText({
   }
   return (
     <span class="clickable" onClick={() => setEditing(true)}>
-      {value || <em>{whenMissing}</em>} <button>✎</button>
+      {value || <em>{whenMissing}</em>}
+      <button>✎</button>
     </span>
   );
 }
@@ -95,6 +96,26 @@ interface User {
   webKeys: Map<string, Map<number, any>> | undefined;
   phone: string | undefined;
   email: string | undefined;
+}
+
+function WebKey({ raw, attrs }: { raw: string; attrs: Map<number, any> }) {
+  const name = attrs.get(1) as string;
+  const created = attrs.get(2) as Date;
+  return (
+    <div>
+      <EditableText
+        value={name}
+        placeholder="Name"
+        whenMissing="unnamed"
+        submit={(v) => sendUpdate(["k", raw], new Map([[1, v]]))}
+      />
+      <button class="delete" onClick={() => sendUpdate(["k", raw])}>
+        ✕
+      </button>
+      <br />
+      created {created.toISOString()}
+    </div>
+  );
 }
 
 function AdminBody({
@@ -138,9 +159,9 @@ function AdminBody({
               <span class="icon">🔐</span>Web passkeys{" "}
               <button onClick={() => enroll().catch(logError)}>+</button>
             </h3>
-            <div>
-              <em>None.</em>
-            </div>
+            {Array.from(user?.webKeys?.entries() || []).map(([raw, attrs]) => (
+              <WebKey raw={raw} attrs={attrs} />
+            ))}
           </div>
           <div>
             <h3>
