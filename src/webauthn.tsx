@@ -1,6 +1,6 @@
 import { encoder, reconnectChannel } from "./app.tsx";
 
-const userName = "anonymous";
+const userName = "passkey";
 const userID = new TextEncoder().encode(userName);
 
 export async function enroll() {
