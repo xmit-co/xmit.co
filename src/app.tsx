@@ -135,7 +135,7 @@ function Errors() {
         (state.value = { ...state.value, errors: errors.toSpliced(idx, 1) })
       }
     >
-      {e}
+      {e} ⨉
     </div>
   ));
   return <div class="errors">{elems}</div>;
