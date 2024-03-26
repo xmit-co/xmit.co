@@ -100,7 +100,7 @@ interface User {
 
 function WebKey({ raw, attrs }: { raw: string; attrs: Map<number, any> }) {
   const name = attrs.get(1) as string;
-  const created = attrs.get(2) as Date;
+  const created = new Date(attrs.get(2) * 1000);
   return (
     <div>
       <EditableText

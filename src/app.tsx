@@ -1,3 +1,4 @@
+import "preact/debug";
 import "./app.css";
 import Router, { Route } from "preact-router";
 import { Decoder, Encoder } from "cbor-x";
@@ -65,7 +66,8 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
   }
   const updates = msg.get(2) as [[any, any]] | undefined;
   if (updates !== undefined) {
-    for (const [k, v] of updates.values()) {
+    for (const [str, v] of updates.values()) {
+      const k = decoder.decode(str);
       if (v === undefined || v === null) {
         kv.delete(JSON.stringify(k));
         continue;
@@ -112,7 +114,7 @@ export function logError(msg: string | Error) {
 
 export function sendUpdate(key: any, value?: any) {
   const msg = new Map([
-    [2, [[key, value === undefined ? undefined : encoder.encode(value)]]],
+    [2, [[encoder.encode(key), value === undefined ? undefined : encoder.encode(value)]]],
   ]);
   const payload = encoder.encode(msg);
   const sock = state.value.sock;
