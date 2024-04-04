@@ -70,9 +70,9 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
       const k = decoder.decode(str);
       if (v === undefined || v === null) {
         kv.delete(JSON.stringify(k));
-        continue;
+      } else {
+        kv.set(JSON.stringify(k), decoder.decode(v));
       }
-      kv.set(JSON.stringify(k), decoder.decode(v));
     }
   }
   const errs = msg.get(3) as Array<Map<number, string>> | undefined;
@@ -114,7 +114,15 @@ export function logError(msg: string | Error) {
 
 export function sendUpdate(key: any, value?: any) {
   const msg = new Map([
-    [2, [[encoder.encode(key), value === undefined ? undefined : encoder.encode(value)]]],
+    [
+      2,
+      [
+        [
+          encoder.encode(key),
+          value === undefined ? undefined : encoder.encode(value),
+        ],
+      ],
+    ],
   ]);
   const payload = encoder.encode(msg);
   const sock = state.value.sock;
@@ -143,9 +151,39 @@ function Errors() {
   return <div class="errors">{elems}</div>;
 }
 
+function Debug() {
+  if (window.location.hash != "#debug") {
+    return <></>;
+  }
+  const kv = state.value.kv;
+  const elems = Array.from(kv.entries()).map(([k, v]) => (
+    <>
+      <dt>
+        <pre>{k}</pre>
+      </dt>
+      <dd>
+        <pre>
+          {JSON.stringify(
+            v,
+            (_, v) => {
+              if (v instanceof Map) {
+                return { type: "map", values: [...v.entries()] };
+              }
+              return v;
+            },
+            2,
+          )}
+        </pre>
+      </dd>
+    </>
+  ));
+  return <dl class="debug">{elems}</dl>;
+}
+
 export function App() {
   return (
     <StateCtx.Provider value={state}>
+      <Debug />
       <Errors />
       <Router>
         <Route path="/" component={Home} />

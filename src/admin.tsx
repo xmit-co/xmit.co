@@ -9,7 +9,7 @@ import {
   StateCtx,
 } from "./app.tsx";
 import { route } from "preact-router";
-import { useContext, useState } from "preact/hooks";
+import { useContext, useEffect, useState } from "preact/hooks";
 import { enroll } from "./webauthn.tsx";
 import { Footer } from "./footer.tsx";
 
@@ -28,6 +28,7 @@ function EditableText({
   submit: (v: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
+  useEffect(() => setEditing(false), [value]);
   if (editing) {
     return (
       <input
