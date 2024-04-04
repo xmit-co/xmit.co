@@ -1,7 +1,7 @@
 import { Header } from "./header.tsx";
 import {
-  load,
   loadSession,
+  loadUser,
   logError,
   sendUpdate,
   Session,
@@ -89,32 +89,54 @@ function JoinTeam() {
   return <button onClick={() => setEditing(true)}>⨝ join a team</button>;
 }
 
-interface User {
+export interface CredInfo {
+  name: string;
+  createdAt: number;
+  creatingSessionId: Uint8Array;
+}
+
+export interface User {
   id: number;
   name: string | undefined;
   teams: Map<number, undefined> | undefined;
-  apiKeys: Map<string, Map<number, any>> | undefined;
-  webKeys: Map<string, Map<number, any>> | undefined;
+  apiKeys: Map<string, CredInfo> | undefined;
+  webKeys: Map<string, CredInfo> | undefined;
   phone: string | undefined;
   email: string | undefined;
 }
 
-function WebKey({ raw, attrs }: { raw: string; attrs: Map<number, any> }) {
-  const name = attrs.get(1) as string;
-  const created = new Date(attrs.get(2) * 1000);
+function WebKey({ hash, info }: { hash: string; info: CredInfo }) {
   return (
     <div>
       <EditableText
-        value={name}
+        value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
-        submit={(v) => sendUpdate(["k", raw], new Map([[1, v]]))}
+        submit={(v) => sendUpdate(["k", hash], new Map([[1, v]]))}
       />
-      <button class="delete" onClick={() => sendUpdate(["k", raw])}>
+      <button class="delete" onClick={() => sendUpdate(["k", hash])}>
         ✕
       </button>
       <br />
-      created {created.toISOString()}
+      created {new Date(info.createdAt * 1000).toISOString()}
+    </div>
+  );
+}
+
+function APIKey({ hash, info }: { hash: string; info: CredInfo }) {
+  return (
+    <div>
+      <EditableText
+        value={info.name}
+        placeholder="Name"
+        whenMissing="unnamed"
+        submit={(v) => sendUpdate(["k", hash], new Map([[1, v]]))}
+      />
+      <button class="delete" onClick={() => sendUpdate(["k", hash])}>
+        ✕
+      </button>
+      <br />
+      created {new Date(info.createdAt * 1000).toISOString()}
     </div>
   );
 }
@@ -127,15 +149,7 @@ function AdminBody({
   state: State;
 }) {
   const uid = session?.uid;
-  const user = load(state, ["u", uid], {
-    id: 1,
-    name: 2,
-    teams: 3,
-    apiKeys: 4,
-    webKeys: 5,
-    phone: 6,
-    email: 7,
-  }) as User | undefined;
+  const user = uid === undefined ? undefined : loadUser(state, uid);
   return (
     <>
       <p>
@@ -160,8 +174,8 @@ function AdminBody({
               <span class="icon">🔐</span>Web passkeys{" "}
               <button onClick={() => enroll().catch(logError)}>+</button>
             </h3>
-            {Array.from(user?.webKeys?.entries() || []).map(([raw, attrs]) => (
-              <WebKey raw={raw} attrs={attrs} />
+            {Array.from(user?.webKeys?.entries() || []).map(([hash, info]) => (
+              <WebKey hash={hash} info={info} />
             ))}
           </div>
           <div>
@@ -169,9 +183,9 @@ function AdminBody({
               <span class="icon">🔑</span>API keys{" "}
               <button onClick={() => sendUpdate(["u", uid, "k"])}>+</button>
             </h3>
-            <div>
-              <em>None.</em>
-            </div>
+            {Array.from(user?.apiKeys?.entries() || []).map(([hash, info]) => (
+              <APIKey hash={hash} info={info} />
+            ))}
           </div>
           <div>
             <h3>
