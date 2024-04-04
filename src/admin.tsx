@@ -105,16 +105,16 @@ export interface User {
   email: string | undefined;
 }
 
-function WebKey({ hash, info }: { hash: string; info: CredInfo }) {
+function WebKey({ id, info }: { id: string; info: CredInfo }) {
   return (
     <div>
       <EditableText
         value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
-        submit={(v) => sendUpdate(["k", hash], new Map([[1, v]]))}
+        submit={(v) => sendUpdate(["k", id], new Map([[1, v]]))}
       />
-      <button class="delete" onClick={() => sendUpdate(["k", hash])}>
+      <button class="delete" onClick={() => sendUpdate(["k", id])}>
         ✕
       </button>
       <br />
@@ -123,16 +123,16 @@ function WebKey({ hash, info }: { hash: string; info: CredInfo }) {
   );
 }
 
-function APIKey({ hash, info }: { hash: string; info: CredInfo }) {
+function APIKey({ id, info }: { id: string; info: CredInfo }) {
   return (
     <div>
       <EditableText
         value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
-        submit={(v) => sendUpdate(["k", hash], new Map([[1, v]]))}
+        submit={(v) => sendUpdate(["k", id], new Map([[1, v]]))}
       />
-      <button class="delete" onClick={() => sendUpdate(["k", hash])}>
+      <button class="delete" onClick={() => sendUpdate(["k", id])}>
         ✕
       </button>
       <br />
@@ -174,8 +174,8 @@ function AdminBody({
               <span class="icon">🔐</span>Web passkeys{" "}
               <button onClick={() => enroll().catch(logError)}>+</button>
             </h3>
-            {Array.from(user?.webKeys?.entries() || []).map(([hash, info]) => (
-              <WebKey hash={hash} info={info} />
+            {Array.from(user?.webKeys?.entries() || []).map(([id, info]) => (
+              <WebKey id={id} info={info} />
             ))}
           </div>
           <div>
@@ -183,8 +183,8 @@ function AdminBody({
               <span class="icon">🔑</span>API keys{" "}
               <button onClick={() => sendUpdate(["u", uid, "k"])}>+</button>
             </h3>
-            {Array.from(user?.apiKeys?.entries() || []).map(([hash, info]) => (
-              <APIKey hash={hash} info={info} />
+            {Array.from(user?.apiKeys?.entries() || []).map(([id, info]) => (
+              <APIKey id={id} info={info} />
             ))}
           </div>
           <div>
