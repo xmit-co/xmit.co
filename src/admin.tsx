@@ -112,9 +112,9 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
         value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
-        submit={(v) => sendUpdate(["k", id], new Map([[1, v]]))}
+        submit={(v) => sendUpdate(["wk", id], new Map([[1, v]]))}
       />
-      <button class="delete" onClick={() => sendUpdate(["k", id])}>
+      <button class="delete" onClick={() => sendUpdate(["wk", id])}>
         ✕
       </button>
       <br />
