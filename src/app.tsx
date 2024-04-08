@@ -266,7 +266,10 @@ function Inspector({ node }: { node: Node }) {
                 node.value,
                 (_, v) => {
                   if (v instanceof Map) {
-                    return Object.fromEntries(v.entries());
+                    return {
+                      type: "Map",
+                      value: Array.from(v.entries()),
+                    };
                   }
                   if (v instanceof Uint8Array) {
                     return `u8[${btoa(
