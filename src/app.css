@@ -93,6 +93,10 @@ button {
   font-size: 9pt;
 }
 
+button.delete {
+  border-color: #f00;
+}
+
 header a:hover,
 button:hover {
   background-color: #888;
