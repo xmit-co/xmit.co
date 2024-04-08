@@ -116,9 +116,9 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
         value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
-        submit={(v) => sendUpdate(["wk", id], new Map([[1, v]]))}
+        submit={(v) => sendUpdate(["p", id], new Map([[1, v]]))}
       />
-      <button class="delete" onClick={() => sendUpdate(["wk", id])}>
+      <button class="delete" onClick={() => sendUpdate(["p", id])}>
         ✕
       </button>
       <br />
@@ -171,7 +171,7 @@ function AdminBody({
               type="text"
               value={user?.name}
               whenMissing="anonymous"
-              submit={(v) => sendUpdate(["u", uid], new Map([[2, v]]))}
+              submit={(v) => sendUpdate("u", new Map([[2, v]]))}
             />
           </h2>
         </div>
@@ -190,7 +190,7 @@ function AdminBody({
           <div>
             <h3>
               <span class="icon">🔑</span>API keys{" "}
-              <button class="add" onClick={() => sendUpdate(["u", uid, "k"])}>
+              <button class="add" onClick={() => sendUpdate("k")}>
                 +
               </button>
             </h3>
@@ -210,7 +210,7 @@ function AdminBody({
                 whenMissing="No phone #"
                 placeholder="Phone #"
                 type="tel"
-                submit={(v) => sendUpdate(["u", uid], new Map([[6, v]]))}
+                submit={(v) => sendUpdate("u", new Map([[6, v]]))}
               />
               <br />
               <EditableText
@@ -218,7 +218,7 @@ function AdminBody({
                 whenMissing="No E-mail"
                 placeholder="Email"
                 type="email"
-                submit={(v) => sendUpdate(["u", uid], new Map([[7, v]]))}
+                submit={(v) => sendUpdate("u", new Map([[7, v]]))}
               />
             </div>
           </div>
