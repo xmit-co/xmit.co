@@ -86,7 +86,11 @@ function JoinTeam() {
       />
     );
   }
-  return <button onClick={() => setEditing(true)}>⨝ join a team</button>;
+  return (
+    <button class="add" onClick={() => setEditing(true)}>
+      ⨝ join a team
+    </button>
+  );
 }
 
 export interface CredInfo {
@@ -153,8 +157,11 @@ function AdminBody({
   return (
     <>
       <p>
-        Not functional yet. See{" "}
-        <a href="https://demo.xmit.co/landed.html">a fuller preview</a>.
+        Little is implemented. See{" "}
+        <a href="https://demo.xmit.co/landed.html">
+          a static but larger preview
+        </a>
+        .
       </p>
       <div class="section">
         <div class="ssections">
@@ -172,7 +179,9 @@ function AdminBody({
           <div>
             <h3>
               <span class="icon">🔐</span>Web passkeys{" "}
-              <button onClick={() => enroll().catch(logError)}>+</button>
+              <button class="add" onClick={() => enroll().catch(logError)}>
+                +
+              </button>
             </h3>
             {Array.from(user?.webKeys?.entries() || []).map(([id, info]) => (
               <WebKey id={id} info={info} />
@@ -181,7 +190,9 @@ function AdminBody({
           <div>
             <h3>
               <span class="icon">🔑</span>API keys{" "}
-              <button onClick={() => sendUpdate(["u", uid, "k"])}>+</button>
+              <button class="add" onClick={() => sendUpdate(["u", uid, "k"])}>
+                +
+              </button>
             </h3>
             {Array.from(user?.apiKeys?.entries() || []).map(([id, info]) => (
               <APIKey id={id} info={info} />
@@ -214,7 +225,9 @@ function AdminBody({
         </div>
       </div>
       <div style={{ textAlign: "center" }}>
-        <button onClick={() => sendUpdate("j")}>+ new team</button>
+        <button class="add" onClick={() => sendUpdate("j")}>
+          + new team
+        </button>
         <JoinTeam />
       </div>
       <Footer />

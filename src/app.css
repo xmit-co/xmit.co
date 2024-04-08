@@ -93,8 +93,12 @@ button {
   font-size: 9pt;
 }
 
+button.add {
+  border-color: #080;
+}
+
 button.delete {
-  border-color: #f00;
+  border-color: #800;
 }
 
 header a:hover,
