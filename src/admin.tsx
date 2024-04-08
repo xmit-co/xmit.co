@@ -70,7 +70,7 @@ function JoinTeam() {
   if (editing) {
     return (
       <input
-        type="text"
+        type="password"
         placeholder="Invite code"
         ref={(e) => e && e.focus()}
         onfocusout={() => setEditing(false)}
