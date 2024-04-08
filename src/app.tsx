@@ -4,7 +4,7 @@ import Router, { Route } from "preact-router";
 import { Decoder, Encoder } from "cbor-x";
 import { signal } from "@preact/signals";
 import Sockette from "sockette";
-import { Admin, User } from "./admin.tsx";
+import { Admin, Team, User } from "./admin.tsx";
 import { Docs } from "./docs.tsx";
 import { Home } from "./home.tsx";
 import { createContext } from "preact";
@@ -12,7 +12,6 @@ import { createContext } from "preact";
 const CBOROptions = {
   useRecords: false,
   mapsAsObjects: false,
-  tagUint8Array: true,
 };
 export const encoder = new Encoder(CBOROptions);
 
@@ -52,7 +51,6 @@ const userMapping = {
 const credInfoMapping = {
   name: 1,
   createdAt: 2,
-  creatingSessionId: 4,
 };
 
 const teamMapping = {
@@ -66,7 +64,7 @@ const teamMapping = {
 
 export const StateCtx = createContext(state);
 
-export function loadKey(node: Node, key: any) {
+function loadKey(node: Node, key: any) {
   if (!Array.isArray(key)) {
     key = [key];
   }
@@ -103,6 +101,10 @@ export function loadSession(state: State) {
 
 export function loadUser(state: State, uid: number) {
   return loadKey(state.root, ["u", uid]) as User | undefined;
+}
+
+export function loadTeam(state: State, tid: number) {
+  return loadKey(state.root, ["t", tid]) as Team | undefined;
 }
 
 function ingestMessage(state: State, msg: Map<number, any>): State {

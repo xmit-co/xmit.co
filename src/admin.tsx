@@ -1,6 +1,7 @@
 import { Header } from "./header.tsx";
 import {
   loadSession,
+  loadTeam,
   loadUser,
   logError,
   sendUpdate,
@@ -96,17 +97,25 @@ function JoinTeam() {
 export interface CredInfo {
   name: string;
   createdAt: number;
-  creatingSessionId: Uint8Array;
 }
 
 export interface User {
   id: number;
   name: string | undefined;
   teams: Map<number, undefined> | undefined;
-  apiKeys: Map<string, CredInfo> | undefined;
+  apiKeys: Map<Uint8Array, CredInfo> | undefined;
   webKeys: Map<string, CredInfo> | undefined;
   phone: string | undefined;
   email: string | undefined;
+}
+
+export interface Team {
+  id: number;
+  name: string | undefined;
+  sites: Map<string, undefined> | undefined;
+  users: Map<number, undefined> | undefined;
+  apiKeys: Map<Uint8Array, CredInfo> | undefined;
+  defaultSettings: Record<string, any> | undefined;
 }
 
 function WebKey({ id, info }: { id: string; info: CredInfo }) {
@@ -127,7 +136,15 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
   );
 }
 
-function APIKey({ id, info }: { id: string; info: CredInfo }) {
+function APIKey({
+  id,
+  info,
+  raw,
+}: {
+  id: Uint8Array;
+  info: CredInfo;
+  raw: string | undefined;
+}) {
   return (
     <div>
       <EditableText
@@ -136,6 +153,9 @@ function APIKey({ id, info }: { id: string; info: CredInfo }) {
         whenMissing="unnamed"
         submit={(v) => sendUpdate(["k", id], new Map([[1, v]]))}
       />
+      {raw ? (
+        <button onClick={() => navigator.clipboard.writeText(raw)}>📋</button>
+      ) : null}
       <button class="delete" onClick={() => sendUpdate(["k", id])}>
         ✕
       </button>
@@ -145,15 +165,29 @@ function APIKey({ id, info }: { id: string; info: CredInfo }) {
   );
 }
 
-function AdminBody({
-  session,
-  state,
-}: {
-  session?: Session | undefined;
-  state: State;
-}) {
-  const uid = session?.uid;
-  const user = uid === undefined ? undefined : loadUser(state, uid);
+function Team({ id, state }: { id: any; state: State }) {
+  const team = loadTeam(state, id);
+  if (team === undefined) {
+    return <></>;
+  }
+  return (
+    <div class="section">
+      <h2>
+        <span className="icon">🏭</span>#{team.id}:{" "}
+        <EditableText
+          type="text"
+          value={team.name}
+          whenMissing="unnamed"
+          submit={(v) => sendUpdate(["t", id], new Map([[2, v]]))}
+        />
+      </h2>
+    </div>
+  );
+}
+
+function AdminBody({ session, state }: { session: Session; state: State }) {
+  const uid = session.uid;
+  const user = loadUser(state, uid);
   return (
     <>
       <p>
@@ -195,7 +229,16 @@ function AdminBody({
               </button>
             </h3>
             {Array.from(user?.apiKeys?.entries() || []).map(([id, info]) => (
-              <APIKey id={id} info={info} />
+              <APIKey
+                id={id}
+                info={info}
+                // TODO: complexity isnt' great here, would be much better to index keys by hash
+                raw={
+                  [...(session.createdAPIKeys?.entries() || [])].find(
+                    ([k, _]) => k.every((v, i) => id[i] === v),
+                  )?.[1]
+                }
+              />
             ))}
           </div>
           <div>
@@ -230,6 +273,9 @@ function AdminBody({
         </button>
         <JoinTeam />
       </div>
+      {[...(user?.teams?.keys() || [])].map((id) => (
+        <Team id={id} state={state} />
+      ))}
       <Footer />
     </>
   );
@@ -249,7 +295,7 @@ export function Admin() {
     <div class="with-header">
       <Header session={session} />
       <div class="body">
-        {ready ? (
+        {ready && session !== undefined ? (
           <AdminBody session={session} state={state.value} />
         ) : (
           <div style={{ textAlign: "center" }}>
