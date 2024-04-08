@@ -12,6 +12,7 @@ import { createContext } from "preact";
 const CBOROptions = {
   useRecords: false,
   mapsAsObjects: false,
+  tagUint8Array: true,
 };
 export const encoder = new Encoder(CBOROptions);
 
