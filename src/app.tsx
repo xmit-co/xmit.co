@@ -93,6 +93,7 @@ function map(
 
 export interface Session {
   uid: number;
+  createdAPIKeys: Map<Uint8Array, string>;
 }
 
 export function loadSession(state: State) {
@@ -117,7 +118,10 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
     switch (key.length) {
       case 1:
         if (key[0] === "S") {
-          return map(value, { uid: 1 });
+          return map(value, {
+            uid: 1,
+            createdAPIKeys: 2,
+          });
         }
         break;
       case 2:
