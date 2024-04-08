@@ -54,6 +54,15 @@ const credInfoMapping = {
   creatingSessionId: 4,
 };
 
+const teamMapping = {
+  id: 1,
+  name: 2,
+  sites: 3,
+  users: 4,
+  apiKeys: 5,
+  defaultSettings: 6,
+};
+
 export const StateCtx = createContext(state);
 
 export function loadKey(node: Node, key: any) {
@@ -125,6 +134,14 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
             );
           }
           return u;
+        } else if (key[0] === "t") {
+          const t = map(value, teamMapping);
+          if (t.apiKeys) {
+            t.apiKeys = new Map(
+              Array.from(t.apiKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
+            );
+          }
+          return t;
         }
         break;
     }
