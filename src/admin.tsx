@@ -1,5 +1,6 @@
 import { Header } from "./header.tsx";
 import {
+  loadInvite,
   loadSession,
   loadTeam,
   loadUser,
@@ -13,6 +14,10 @@ import { route } from "preact-router";
 import { useContext, useEffect, useState } from "preact/hooks";
 import { enroll } from "./webauthn.tsx";
 import { Footer } from "./footer.tsx";
+
+function dateTime(t: number) {
+  return new Date(t * 1000).toISOString().split(".")[0] + "Z";
+}
 
 function EditableText({
   value,
@@ -76,8 +81,8 @@ function JoinTeam() {
         onFocusOut={() => setEditing(false)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            const v = (e.target as HTMLInputElement).value;
-            if (v !== "") sendUpdate("j", v);
+            const code = (e.target as HTMLInputElement).value;
+            if (code !== "") sendUpdate(["i", code]);
             setEditing(false);
           } else if (e.key === "Escape") {
             setEditing(false);
@@ -113,8 +118,16 @@ export interface Team {
   name: string | undefined;
   sites: Map<string, undefined> | undefined;
   users: Map<number, undefined> | undefined;
+  invites: Map<string, undefined> | undefined;
   apiKeys: Map<Uint8Array, CredInfo> | undefined;
   defaultSettings: Record<string, any> | undefined;
+}
+
+export interface Invite {
+  id: string;
+  teamID: number;
+  createdAt: number;
+  creatingUserID: number;
 }
 
 function WebKey({ id, info }: { id: string; info: CredInfo }) {
@@ -130,7 +143,7 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
         ✕
       </button>
       <br />
-      created {new Date(info.createdAt * 1000).toISOString()}
+      created {dateTime(info.createdAt)}
     </li>
   );
 }
@@ -159,7 +172,7 @@ function APIKey({
         ✕
       </button>
       <br />
-      created {new Date(info.createdAt * 1000).toISOString()}
+      created {dateTime(info.createdAt)}
     </li>
   );
 }
@@ -187,6 +200,40 @@ function Members({ state, team }: { state: State; team: Team }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+function Invites({ team, state }: { team: Team; state: State }) {
+  if (team.invites === undefined || team.invites.size === 0) {
+    return null;
+  }
+  const entries = [...team.invites.keys()].map((id) => {
+    const invite = loadInvite(state, id);
+    const user = invite && loadUser(state, invite.creatingUserID);
+    return { invite, user };
+  }) as { invite: Invite; user: User | undefined }[];
+  return (
+    <>
+      <h3>
+        <span class="icon">💌</span>Invites
+      </h3>
+      <ul>
+        {entries.map((i) => (
+          <li>
+            {dateTime(i.invite.createdAt)} by {i.user?.name || <em>unknown</em>}{" "}
+            <button onClick={() => navigator.clipboard.writeText(i.invite.id)}>
+              📋
+            </button>
+            <button
+              class="delete"
+              onClick={() => sendUpdate(["i", i.invite.id])}
+            >
+              ✕
+            </button>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 
@@ -225,6 +272,7 @@ function Team({
             </button>
           </h3>
           <Members team={team} state={state} />
+          <Invites team={team} state={state} />
         </div>
         <div>
           <h3>
@@ -364,7 +412,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
         </div>
       </div>
       <div style={{ textAlign: "center" }}>
-        <button class="add" onClick={() => sendUpdate("j")}>
+        <button class="add" onClick={() => sendUpdate("t")}>
           + new team
         </button>
         <JoinTeam />

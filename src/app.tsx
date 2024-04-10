@@ -4,7 +4,7 @@ import Router, { Route } from "preact-router";
 import { Decoder, Encoder } from "cbor-x";
 import { signal } from "@preact/signals";
 import Sockette from "sockette";
-import { Admin, Team, User } from "./admin.tsx";
+import { Admin, Invite, Team, User } from "./admin.tsx";
 import { Docs } from "./docs.tsx";
 import { Home } from "./home.tsx";
 import { createContext } from "preact";
@@ -60,6 +60,14 @@ const teamMapping = {
   users: 4,
   apiKeys: 5,
   defaultSettings: 6,
+  invites: 7,
+};
+
+const inviteMapping = {
+  id: 1,
+  teamID: 2,
+  createdAt: 3,
+  creatingUserID: 4,
 };
 
 export const StateCtx = createContext(state);
@@ -99,12 +107,16 @@ export function loadSession(state: State) {
   return loadKey(state.root, "S") as Session | undefined;
 }
 
-export function loadUser(state: State, uid: number) {
-  return loadKey(state.root, ["u", uid]) as User | undefined;
+export function loadUser(state: State, id: number) {
+  return loadKey(state.root, ["u", id]) as User | undefined;
 }
 
-export function loadTeam(state: State, tid: number) {
-  return loadKey(state.root, ["t", tid]) as Team | undefined;
+export function loadTeam(state: State, id: number) {
+  return loadKey(state.root, ["t", id]) as Team | undefined;
+}
+
+export function loadInvite(state: State, id: string) {
+  return loadKey(state.root, ["i", id]) as Invite | undefined;
 }
 
 function ingestMessage(state: State, msg: Map<number, any>): State {
@@ -149,6 +161,8 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
             );
           }
           return t;
+        } else if (key[0] === "i") {
+          return map(value, inviteMapping);
         }
         break;
     }
