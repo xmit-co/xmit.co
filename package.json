@@ -6,22 +6,24 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "localdev": "vite --mode=localdev",
+    "localdeploy": "tsc && vite build && XMIT_URL=https://lh.xmit.dev:8443 xmit lh.xmit.dev",
     "deploy": "tsc && vite build && xmit xmit.co",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@preact/signals": "^1.2.1",
-    "cbor-x": "^1.5.4",
-    "preact": "^10.19.2",
+    "@preact/signals": "^1.2.3",
+    "cbor-x": "^1.5.9",
+    "preact": "^10.20.2",
     "preact-router": "^4.1.2",
     "sockette": "^2.0.6"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.7.0",
-    "@vitejs/plugin-basic-ssl": "^1.0.2",
-    "@xmit.co/xmit": "0.2.3-0",
-    "prettier": "^3.1.0",
-    "typescript": "^5.2.2",
-    "vite": "^5.0.0"
+    "@preact/preset-vite": "^2.8.2",
+    "@vitejs/plugin-basic-ssl": "^1.1.0",
+    "@xmit.co/xmit": "0.2.4-0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.4",
+    "vite": "5.2.8"
   }
 }

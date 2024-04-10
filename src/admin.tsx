@@ -60,8 +60,7 @@ function EditableText({
   }
   return (
     <span class="clickable" onClick={() => setEditing(true)}>
-      {value || <em>{whenMissing}</em>}
-      <button>✎</button>
+      {value || <em>{whenMissing}</em>} <button>✎</button>
     </span>
   );
 }
@@ -165,22 +164,52 @@ function APIKey({
   );
 }
 
-function Team({ id, state }: { id: any; state: State }) {
+function Team({ id, state }: { id: number; state: State }) {
   const team = loadTeam(state, id);
   if (team === undefined) {
     return <></>;
   }
   return (
     <div class="section">
-      <h2>
-        <span className="icon">🏭</span>#{team.id}:{" "}
-        <EditableText
-          type="text"
-          value={team.name}
-          whenMissing="unnamed"
-          submit={(v) => sendUpdate(["t", id], new Map([[2, v]]))}
-        />
-      </h2>
+      <div class="ssections">
+        <h2>
+          <span class="icon">🏭</span>#{team.id}:{" "}
+          <EditableText
+            type="text"
+            value={team.name}
+            whenMissing="unnamed"
+            submit={(v) => sendUpdate(["t", id], new Map([[2, v]]))}
+          />
+        </h2>
+      </div>
+      <div class="ssections">
+        <div>
+          <h3>
+            <span className="icon">👥</span>Members{" "}
+            <button className="add" onClick={() => sendUpdate(["t", id, "i"])}>
+              +
+            </button>
+          </h3>
+        </div>
+        <div>
+          <h3>
+            <span className="icon">🔑️</span>API keys{" "}
+            <button className="add" onClick={() => sendUpdate(["t", id, "k"])}>
+              +
+            </button>
+          </h3>
+        </div>
+        <div>
+          <h3>
+            <span className="icon">⚙️</span>Default settings{" "}
+          </h3>
+        </div>
+        <div>
+          <h3>
+            <span className="icon">🌐</span>Sites
+          </h3>
+        </div>
+      </div>
     </div>
   );
 }
@@ -232,7 +261,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
               <APIKey
                 id={id}
                 info={info}
-                // TODO: complexity isnt' great here, would be much better to index keys by hash
+                // TODO: complexity isn't great here, would be much better to index keys by hash
                 raw={
                   [...(session.createdAPIKeys?.entries() || [])].find(
                     ([k, _]) => k.every((v, i) => id[i] === v),
