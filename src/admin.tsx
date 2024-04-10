@@ -261,6 +261,9 @@ function Team({
             whenMissing="unnamed"
             submit={(v) => sendUpdate(["t", id], new Map([[2, v]]))}
           />
+          <button class="delete" onClick={() => sendUpdate(["t", id])}>
+            ✕
+          </button>
         </h2>
       </div>
       <div class="ssections">
