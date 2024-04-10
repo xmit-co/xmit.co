@@ -29,6 +29,7 @@ export interface State {
   ready: boolean;
   root: Node;
   errors: string[];
+  updates: [any, any][] | null;
   sock?: Sockette;
 }
 
@@ -36,6 +37,7 @@ const state = signal<State>({
   ready: false,
   root: {},
   errors: [],
+  updates: null,
 });
 
 const userMapping = {
@@ -205,14 +207,22 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
     deleteKey(child, tail);
   }
 
+  const debug = state.updates !== null;
+
   if (updates !== undefined) {
     for (const [str, v] of updates.values()) {
       const k = decoder.decode(str);
       if (v === undefined || v === null) {
         deleteKey(root, k);
+        if (debug) {
+          state.updates!.push([k, []]);
+        }
       } else {
         const value = transform(decoder.decode(v), k);
         setKey(root, k, value);
+        if (debug) {
+          state.updates!.push([k, [value]]);
+        }
       }
     }
   }
@@ -292,33 +302,24 @@ function Errors() {
   return <div class="errors">{elems}</div>;
 }
 
-function Inspector({ node }: { node: Node }) {
+function replacer(_: any, v: any) {
+  if (v instanceof Map) {
+    return ["Map", Array.from(v.entries())];
+  }
+  if (v instanceof Uint8Array) {
+    return `u8[${btoa(String.fromCharCode.apply(null, Array.from(v)))}]`;
+  }
+  return v;
+}
+
+function NodeInspector({ node }: { node: Node }) {
   return (
     <dl class="inspector">
       {node.value ? (
         <>
           <dt>value</dt>
           <dd>
-            <pre>
-              {JSON.stringify(
-                node.value,
-                (_, v) => {
-                  if (v instanceof Map) {
-                    return {
-                      type: "Map",
-                      value: Array.from(v.entries()),
-                    };
-                  }
-                  if (v instanceof Uint8Array) {
-                    return `u8[${btoa(
-                      String.fromCharCode.apply(null, Array.from(v)),
-                    )}]`;
-                  }
-                  return v;
-                },
-                2,
-              )}
-            </pre>
+            <pre>{JSON.stringify(node.value, replacer, 2)}</pre>
           </dd>
         </>
       ) : undefined}
@@ -328,7 +329,27 @@ function Inspector({ node }: { node: Node }) {
             <pre>{JSON.stringify(k)}</pre>
           </dt>
           <dd>
-            <Inspector node={v} />
+            <NodeInspector node={v} />
+          </dd>
+        </>
+      ))}
+    </dl>
+  );
+}
+
+function UpdatesInspector({ updates }: { updates: [any, any][] | null }) {
+  if (updates === null) {
+    return <></>;
+  }
+  return (
+    <dl class="inspector">
+      {updates.map(([k, v]) => (
+        <>
+          <dt>
+            <pre>{JSON.stringify(k)}</pre>
+          </dt>
+          <dd>
+            <pre>{JSON.stringify(v, replacer)}</pre>
           </dd>
         </>
       ))}
@@ -340,20 +361,30 @@ function Debug() {
   if (window.location.hash != "#debug") {
     return <></>;
   }
-  const root = state.value.root;
-  return <Inspector node={root} />;
+  if (state.value.updates === null) {
+    state.value = { ...state.value, updates: [] };
+  }
+  return (
+    <>
+      <h1>Inspector</h1>
+      <h2>State</h2>
+      <NodeInspector node={state.value.root} />
+      <h2>Updates</h2>
+      <UpdatesInspector updates={state.value.updates} />
+    </>
+  );
 }
 
 export function App() {
   return (
     <StateCtx.Provider value={state}>
-      <Debug />
       <Errors />
       <Router>
         <Route path="/" component={Home} />
         <Route path="/admin" component={Admin} />
         <Route path="/docs" component={Docs} />
       </Router>
+      <Debug />
     </StateCtx.Provider>
   );
 }

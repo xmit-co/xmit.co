@@ -259,7 +259,7 @@ function Team({
             type="text"
             value={team.name}
             whenMissing="unnamed"
-            submit={(v) => sendUpdate(["t", id], new Map([[2, v]]))}
+            submit={(v) => sendUpdate(["t", id], new Map([[1, v]]))}
           />
           <button class="delete" onClick={() => sendUpdate(["t", id])}>
             ✕
