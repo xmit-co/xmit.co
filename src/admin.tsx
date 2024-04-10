@@ -60,8 +60,7 @@ function EditableText({
   }
   return (
     <span class="clickable" onClick={() => setEditing(true)}>
-      {value || <em>{whenMissing}</em>}
-      <button>✎</button>
+      {value || <em>{whenMissing}</em>} <button>✎</button>
     </span>
   );
 }
@@ -173,9 +172,9 @@ function Members({ state, team }: { state: State; team: Team }) {
     .map((id) => loadUser(state, id))
     .map((u) => ({ name: u?.name || `#${u?.id}`, id: u?.id || 0 }));
   return (
-    <>
+    <ul>
       {users.map((u) => (
-        <div>
+        <li>
           {u.name}
           {users.length > 1 && (
             <button
@@ -185,9 +184,9 @@ function Members({ state, team }: { state: State; team: Team }) {
               ✕
             </button>
           )}
-        </div>
+        </li>
       ))}
-    </>
+    </ul>
   );
 }
 
