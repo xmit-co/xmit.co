@@ -60,7 +60,8 @@ function EditableText({
   }
   return (
     <span class="clickable" onClick={() => setEditing(true)}>
-      {value || <em>{whenMissing}</em>} <button>✎</button>
+      {value || <em>{whenMissing}</em>}
+      <button>✎</button>
     </span>
   );
 }
@@ -119,7 +120,7 @@ export interface Team {
 
 function WebKey({ id, info }: { id: string; info: CredInfo }) {
   return (
-    <div>
+    <li>
       <EditableText
         value={info.name}
         placeholder="Name"
@@ -131,7 +132,7 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
       </button>
       <br />
       created {new Date(info.createdAt * 1000).toISOString()}
-    </div>
+    </li>
   );
 }
 
@@ -145,7 +146,7 @@ function APIKey({
   raw: string | undefined;
 }) {
   return (
-    <div>
+    <li>
       <EditableText
         value={info.name}
         placeholder="Name"
@@ -160,11 +161,43 @@ function APIKey({
       </button>
       <br />
       created {new Date(info.createdAt * 1000).toISOString()}
-    </div>
+    </li>
   );
 }
 
-function Team({ id, state }: { id: number; state: State }) {
+function Members({ state, team }: { state: State; team: Team }) {
+  if (team.users === undefined || team.users.size === 0) {
+    return <em>No members.</em>;
+  }
+  const users = Array.from(team.users.keys())
+    .map((id) => loadUser(state, id))
+    .map((u) => ({ name: u?.name || `#${u?.id}`, id: u?.id || 0 }));
+  return (
+    <>
+      {users.map((u) => (
+        <div>
+          {u.name}
+          <button
+            class="delete"
+            onClick={() => sendUpdate(["t", team.id, "u", u.id])}
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function Team({
+  session,
+  id,
+  state,
+}: {
+  session: Session;
+  id: number;
+  state: State;
+}) {
   const team = loadTeam(state, id);
   if (team === undefined) {
     return <></>;
@@ -190,6 +223,7 @@ function Team({ id, state }: { id: number; state: State }) {
               +
             </button>
           </h3>
+          <Members team={team} state={state} />
         </div>
         <div>
           <h3>
@@ -198,6 +232,7 @@ function Team({ id, state }: { id: number; state: State }) {
               +
             </button>
           </h3>
+          <APIKeyList session={session} keys={team.apiKeys} />
         </div>
         <div>
           <h3>
@@ -214,9 +249,53 @@ function Team({ id, state }: { id: number; state: State }) {
   );
 }
 
+function APIKeyList({
+  session,
+  keys,
+}: {
+  session: Session;
+  keys: Map<Uint8Array, CredInfo> | undefined;
+}) {
+  if (keys === undefined || keys.size === 0) {
+    return <em>No keys.</em>;
+  }
+  return (
+    <ul>
+      {Array.from(keys?.entries() || []).map(([id, info]) => (
+        <APIKey
+          id={id}
+          info={info}
+          // TODO: complexity isn't great here, would be much better to index keys by hash
+          raw={
+            [...(session.createdAPIKeys?.entries() || [])].find(([k, _]) =>
+              k.every((v, i) => id[i] === v),
+            )?.[1]
+          }
+        />
+      ))}
+    </ul>
+  );
+}
+
+function WebPasskeyList({ keys }: { keys: Map<string, CredInfo> | undefined }) {
+  if (keys === undefined || keys.size === 0) {
+    return <em>No keys.</em>;
+  }
+  return (
+    <ul>
+      {Array.from(keys.entries() || []).map(([id, info]) => (
+        <WebKey id={id} info={info} />
+      ))}
+    </ul>
+  );
+}
+
 function AdminBody({ session, state }: { session: Session; state: State }) {
   const uid = session.uid;
   const user = loadUser(state, uid);
+  if (user === undefined) {
+    return <></>;
+  }
   return (
     <>
       <p>
@@ -232,7 +311,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
             <span class="icon">👤</span>#{uid}:{" "}
             <EditableText
               type="text"
-              value={user?.name}
+              value={user.name}
               whenMissing="anonymous"
               submit={(v) => sendUpdate("u", new Map([[2, v]]))}
             />
@@ -246,9 +325,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
                 +
               </button>
             </h3>
-            {Array.from(user?.webKeys?.entries() || []).map(([id, info]) => (
-              <WebKey id={id} info={info} />
-            ))}
+            <WebPasskeyList keys={user.webKeys} />
           </div>
           <div>
             <h3>
@@ -257,18 +334,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
                 +
               </button>
             </h3>
-            {Array.from(user?.apiKeys?.entries() || []).map(([id, info]) => (
-              <APIKey
-                id={id}
-                info={info}
-                // TODO: complexity isn't great here, would be much better to index keys by hash
-                raw={
-                  [...(session.createdAPIKeys?.entries() || [])].find(
-                    ([k, _]) => k.every((v, i) => id[i] === v),
-                  )?.[1]
-                }
-              />
-            ))}
+            <APIKeyList session={session} keys={user.apiKeys} />
           </div>
           <div>
             <h3>
@@ -278,7 +344,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
               If we <em>need</em> to reach out?
               <br />
               <EditableText
-                value={user?.phone}
+                value={user.phone}
                 whenMissing="No phone #"
                 placeholder="Phone #"
                 type="tel"
@@ -286,7 +352,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
               />
               <br />
               <EditableText
-                value={user?.email}
+                value={user.email}
                 whenMissing="No E-mail"
                 placeholder="Email"
                 type="email"
@@ -302,8 +368,8 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
         </button>
         <JoinTeam />
       </div>
-      {[...(user?.teams?.keys() || [])].map((id) => (
-        <Team id={id} state={state} />
+      {[...(user.teams?.keys() || [])].map((id) => (
+        <Team id={id} state={state} session={session} />
       ))}
       <Footer />
     </>
