@@ -37,8 +37,8 @@ function EditableText({
         value={value}
         placeholder={placeholder}
         ref={(e) => e && e.focus()}
-        onfocusin={(e) => (e.target as HTMLInputElement).select()}
-        onfocusout={() => setEditing(false)}
+        onFocusIn={(e) => (e.target as HTMLInputElement).select()}
+        onFocusOut={() => setEditing(false)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             const v = (e.target as HTMLInputElement).value;
@@ -74,7 +74,7 @@ function JoinTeam() {
         type="password"
         placeholder="Invite code"
         ref={(e) => e && e.focus()}
-        onfocusout={() => setEditing(false)}
+        onFocusOut={() => setEditing(false)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             const v = (e.target as HTMLInputElement).value;
