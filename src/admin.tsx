@@ -177,12 +177,14 @@ function Members({ state, team }: { state: State; team: Team }) {
       {users.map((u) => (
         <div>
           {u.name}
-          <button
-            class="delete"
-            onClick={() => sendUpdate(["t", team.id, "u", u.id])}
-          >
-            ✕
-          </button>
+          {users.length > 1 && (
+            <button
+              class="delete"
+              onClick={() => sendUpdate(["t", team.id, "u", u.id])}
+            >
+              ✕
+            </button>
+          )}
         </div>
       ))}
     </>
