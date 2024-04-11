@@ -80,11 +80,15 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
   );
 }
 
-function printNameAndID(user: User | undefined) {
+function nameAndID(user: User | undefined) {
   if (user === undefined) {
     return undefined;
   }
-  return `${user.name} (#${user.id})`;
+  return (
+    <>
+      {user.name || <em>anonymous</em>} (#{user.id})
+    </>
+  );
 }
 
 function APIKey({
@@ -117,7 +121,7 @@ function APIKey({
       </button>
       <br />
       from {dateTime(info.createdAt)} &amp;{" "}
-      {printNameAndID(createdBy) || `#${info.createdBy}`}
+      {nameAndID(createdBy) || `#${info.createdBy}`}
     </li>
   );
 }
@@ -135,7 +139,7 @@ function Members({ team }: { team: Team }) {
     <ul>
       {users.map((u) => (
         <li>
-          {printNameAndID(u)}
+          {nameAndID(u)}
           {users.length > 1 && (
             <button
               class="delete"
