@@ -140,7 +140,7 @@ div.section {
   gap: 1em;
 }
 
-input[type!="checkbox"],
+input,
 select {
   font-family: monospace;
   width: 10em;
@@ -151,6 +151,10 @@ select {
   padding: 1pt;
   margin: 2pt;
   border-radius: 2pt;
+}
+
+input[type="checkbox"] {
+  width: initial;
 }
 
 div.ssections {
