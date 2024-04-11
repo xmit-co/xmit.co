@@ -122,7 +122,7 @@ div.home {
 }
 
 div.body {
-  max-width: 120em;
+  max-width: 100em;
   padding: 0 1em;
   margin: 0 auto;
 }
@@ -166,7 +166,7 @@ div.ssections {
 
 div.ssections > div {
   position: relative;
-  min-width: 25em;
+  min-width: 20em;
   flex-basis: 0;
   flex-grow: 1;
 }
