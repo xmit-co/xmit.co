@@ -108,7 +108,9 @@ function APIKey({
         submit={(v) => sendUpdate(["k", id], new Map([[1, v]]))}
       />
       {raw ? (
-        <button onClick={() => navigator.clipboard.writeText(raw)}>📋</button>
+        <button onClick={() => navigator.clipboard.writeText(raw)}>
+          📋 copy
+        </button>
       ) : null}
       <button class="delete" onClick={() => sendUpdate(["k", id])}>
         ✕ destroy
@@ -168,7 +170,7 @@ function Invites({ team }: { team: Team }) {
           <li>
             {dateTime(i.invite.createdAt)} by {i.user?.name || <em>unknown</em>}{" "}
             <button onClick={() => navigator.clipboard.writeText(i.invite.id)}>
-              📋
+              📋 copy
             </button>
             <button
               class="delete"
