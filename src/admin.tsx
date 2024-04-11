@@ -104,6 +104,7 @@ function Members({ state, team }: { state: State; team: Team }) {
   const users = Array.from(team.users.keys())
     .map((id) => loadUser(state, id))
     .map((u) => ({ name: u?.name || `#${u?.id}`, id: u?.id || 0 }));
+  const teamID = team.id || 0;
   return (
     <ul>
       {users.map((u) => (
@@ -112,7 +113,7 @@ function Members({ state, team }: { state: State; team: Team }) {
           {users.length > 1 && (
             <button
               class="delete"
-              onClick={() => sendUpdate(["t", team.id, "u", u.id])}
+              onClick={() => sendUpdate(["t", teamID, "u", u.id])}
             >
               ✕
             </button>
