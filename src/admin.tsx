@@ -2,72 +2,24 @@ import { Header } from "./header.tsx";
 import {
   loadInvite,
   loadSession,
+  loadSite,
   loadTeam,
   loadUser,
   logError,
   sendUpdate,
   Session,
-  State,
   StateCtx,
 } from "./app.tsx";
 import { route } from "preact-router";
-import { useContext, useEffect, useState } from "preact/hooks";
+import { useContext, useState } from "preact/hooks";
 import { enroll } from "./webauthn.tsx";
 import { Footer } from "./footer.tsx";
+import { Link } from "preact-router/match";
+import { EditableText } from "./editableText.tsx";
+import { CredInfo, Invite, Site, State, Team, User } from "./models.tsx";
 
 function dateTime(t: number) {
   return new Date(t * 1000).toISOString().split(".")[0] + "Z";
-}
-
-function EditableText({
-  value,
-  placeholder,
-  submit,
-  whenMissing,
-  type,
-}: {
-  class?: string | undefined;
-  value: string | undefined;
-  whenMissing?: string | undefined;
-  placeholder?: string | undefined;
-  type?: string | undefined;
-  submit: (v: string) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  useEffect(() => setEditing(false), [value]);
-  if (editing) {
-    return (
-      <input
-        type={type || "text"}
-        value={value}
-        placeholder={placeholder}
-        ref={(e) => e && e.focus()}
-        onFocusIn={(e) => (e.target as HTMLInputElement).select()}
-        onFocusOut={() => setEditing(false)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            const v = (e.target as HTMLInputElement).value;
-            if (v == value) {
-              setEditing(false);
-            } else {
-              submit(v);
-            }
-          } else if (e.key === "Escape") {
-            setEditing(false);
-          }
-        }}
-        onInput={(e) => {
-          const t = e.target as HTMLInputElement;
-          t.style.width = `max(10em, ${t.value.length}ch)`;
-        }}
-      />
-    );
-  }
-  return (
-    <span class="clickable" onClick={() => setEditing(true)}>
-      {value || <em>{whenMissing}</em>} <button>✎</button>
-    </span>
-  );
 }
 
 function JoinTeam() {
@@ -96,38 +48,6 @@ function JoinTeam() {
       ⨝ join a team
     </button>
   );
-}
-
-export interface CredInfo {
-  name: string;
-  createdAt: number;
-}
-
-export interface User {
-  id: number;
-  name: string | undefined;
-  teams: Map<number, undefined> | undefined;
-  apiKeys: Map<Uint8Array, CredInfo> | undefined;
-  webKeys: Map<string, CredInfo> | undefined;
-  phone: string | undefined;
-  email: string | undefined;
-}
-
-export interface Team {
-  id: number;
-  name: string | undefined;
-  sites: Map<string, undefined> | undefined;
-  users: Map<number, undefined> | undefined;
-  invites: Map<string, undefined> | undefined;
-  apiKeys: Map<Uint8Array, CredInfo> | undefined;
-  defaultSettings: Record<string, any> | undefined;
-}
-
-export interface Invite {
-  id: string;
-  teamID: number;
-  createdAt: number;
-  creatingUserID: number;
 }
 
 function WebKey({ id, info }: { id: string; info: CredInfo }) {
@@ -204,7 +124,7 @@ function Members({ state, team }: { state: State; team: Team }) {
 }
 
 function Invites({ team, state }: { team: Team; state: State }) {
-  if (team.invites === undefined || team.invites.size === 0) {
+  if (!team.invites || team.invites.size === 0) {
     return null;
   }
   const entries = [...team.invites.keys()].map((id) => {
@@ -237,7 +157,34 @@ function Invites({ team, state }: { team: Team; state: State }) {
   );
 }
 
-function Team({
+function SiteView({ site }: { site: Site }) {
+  const siteID = site.id || 0;
+  return (
+    <li>
+      <Link href={`/site/${siteID}`}>
+        #{siteID}: {site.name || <em>unnamed</em>}
+      </Link>
+    </li>
+  );
+}
+
+function SiteList({ state, team }: { state: State; team: Team }) {
+  const sites = [...(team.sites?.keys() || [])].map((id) =>
+    loadSite(state, id),
+  );
+  if (sites.length === 0) {
+    return <em>No sites.</em>;
+  }
+  return (
+    <ul>
+      {sites.map((site) => (
+        <SiteView site={site!} />
+      ))}
+    </ul>
+  );
+}
+
+function TeamView({
   session,
   id,
   state,
@@ -254,7 +201,7 @@ function Team({
     <div class="section">
       <div class="ssections">
         <h2>
-          <span class="icon">🏭</span>#{team.id}:{" "}
+          <span class="icon">🏭</span>#{team.id || 0}:{" "}
           <EditableText
             type="text"
             value={team.name}
@@ -266,7 +213,16 @@ function Team({
           </button>
         </h2>
       </div>
-      <div class="ssections">
+      <div className="ssections">
+        <div>
+          <h3>
+            <span className="icon">🔑️</span>API keys{" "}
+            <button className="add" onClick={() => sendUpdate(["t", id, "k"])}>
+              +
+            </button>
+          </h3>
+          <APIKeyList session={session} keys={team.apiKeys} />
+        </div>
         <div>
           <h3>
             <span className="icon">👥</span>Members{" "}
@@ -279,22 +235,15 @@ function Team({
         </div>
         <div>
           <h3>
-            <span className="icon">🔑️</span>API keys{" "}
-            <button className="add" onClick={() => sendUpdate(["t", id, "k"])}>
-              +
-            </button>
+            <span className="icon">🌐</span>Sites
           </h3>
-          <APIKeyList session={session} keys={team.apiKeys} />
+          <SiteList state={state} team={team} />
         </div>
         <div>
           <h3>
             <span className="icon">⚙️</span>Default settings{" "}
           </h3>
-        </div>
-        <div>
-          <h3>
-            <span className="icon">🌐</span>Sites
-          </h3>
+          <div className="todo">TODO</div>
         </div>
       </div>
     </div>
@@ -350,13 +299,6 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
   }
   return (
     <>
-      <p>
-        Little is implemented. See{" "}
-        <a href="https://demo.xmit.co/landed.html">
-          a static but larger preview
-        </a>
-        .
-      </p>
       <div class="section">
         <div class="ssections">
           <h2>
@@ -372,17 +314,8 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
         <div class="ssections">
           <div>
             <h3>
-              <span class="icon">🔐</span>Web passkeys{" "}
-              <button class="add" onClick={() => enroll().catch(logError)}>
-                +
-              </button>
-            </h3>
-            <WebPasskeyList keys={user.webKeys} />
-          </div>
-          <div>
-            <h3>
-              <span class="icon">🔑</span>API keys{" "}
-              <button class="add" onClick={() => sendUpdate("k")}>
+              <span className="icon">🔑</span>API keys{" "}
+              <button className="add" onClick={() => sendUpdate("k")}>
                 +
               </button>
             </h3>
@@ -390,7 +323,16 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
           </div>
           <div>
             <h3>
-              <span class="icon">📇</span>Contact
+              <span className="icon">🔐</span>Web passkeys{" "}
+              <button className="add" onClick={() => enroll().catch(logError)}>
+                +
+              </button>
+            </h3>
+            <WebPasskeyList keys={user.webKeys} />
+          </div>
+          <div>
+            <h3>
+              <span className="icon">📇</span>Contact
             </h3>
             <div>
               If we <em>need</em> to reach out?
@@ -421,9 +363,8 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
         <JoinTeam />
       </div>
       {[...(user.teams?.keys() || [])].map((id) => (
-        <Team id={id} state={state} session={session} />
+        <TeamView id={id} state={state} session={session} />
       ))}
-      <Footer />
     </>
   );
 }
@@ -432,8 +373,7 @@ export function Admin() {
   const state = useContext(StateCtx);
   const ready = state.value.ready;
   const session = loadSession(state.value);
-  const uid = session?.uid;
-  if (ready && uid === undefined) {
+  if (ready && session?.uid === undefined) {
     route("/");
     return <></>;
   }
@@ -450,6 +390,7 @@ export function Admin() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

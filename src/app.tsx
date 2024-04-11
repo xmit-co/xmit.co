@@ -4,10 +4,12 @@ import Router, { Route } from "preact-router";
 import { Decoder, Encoder } from "cbor-x";
 import { signal } from "@preact/signals";
 import Sockette from "sockette";
-import { Admin, Invite, Team, User } from "./admin.tsx";
+import { Admin } from "./admin.tsx";
 import { Docs } from "./docs.tsx";
 import { Home } from "./home.tsx";
 import { createContext } from "preact";
+import { Invite, Site, State, Team, User, Node } from "./models.tsx";
+import { SiteAdmin } from "./siteAdmin.tsx";
 
 const CBOROptions = {
   useRecords: false,
@@ -19,19 +21,6 @@ export const decoder = new Decoder(CBOROptions);
 
 export const reconnectChannel = new BroadcastChannel("reconnect");
 new BroadcastChannel("reconnect").onmessage = connect;
-
-interface Node {
-  value?: any;
-  children?: Map<any, Node>;
-}
-
-export interface State {
-  ready: boolean;
-  root: Node;
-  errors: string[];
-  updates: [any, any][] | null;
-  sock?: Sockette;
-}
 
 const state = signal<State>({
   ready: false,
@@ -70,6 +59,14 @@ const inviteMapping = {
   teamID: 2,
   createdAt: 3,
   creatingUserID: 4,
+};
+
+const siteMapping = {
+  id: 1,
+  teamID: 2,
+  name: 3,
+  settings: 4,
+  domains: 5,
 };
 
 export const StateCtx = createContext(state);
@@ -121,6 +118,10 @@ export function loadInvite(state: State, id: string) {
   return loadKey(state.root, ["i", id]) as Invite | undefined;
 }
 
+export function loadSite(state: State, id: number) {
+  return loadKey(state.root, ["s", id]) as Site | undefined;
+}
+
 function ingestMessage(state: State, msg: Map<number, any>): State {
   let { ready, root, errors } = state;
   if (msg.get(1) != undefined) {
@@ -142,29 +143,32 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
         }
         break;
       case 2:
-        if (key[0] === "u") {
-          const u = map(value, userMapping);
-          if (u.apiKeys) {
-            u.apiKeys = new Map(
-              Array.from(u.apiKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
-            );
-          }
-          if (u.webKeys) {
-            u.webKeys = new Map(
-              Array.from(u.webKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
-            );
-          }
-          return u;
-        } else if (key[0] === "t") {
-          const t = map(value, teamMapping);
-          if (t.apiKeys) {
-            t.apiKeys = new Map(
-              Array.from(t.apiKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
-            );
-          }
-          return t;
-        } else if (key[0] === "i") {
-          return map(value, inviteMapping);
+        switch (key[0]) {
+          case "u":
+            const u = map(value, userMapping);
+            if (u.apiKeys) {
+              u.apiKeys = new Map(
+                Array.from(u.apiKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
+              );
+            }
+            if (u.webKeys) {
+              u.webKeys = new Map(
+                Array.from(u.webKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
+              );
+            }
+            return u;
+          case "t":
+            const t = map(value, teamMapping);
+            if (t.apiKeys) {
+              t.apiKeys = new Map(
+                Array.from(t.apiKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
+              );
+            }
+            return t;
+          case "i":
+            return map(value, inviteMapping);
+          case "s":
+            return map(value, siteMapping);
         }
         break;
     }
@@ -358,9 +362,6 @@ function UpdatesInspector({ updates }: { updates: [any, any][] | null }) {
 }
 
 function Debug() {
-  if (window.location.hash != "#debug") {
-    return <></>;
-  }
   if (state.value.updates === null) {
     state.value = { ...state.value, updates: [] };
   }
@@ -381,10 +382,11 @@ export function App() {
       <Errors />
       <Router>
         <Route path="/" component={Home} />
-        <Route path="/admin" component={Admin} />
         <Route path="/docs" component={Docs} />
+        <Route path="/admin" component={Admin} />
+        <Route path="/site/:id" component={SiteAdmin} />
+        <Route path="/debug" component={Debug} />
       </Router>
-      <Debug />
     </StateCtx.Provider>
   );
 }
