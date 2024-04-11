@@ -14,26 +14,26 @@ export interface State {
 }
 
 export interface SiteSettings {
-  publishInstantly: boolean;
-  expireAfter: number;
-  password: string;
+  publishInstantly: boolean | undefined;
+  password: string | undefined;
 }
 
 export interface Site {
-  id: number;
-  teamID: number;
-  name: string;
-  settings: SiteSettings;
-  domains: Map<string, undefined>;
+  id: number | undefined;
+  teamID: number | undefined;
+  name: string | undefined;
+  settings: SiteSettings | undefined;
+  domains: Map<string, undefined> | undefined;
 }
 
 export interface CredInfo {
-  name: string;
-  createdAt: number;
+  name: string | undefined;
+  createdAt: number | undefined;
+  createdBy: number | undefined;
 }
 
 export interface User {
-  id: number;
+  id: number | undefined;
   name: string | undefined;
   teams: Map<number, undefined> | undefined;
   apiKeys: Map<Uint8Array, CredInfo> | undefined;
@@ -43,18 +43,18 @@ export interface User {
 }
 
 export interface Team {
-  id: number;
+  id: number | undefined;
   name: string | undefined;
   sites: Map<number, undefined> | undefined;
   users: Map<number, undefined> | undefined;
   invites: Map<string, undefined> | undefined;
   apiKeys: Map<Uint8Array, CredInfo> | undefined;
-  defaultSettings: Record<string, any> | undefined;
+  defaultSettings: SiteSettings | undefined;
 }
 
 export interface Invite {
   id: string;
-  teamID: number;
-  createdAt: number;
-  creatingUserID: number;
+  teamID: number | undefined;
+  createdAt: number | undefined;
+  creatingUserID: number | undefined;
 }

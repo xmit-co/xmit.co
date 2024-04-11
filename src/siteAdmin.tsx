@@ -5,6 +5,7 @@ import { Site, State } from "./models.tsx";
 import { EditableText } from "./editableText.tsx";
 import { Footer } from "./footer.tsx";
 import { loadSession, loadSite, sendUpdate, StateCtx } from "./app.tsx";
+import { SettingsView } from "./admin.tsx";
 
 function SiteAdminBody({ site, state: _ }: { site: Site; state: State }) {
   const siteID = site.id || 0;
@@ -46,7 +47,7 @@ function SiteAdminBody({ site, state: _ }: { site: Site; state: State }) {
           <h3>
             <span className="icon">⚙️</span>Settings
           </h3>
-          <div className="todo">TODO</div>
+          <SettingsView value={site.settings} updateKey={["s", siteID, "s"]} />
         </div>
       </div>
     </div>

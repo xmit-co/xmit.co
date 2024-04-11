@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 
 export function EditableText({
   value,
+  prefix,
   placeholder,
   submit,
   whenMissing,
@@ -10,6 +11,7 @@ export function EditableText({
   class?: string | undefined;
   value: string | undefined;
   whenMissing?: string | undefined;
+  prefix?: string | undefined;
   placeholder?: string | undefined;
   type?: string | undefined;
   submit: (v: string) => void;
@@ -43,6 +45,9 @@ export function EditableText({
         }}
       />
     );
+  }
+  if (prefix !== undefined && value !== undefined) {
+    value = prefix + value;
   }
   return (
     <span class="clickable" onClick={() => setEditing(true)}>

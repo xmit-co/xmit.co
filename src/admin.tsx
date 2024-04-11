@@ -16,9 +16,20 @@ import { enroll } from "./webauthn.tsx";
 import { Footer } from "./footer.tsx";
 import { Link } from "preact-router/match";
 import { EditableText } from "./editableText.tsx";
-import { CredInfo, Invite, Site, State, Team, User } from "./models.tsx";
+import {
+  CredInfo,
+  Invite,
+  Site,
+  SiteSettings,
+  State,
+  Team,
+  User,
+} from "./models.tsx";
 
-function dateTime(t: number) {
+function dateTime(t: number | undefined) {
+  if (t === undefined) {
+    return "unknown";
+  }
   return new Date(t * 1000).toISOString().split(".")[0] + "Z";
 }
 
@@ -63,9 +74,16 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
         ✕
       </button>
       <br />
-      created {dateTime(info.createdAt)}
+      from {dateTime(info.createdAt)}
     </li>
   );
+}
+
+function printNameAndID(user: User | undefined) {
+  if (user === undefined) {
+    return undefined;
+  }
+  return `${user.name} (#${user.id})`;
 }
 
 function APIKey({
@@ -77,6 +95,8 @@ function APIKey({
   info: CredInfo;
   raw: string | undefined;
 }) {
+  const state = useContext(StateCtx);
+  const createdBy = loadUser(state.value, info.createdBy || 0);
   return (
     <li>
       <EditableText
@@ -92,28 +112,30 @@ function APIKey({
         ✕
       </button>
       <br />
-      created {dateTime(info.createdAt)}
+      from {dateTime(info.createdAt)} &amp;{" "}
+      {printNameAndID(createdBy) || `#${info.createdBy}`}
     </li>
   );
 }
 
-function Members({ state, team }: { state: State; team: Team }) {
+function Members({ team }: { team: Team }) {
   if (team.users === undefined || team.users.size === 0) {
     return <em>No members.</em>;
   }
-  const users = Array.from(team.users.keys())
-    .map((id) => loadUser(state, id))
-    .map((u) => ({ name: u?.name || `#${u?.id}`, id: u?.id || 0 }));
+  const state = useContext(StateCtx);
+  const users = Array.from(team.users.keys()).map((id) =>
+    loadUser(state.value, id),
+  );
   const teamID = team.id || 0;
   return (
     <ul>
       {users.map((u) => (
         <li>
-          {u.name}
+          {printNameAndID(u)}
           {users.length > 1 && (
             <button
               class="delete"
-              onClick={() => sendUpdate(["t", teamID, "u", u.id])}
+              onClick={() => sendUpdate(["t", teamID, "u", u?.id || 0])}
             >
               ✕
             </button>
@@ -124,13 +146,14 @@ function Members({ state, team }: { state: State; team: Team }) {
   );
 }
 
-function Invites({ team, state }: { team: Team; state: State }) {
+function Invites({ team }: { team: Team }) {
   if (!team.invites || team.invites.size === 0) {
     return null;
   }
+  const state = useContext(StateCtx);
   const entries = [...team.invites.keys()].map((id) => {
-    const invite = loadInvite(state, id);
-    const user = invite && loadUser(state, invite.creatingUserID);
+    const invite = loadInvite(state.value, id);
+    const user = invite && loadUser(state.value, invite.creatingUserID || 0);
     return { invite, user };
   }) as { invite: Invite; user: User | undefined }[];
   return (
@@ -169,9 +192,10 @@ function SiteView({ site }: { site: Site }) {
   );
 }
 
-function SiteList({ state, team }: { state: State; team: Team }) {
+function SiteList({ team }: { team: Team }) {
+  const state = useContext(StateCtx);
   const sites = [...(team.sites?.keys() || [])].map((id) =>
-    loadSite(state, id),
+    loadSite(state.value, id),
   );
   if (sites.length === 0) {
     return <em>No sites.</em>;
@@ -185,16 +209,47 @@ function SiteList({ state, team }: { state: State; team: Team }) {
   );
 }
 
-function TeamView({
-  session,
-  id,
-  state,
+export function SettingsView({
+  value,
+  updateKey,
 }: {
-  session: Session;
-  id: number;
-  state: State;
+  value: SiteSettings | undefined;
+  updateKey: (string | number)[];
 }) {
-  const team = loadTeam(state, id);
+  const publishInstantly = value?.publishInstantly || false;
+  const password = value?.password;
+  return (
+    <div>
+      <label>
+        <input
+          type="checkbox"
+          checked={publishInstantly}
+          onChange={(e) =>
+            sendUpdate(
+              updateKey,
+              new Map([[1, (e.target as HTMLInputElement).checked]]),
+            )
+          }
+        />
+        Launch on upload
+      </label>
+      <br />
+      <label>
+        <EditableText
+          value={password}
+          prefix="Password: "
+          placeholder="Password"
+          whenMissing="No password"
+          submit={(v) => sendUpdate(updateKey, new Map([[2, v]]))}
+        />
+      </label>
+    </div>
+  );
+}
+
+function TeamView({ session, id }: { session: Session; id: number }) {
+  const state = useContext(StateCtx);
+  const team = loadTeam(state.value, id);
   if (team === undefined) {
     return <></>;
   }
@@ -231,20 +286,23 @@ function TeamView({
               +
             </button>
           </h3>
-          <Members team={team} state={state} />
-          <Invites team={team} state={state} />
+          <Members team={team} />
+          <Invites team={team} />
         </div>
         <div>
           <h3>
             <span className="icon">🌐</span>Sites
           </h3>
-          <SiteList state={state} team={team} />
+          <SiteList team={team} />
         </div>
         <div>
           <h3>
             <span className="icon">⚙️</span>Default settings{" "}
           </h3>
-          <div className="todo">TODO</div>
+          <SettingsView
+            value={team.defaultSettings}
+            updateKey={["t", id, "s"]}
+          />
         </div>
       </div>
     </div>
@@ -342,6 +400,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
                 value={user.phone}
                 whenMissing="No phone #"
                 placeholder="Phone #"
+                prefix="Phone #: "
                 type="tel"
                 submit={(v) => sendUpdate("u", new Map([[6, v]]))}
               />
@@ -350,6 +409,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
                 value={user.email}
                 whenMissing="No E-mail"
                 placeholder="Email"
+                prefix="Email: "
                 type="email"
                 submit={(v) => sendUpdate("u", new Map([[7, v]]))}
               />
@@ -364,7 +424,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
         <JoinTeam />
       </div>
       {[...(user.teams?.keys() || [])].map((id) => (
-        <TeamView id={id} state={state} session={session} />
+        <TeamView id={id} session={session} />
       ))}
     </>
   );

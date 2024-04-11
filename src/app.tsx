@@ -42,6 +42,7 @@ const userMapping = {
 const credInfoMapping = {
   name: 1,
   createdAt: 2,
+  createdBy: 3,
 };
 
 const teamMapping = {
@@ -67,6 +68,11 @@ const siteMapping = {
   name: 3,
   settings: 4,
   domains: 5,
+};
+
+const settingsMapping = {
+  publishInstantly: 1,
+  password: 2,
 };
 
 export const StateCtx = createContext(state);
@@ -107,19 +113,19 @@ export function loadSession(state: State) {
 }
 
 export function loadUser(state: State, id: number) {
-  return loadKey(state.root, ["u", id]) as User | undefined;
+  return loadKey(state.root, ["u", id || 0]) as User | undefined;
 }
 
 export function loadTeam(state: State, id: number) {
-  return loadKey(state.root, ["t", id]) as Team | undefined;
+  return loadKey(state.root, ["t", id || 0]) as Team | undefined;
 }
 
 export function loadInvite(state: State, id: string) {
-  return loadKey(state.root, ["i", id]) as Invite | undefined;
+  return loadKey(state.root, ["i", id || 0]) as Invite | undefined;
 }
 
 export function loadSite(state: State, id: number) {
-  return loadKey(state.root, ["s", id]) as Site | undefined;
+  return loadKey(state.root, ["s", id || 0]) as Site | undefined;
 }
 
 function ingestMessage(state: State, msg: Map<number, any>): State {
@@ -164,11 +170,18 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
                 Array.from(t.apiKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
               );
             }
+            if (t.defaultSettings) {
+              t.defaultSettings = map(t.defaultSettings, settingsMapping);
+            }
             return t;
           case "i":
             return map(value, inviteMapping);
           case "s":
-            return map(value, siteMapping);
+            const s = map(value, siteMapping);
+            if (s.settings) {
+              s.settings = map(s.settings, settingsMapping);
+            }
+            return s;
         }
         break;
     }

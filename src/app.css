@@ -122,7 +122,7 @@ div.home {
 }
 
 div.body {
-  max-width: 80em;
+  max-width: 120em;
   padding: 0 1em;
   margin: 0 auto;
 }
@@ -140,7 +140,7 @@ div.section {
   gap: 1em;
 }
 
-input,
+input[type!="checkbox"],
 select {
   font-family: monospace;
   width: 10em;
@@ -162,7 +162,7 @@ div.ssections {
 
 div.ssections > div {
   position: relative;
-  min-width: 15em;
+  min-width: 25em;
   flex-basis: 0;
   flex-grow: 1;
 }
