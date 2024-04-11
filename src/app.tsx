@@ -10,6 +10,7 @@ import { Home } from "./home.tsx";
 import { createContext } from "preact";
 import { Invite, Site, State, Team, User, Node } from "./models.tsx";
 import { SiteAdmin } from "./siteAdmin.tsx";
+import { Header } from "./header.tsx";
 
 const CBOROptions = {
   useRecords: false,
@@ -405,13 +406,13 @@ function Debug() {
     state.value = { ...state.value, updates: [] };
   }
   return (
-    <>
-      <h1>Inspector</h1>
+    <div className="with-header">
+      <Header session={loadSession(state.value)} />
       <h2>State</h2>
       <NodeInspector node={state.value.root} />
       <h2>Updates</h2>
       <UpdatesInspector updates={state.value.updates} />
-    </>
+    </div>
   );
 }
 
