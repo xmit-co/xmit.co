@@ -72,7 +72,7 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
         submit={(v) => sendUpdate(["p", id], new Map([[1, v]]))}
       />
       <button class="delete" onClick={() => sendUpdate(["p", id])}>
-        ✕ destroy
+        ✕ forget
       </button>
       <br />
       from {dateTime(info.createdAt)}
@@ -113,7 +113,7 @@ function APIKey({
         </button>
       ) : null}
       <button class="delete" onClick={() => sendUpdate(["k", id])}>
-        ✕ destroy
+        ✕ forget
       </button>
       <br />
       from {dateTime(info.createdAt)} &amp;{" "}
@@ -176,7 +176,7 @@ function Invites({ team }: { team: Team }) {
               class="delete"
               onClick={() => sendUpdate(["i", i.invite.id])}
             >
-              ✕ destroy
+              ✕ revoke
             </button>
           </li>
         ))}
