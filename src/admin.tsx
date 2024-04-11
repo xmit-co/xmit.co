@@ -68,10 +68,11 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
         value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
+        editLabel="rename"
         submit={(v) => sendUpdate(["p", id], new Map([[1, v]]))}
       />
       <button class="delete" onClick={() => sendUpdate(["p", id])}>
-        ✕
+        ✕ destroy
       </button>
       <br />
       from {dateTime(info.createdAt)}
@@ -103,13 +104,14 @@ function APIKey({
         value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
+        editLabel="rename"
         submit={(v) => sendUpdate(["k", id], new Map([[1, v]]))}
       />
       {raw ? (
         <button onClick={() => navigator.clipboard.writeText(raw)}>📋</button>
       ) : null}
       <button class="delete" onClick={() => sendUpdate(["k", id])}>
-        ✕
+        ✕ destroy
       </button>
       <br />
       from {dateTime(info.createdAt)} &amp;{" "}
@@ -137,7 +139,7 @@ function Members({ team }: { team: Team }) {
               class="delete"
               onClick={() => sendUpdate(["t", teamID, "u", u?.id || 0])}
             >
-              ✕
+              ✕ exclude
             </button>
           )}
         </li>
@@ -172,7 +174,7 @@ function Invites({ team }: { team: Team }) {
               class="delete"
               onClick={() => sendUpdate(["i", i.invite.id])}
             >
-              ✕
+              ✕ destroy
             </button>
           </li>
         ))}
@@ -262,10 +264,11 @@ function TeamView({ session, id }: { session: Session; id: number }) {
             type="text"
             value={team.name}
             whenMissing="unnamed"
+            editLabel="rename"
             submit={(v) => sendUpdate(["t", id], new Map([[1, v]]))}
           />
           <button class="delete" onClick={() => sendUpdate(["t", id])}>
-            ✕
+            ✕ destroy
           </button>
         </h2>
       </div>
@@ -274,7 +277,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
           <h3>
             <span className="icon">🔑️</span>API keys{" "}
             <button className="add" onClick={() => sendUpdate(["t", id, "k"])}>
-              +
+              + create
             </button>
           </h3>
           <APIKeyList session={session} keys={team.apiKeys} />
@@ -283,7 +286,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
           <h3>
             <span className="icon">👥</span>Members{" "}
             <button className="add" onClick={() => sendUpdate(["t", id, "i"])}>
-              +
+              + invite
             </button>
           </h3>
           <Members team={team} />
@@ -366,6 +369,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
               type="text"
               value={user.name}
               whenMissing="anonymous"
+              editLabel="rename"
               submit={(v) => sendUpdate("u", new Map([[2, v]]))}
             />
           </h2>
@@ -375,7 +379,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
             <h3>
               <span className="icon">🔑</span>API keys{" "}
               <button className="add" onClick={() => sendUpdate("k")}>
-                +
+                + create
               </button>
             </h3>
             <APIKeyList session={session} keys={user.apiKeys} />
@@ -384,7 +388,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
             <h3>
               <span className="icon">🔐</span>Web passkeys{" "}
               <button className="add" onClick={() => enroll().catch(logError)}>
-                +
+                + create
               </button>
             </h3>
             <WebPasskeyList keys={user.webKeys} />

@@ -75,6 +75,22 @@ const settingsMapping = {
   password: 2,
 };
 
+const uploadMapping = {
+  id: 1,
+  bundle: 2,
+  at: 3,
+  by: 4,
+  siteID: 5,
+};
+
+const launchMapping = {
+  id: 1,
+  uploadID: 2,
+  at: 3,
+  by: 4,
+  siteID: 5,
+};
+
 export const StateCtx = createContext(state);
 
 function loadKey(node: Node, key: any) {
@@ -184,6 +200,16 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
             return s;
         }
         break;
+      case 4:
+        switch (key[0]) {
+          case "s":
+            switch (key[2]) {
+              case "u":
+                return map(value, uploadMapping);
+              case "l":
+                return map(value, launchMapping);
+            }
+        }
     }
     return value;
   }

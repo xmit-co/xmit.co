@@ -17,10 +17,11 @@ function SiteAdminBody({ site, state: _ }: { site: Site; state: State }) {
           <EditableText
             value={site.name}
             whenMissing="unnamed"
+            editLabel="rename"
             submit={(v) => sendUpdate(["s", siteID], new Map([[1, v]]))}
           />
           <button class="delete" onClick={() => sendUpdate(["s", siteID])}>
-            ✕
+            ✕ destroy
           </button>
         </h2>
       </div>
