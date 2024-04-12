@@ -79,7 +79,7 @@ export function nameAndID(user: User | undefined) {
   }
   return (
     <>
-      {user.name || <em>anonymous</em>} (#{user.id})
+      #{user.id}: {user.name || <em>anonymous</em>}
     </>
   );
 }
