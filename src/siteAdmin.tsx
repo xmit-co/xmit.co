@@ -73,7 +73,7 @@ function UploadList({
               ✕ destroy
             </button>
             <br />
-            from {dateTime(upload.at)} by{" "}
+            at {dateTime(upload.at)} by{" "}
             {nameAndID(loadUser(state, upload.by || 0))}
           </li>
         );
@@ -104,7 +104,7 @@ function LaunchList({
         }
         const atBy = (
           <>
-            from {dateTime(launch.at)} by{" "}
+            at {dateTime(launch.at)} by{" "}
             {nameAndID(loadUser(state, launch.by || 0))}
           </>
         );
