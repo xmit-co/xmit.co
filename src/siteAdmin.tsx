@@ -54,7 +54,7 @@ function UploadList({
       {uploads.map((upload) => {
         if (upload === undefined) {
           return (
-            <li key={upload.id || 0}>
+            <li>
               <em>missing</em>
             </li>
           );
