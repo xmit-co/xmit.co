@@ -100,11 +100,23 @@ function LaunchList({
     <ul>
       {launches.map((launch) => {
         if (launch === undefined) {
-          return <em>missing</em>;
+          return;
         }
+        const atBy = (
+          <>
+            from {dateTime(launch.at)} by{" "}
+            {nameAndID(loadUser(state, launch.by || 0))}
+          </>
+        );
         const upload = loadUpload(state, site.id, launch.uploadID);
         if (upload === undefined) {
-          return <em>upload missing</em>;
+          return (
+            <li key={launch.id || 0}>
+              <em>upload destroyed</em>
+              <br />
+              {atBy}
+            </li>
+          );
         }
         const isDeployed = u8eq(deployedBundleID, upload.bundle);
         return (
@@ -124,8 +136,7 @@ function LaunchList({
               </button>
             )}
             <br />
-            from {dateTime(launch.at)} by{" "}
-            {nameAndID(loadUser(state, launch.by || 0))}
+            {atBy}
           </li>
         );
       })}
