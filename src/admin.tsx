@@ -279,16 +279,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
       <div class="ssections">
         <div>
           <h3>
-            <span class="icon">⚙️</span>Default settings
-          </h3>
-          <SettingsView
-            value={team.defaultSettings}
-            updateKey={["t", id, "s"]}
-          />
-        </div>
-        <div>
-          <h3>
-            <span class="icon">🔑️</span>API keys{" "}
+            <span className="icon">🔑️</span>API keys{" "}
             <button class="add" onClick={() => sendUpdate(["t", id, "k"])}>
               + create
             </button>
@@ -297,7 +288,16 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         </div>
         <div>
           <h3>
-            <span class="icon">👥</span>Members{" "}
+            <span className="icon">⚙️</span>Default settings
+          </h3>
+          <SettingsView
+            value={team.defaultSettings}
+            updateKey={["t", id, "s"]}
+          />
+        </div>
+        <div>
+          <h3>
+            <span className="icon">👥</span>Members{" "}
             <button class="add" onClick={() => sendUpdate(["t", id, "i"])}>
               + invite
             </button>
@@ -307,7 +307,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         </div>
         <div>
           <h3>
-            <span class="icon">🌐</span>Sites
+            <span className="icon">🌐</span>Sites
           </h3>
           <SiteList team={team} />
         </div>
