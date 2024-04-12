@@ -47,11 +47,11 @@ export function AuthRequired({ url }: { url: string }) {
   }
   return (
     <div class="home">
-      <h1>Auth required</h1>
+      <h1>🔐 Authentication required</h1>
       <p>
         You must{" "}
         <button onClick={() => signin().catch(logError)}>sign in</button> to
-        access <code>{url}</code>.
+        access <code>{url}</code>
       </p>
     </div>
   );
