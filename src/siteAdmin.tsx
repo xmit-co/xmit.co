@@ -53,7 +53,11 @@ function UploadList({
     <ul>
       {uploads.map((upload) => {
         if (upload === undefined) {
-          return <em>missing</em>;
+          return (
+            <li key={upload.id || 0}>
+              <em>missing</em>
+            </li>
+          );
         }
         const isDeployed = u8eq(deployedBundleID, upload.bundle);
         const uploadKey = ["s", site.id || 0, "u", upload.id || 0];
