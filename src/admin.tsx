@@ -157,6 +157,7 @@ function Invites({ team }: { team: Team }) {
     const user = invite && loadUser(state, invite.creatingUserID || 0);
     return { invite, user };
   }) as { invite: Invite; user: User | undefined }[];
+  entries.sort((a, b) => (b.invite.createdAt || 0) - (a.invite.createdAt || 0));
   return (
     <>
       <h3>
