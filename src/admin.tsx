@@ -326,9 +326,11 @@ function APIKeyList({
   if (keys === undefined || keys.size === 0) {
     return <em>No keys.</em>;
   }
+  const entries = Array.from(keys?.entries() || []);
+  entries.sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
   return (
     <ul>
-      {Array.from(keys?.entries() || []).map(([id, info]) => (
+      {entries.map(([id, info]) => (
         <APIKey
           id={id}
           info={info}
