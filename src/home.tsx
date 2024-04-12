@@ -3,6 +3,7 @@ import { route } from "preact-router";
 import { enroll, signin } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
 import { Footer } from "./footer.tsx";
+import { title } from "./header.tsx";
 
 export function Home() {
   const state = useContext(StateCtx).value;
@@ -17,7 +18,7 @@ export function Home() {
   return (
     <div class="home">
       <h1>
-        🛰 xmit — launch fast <span class="mark"> {mark}</span>
+        {title} <span class="mark">{mark}</span>
       </h1>
       <div>
         <button onClick={() => route("/docs")}>📚 docs</button>

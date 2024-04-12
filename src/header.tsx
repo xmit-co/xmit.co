@@ -3,6 +3,8 @@ import { logError, Session, StateCtx } from "./app.tsx";
 import { signout } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
 
+export const title = "🛰 xmit — launch fast";
+
 export function Header({ session }: { session?: Session }) {
   const state = useContext(StateCtx).value;
   const uid = session?.uid;
@@ -13,7 +15,7 @@ export function Header({ session }: { session?: Session }) {
     return (
       <header>
         <h1>
-          🛰 xmit — launch fast <span class="mark">{mark}</span>
+          {title} <span class="mark">{mark}</span>
         </h1>
         <div>
           <Link activeClassName="header-active" href="/docs">
@@ -33,7 +35,7 @@ export function Header({ session }: { session?: Session }) {
   return (
     <header>
       <h1>
-        🛰 xmit — launch fast <span class="mark">{mark}</span>
+        {title} <span class="mark">{mark}</span>
       </h1>
       <div>
         <Link activeClassName="header-active" href="/docs">
