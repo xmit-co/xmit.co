@@ -21,10 +21,10 @@ export function Docs() {
   return (
     <div class="with-header">
       <Header session={session} />
-      <div className="body docs">
-        <div className="section">
+      <div class="body docs">
+        <div class="section">
           <h2>
-            <span className="icon">📇</span>Configure DNS
+            <span class="icon">📇</span>Configure DNS
           </h2>
           <p>Assuming your team number is 42:</p>
           <ul>
@@ -39,9 +39,9 @@ export function Docs() {
             </li>
           </ul>
         </div>
-        <div className="section">
+        <div class="section">
           <h2>
-            <span className="icon">📥</span>Install <code>xmit</code>
+            <span class="icon">📥</span>Install <code>xmit</code>
           </h2>
           <h3>
             with <code>npm</code>
@@ -111,9 +111,9 @@ export function Docs() {
             </li>
           </ul>
         </div>
-        <div className="section">
+        <div class="section">
           <h2>
-            <span className="icon">🔑</span>Set your API key
+            <span class="icon">🔑</span>Set your API key
           </h2>
           <p>
             For developer machines, create an API key for your user and store it
@@ -124,9 +124,9 @@ export function Docs() {
             set the environment variable <code>XMIT_KEY</code>.
           </p>
         </div>
-        <div className="section">
+        <div class="section">
           <h2>
-            <span className="icon">1️⃣</span>Single Page Applications
+            <span class="icon">1️⃣</span>Single Page Applications
           </h2>
           <p>
             Create in the uploaded directory (in <code>public</code> for Vite) a
@@ -134,9 +134,9 @@ export function Docs() {
           </p>
           <pre>fallback = "index.html"</pre>
         </div>
-        <div className="section">
+        <div class="section">
           <h2>
-            <span className="icon">😔</span>Custom 404
+            <span class="icon">😔</span>Custom 404
           </h2>
           <p>
             Create in the uploaded directory a file called{" "}
@@ -144,9 +144,9 @@ export function Docs() {
           </p>
           <pre>404 = "404.html"</pre>
         </div>
-        <div className="section">
+        <div class="section">
           <h2>
-            <span className="icon">🏷️</span>Custom headers
+            <span class="icon">🏷️</span>Custom headers
           </h2>
           <p>
             Create in the uploaded directory (in <code>public</code> for Vite) a
@@ -158,9 +158,9 @@ export function Docs() {
             }
           </pre>
         </div>
-        <div className="section">
+        <div class="section">
           <h2>
-            <span className="icon">↪️</span>Redirects
+            <span class="icon">↪️</span>Redirects
           </h2>
           <p>
             Create in the uploaded directory (in <code>public</code> for Vite) a

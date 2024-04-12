@@ -33,7 +33,7 @@ export function Header({ session }: { session?: Session }) {
   return (
     <header>
       <h1>
-        🛰 xmit — launch fast <span className="mark">{mark}</span>
+        🛰 xmit — launch fast <span class="mark">{mark}</span>
       </h1>
       <div>
         <Link activeClassName="header-active" href="/docs">

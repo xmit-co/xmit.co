@@ -189,7 +189,7 @@ function SiteAdminBody({ site }: { site: Site }) {
     <div class="section">
       <div class="ssections">
         <h2>
-          <span className="icon">🌐</span>
+          <span class="icon">🌐</span>
           <EditableText
             value={site.name}
             whenMissing="unnamed"
@@ -204,19 +204,19 @@ function SiteAdminBody({ site }: { site: Site }) {
       <div class="ssections">
         <div>
           <h3>
-            <span className="icon">⚙️</span>Settings
+            <span class="icon">⚙️</span>Settings
           </h3>
           <SettingsView value={site.settings} updateKey={["s", siteID, "s"]} />
         </div>
         <div>
           <h3>
-            <span className="icon">🔗</span>Domains
+            <span class="icon">🔗</span>Domains
           </h3>
           <DomainsView site={site} />
         </div>
         <div>
           <h3>
-            <span className="icon">📤</span>Uploads
+            <span class="icon">📤</span>Uploads
           </h3>
           <UploadList
             site={site}
@@ -226,7 +226,7 @@ function SiteAdminBody({ site }: { site: Site }) {
         </div>
         <div>
           <h3>
-            <span className="icon">🚀</span>Launches
+            <span class="icon">🚀</span>Launches
           </h3>
           <LaunchList
             site={site}

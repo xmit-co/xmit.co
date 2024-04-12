@@ -437,7 +437,7 @@ function Debug() {
     state.value = { ...state.value, updates: [] };
   }
   return (
-    <div className="with-header">
+    <div class="with-header">
       <Header session={loadSession(state.value)} />
       <h2>State</h2>
       <NodeInspector node={state.value.root} />

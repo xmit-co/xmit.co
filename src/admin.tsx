@@ -275,10 +275,10 @@ function TeamView({ session, id }: { session: Session; id: number }) {
           </button>
         </h2>
       </div>
-      <div className="ssections">
+      <div class="ssections">
         <div>
           <h3>
-            <span className="icon">⚙️</span>Default settings
+            <span class="icon">⚙️</span>Default settings
           </h3>
           <SettingsView
             value={team.defaultSettings}
@@ -287,8 +287,8 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         </div>
         <div>
           <h3>
-            <span className="icon">🔑️</span>API keys{" "}
-            <button className="add" onClick={() => sendUpdate(["t", id, "k"])}>
+            <span class="icon">🔑️</span>API keys{" "}
+            <button class="add" onClick={() => sendUpdate(["t", id, "k"])}>
               + create
             </button>
           </h3>
@@ -296,8 +296,8 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         </div>
         <div>
           <h3>
-            <span className="icon">👥</span>Members{" "}
-            <button className="add" onClick={() => sendUpdate(["t", id, "i"])}>
+            <span class="icon">👥</span>Members{" "}
+            <button class="add" onClick={() => sendUpdate(["t", id, "i"])}>
               + invite
             </button>
           </h3>
@@ -306,7 +306,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         </div>
         <div>
           <h3>
-            <span className="icon">🌐</span>Sites
+            <span class="icon">🌐</span>Sites
           </h3>
           <SiteList team={team} />
         </div>
@@ -381,8 +381,8 @@ function AdminBody({ session }: { session: Session }) {
         <div class="ssections">
           <div>
             <h3>
-              <span className="icon">🔑</span>API keys{" "}
-              <button className="add" onClick={() => sendUpdate("k")}>
+              <span class="icon">🔑</span>API keys{" "}
+              <button class="add" onClick={() => sendUpdate("k")}>
                 + create
               </button>
             </h3>
@@ -390,8 +390,8 @@ function AdminBody({ session }: { session: Session }) {
           </div>
           <div>
             <h3>
-              <span className="icon">🔐</span>Web passkeys{" "}
-              <button className="add" onClick={() => enroll().catch(logError)}>
+              <span class="icon">🔐</span>Web passkeys{" "}
+              <button class="add" onClick={() => enroll().catch(logError)}>
                 + create
               </button>
             </h3>
@@ -399,7 +399,7 @@ function AdminBody({ session }: { session: Session }) {
           </div>
           <div>
             <h3>
-              <span className="icon">📇</span>Contact
+              <span class="icon">📇</span>Contact
             </h3>
             <div>
               If we <em>need</em> to reach out?
