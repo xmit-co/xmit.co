@@ -9,6 +9,7 @@ import {
   sendUpdate,
   Session,
   StateCtx,
+  u8eq,
 } from "./app.tsx";
 import { route } from "preact-router";
 import { useContext, useState } from "preact/hooks";
@@ -16,17 +17,9 @@ import { enroll } from "./webauthn.tsx";
 import { Footer } from "./footer.tsx";
 import { Link } from "preact-router/match";
 import { EditableText } from "./editableText.tsx";
-import {
-  CredInfo,
-  Invite,
-  Site,
-  SiteSettings,
-  State,
-  Team,
-  User,
-} from "./models.tsx";
+import { CredInfo, Invite, Site, SiteSettings, Team, User } from "./models.tsx";
 
-function dateTime(t: number | undefined) {
+export function dateTime(t: number | undefined) {
   if (t === undefined) {
     return "unknown";
   }
@@ -63,12 +56,12 @@ function JoinTeam() {
 
 function WebKey({ id, info }: { id: string; info: CredInfo }) {
   return (
-    <li>
+    <li key={id}>
       <EditableText
         value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
-        editLabel="rename"
+        buttonText="rename"
         submit={(v) => sendUpdate(["p", id], new Map([[1, v]]))}
       />
       <button class="delete" onClick={() => sendUpdate(["p", id])}>
@@ -80,9 +73,9 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
   );
 }
 
-function nameAndID(user: User | undefined) {
+export function nameAndID(user: User | undefined) {
   if (user === undefined) {
-    return undefined;
+    return <em>unknown</em>;
   }
   return (
     <>
@@ -100,19 +93,21 @@ function APIKey({
   info: CredInfo;
   raw: string | undefined;
 }) {
-  const state = useContext(StateCtx);
-  const createdBy = loadUser(state.value, info.createdBy || 0);
+  const state = useContext(StateCtx).value;
+  const createdBy = loadUser(state, info.createdBy || 0);
   return (
-    <li>
+    <li key={id}>
       <EditableText
         value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
-        editLabel="rename"
+        buttonText="rename"
         submit={(v) => sendUpdate(["k", id], new Map([[1, v]]))}
       />
       {raw ? (
-        <button onClick={() => navigator.clipboard.writeText(raw)}>
+        <button
+          onClick={() => navigator.clipboard.writeText(raw).catch(logError)}
+        >
           📋 copy
         </button>
       ) : null}
@@ -120,7 +115,7 @@ function APIKey({
         ✕ forget
       </button>
       <br />
-      from {dateTime(info.createdAt)} &amp;{" "}
+      from {dateTime(info.createdAt)} by{" "}
       {nameAndID(createdBy) || `#${info.createdBy}`}
     </li>
   );
@@ -130,15 +125,13 @@ function Members({ team }: { team: Team }) {
   if (team.users === undefined || team.users.size === 0) {
     return <em>No members.</em>;
   }
-  const state = useContext(StateCtx);
-  const users = Array.from(team.users.keys()).map((id) =>
-    loadUser(state.value, id),
-  );
+  const state = useContext(StateCtx).value;
+  const users = Array.from(team.users.keys()).map((id) => loadUser(state, id));
   const teamID = team.id || 0;
   return (
     <ul>
       {users.map((u) => (
-        <li>
+        <li key={u?.id || 0}>
           {nameAndID(u)}
           {users.length > 1 && (
             <button
@@ -158,10 +151,10 @@ function Invites({ team }: { team: Team }) {
   if (!team.invites || team.invites.size === 0) {
     return null;
   }
-  const state = useContext(StateCtx);
+  const state = useContext(StateCtx).value;
   const entries = [...team.invites.keys()].map((id) => {
-    const invite = loadInvite(state.value, id);
-    const user = invite && loadUser(state.value, invite.creatingUserID || 0);
+    const invite = loadInvite(state, id);
+    const user = invite && loadUser(state, invite.creatingUserID || 0);
     return { invite, user };
   }) as { invite: Invite; user: User | undefined }[];
   return (
@@ -171,9 +164,13 @@ function Invites({ team }: { team: Team }) {
       </h3>
       <ul>
         {entries.map((i) => (
-          <li>
+          <li key={i.invite.id}>
             {dateTime(i.invite.createdAt)} by {i.user?.name || <em>unknown</em>}{" "}
-            <button onClick={() => navigator.clipboard.writeText(i.invite.id)}>
+            <button
+              onClick={() =>
+                navigator.clipboard.writeText(i.invite.id).catch(logError)
+              }
+            >
               📋 copy
             </button>
             <button
@@ -192,7 +189,7 @@ function Invites({ team }: { team: Team }) {
 function SiteView({ site }: { site: Site }) {
   const siteID = site.id || 0;
   return (
-    <li>
+    <li key={siteID}>
       <Link href={`/site/${siteID}`}>
         #{siteID}: {site.name || <em>unnamed</em>}
       </Link>
@@ -201,9 +198,9 @@ function SiteView({ site }: { site: Site }) {
 }
 
 function SiteList({ team }: { team: Team }) {
-  const state = useContext(StateCtx);
+  const state = useContext(StateCtx).value;
   const sites = [...(team.sites?.keys() || [])].map((id) =>
-    loadSite(state.value, id),
+    loadSite(state, id),
   );
   if (sites.length === 0) {
     return <em>No sites.</em>;
@@ -256,8 +253,8 @@ export function SettingsView({
 }
 
 function TeamView({ session, id }: { session: Session; id: number }) {
-  const state = useContext(StateCtx);
-  const team = loadTeam(state.value, id);
+  const state = useContext(StateCtx).value;
+  const team = loadTeam(state, id);
   if (team === undefined) {
     return <></>;
   }
@@ -270,7 +267,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
             type="text"
             value={team.name}
             whenMissing="unnamed"
-            editLabel="rename"
+            buttonText="rename"
             submit={(v) => sendUpdate(["t", id], new Map([[1, v]]))}
           />
           <button class="delete" onClick={() => sendUpdate(["t", id])}>
@@ -279,6 +276,15 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         </h2>
       </div>
       <div className="ssections">
+        <div>
+          <h3>
+            <span className="icon">⚙️</span>Default settings
+          </h3>
+          <SettingsView
+            value={team.defaultSettings}
+            updateKey={["t", id, "s"]}
+          />
+        </div>
         <div>
           <h3>
             <span className="icon">🔑️</span>API keys{" "}
@@ -304,15 +310,6 @@ function TeamView({ session, id }: { session: Session; id: number }) {
           </h3>
           <SiteList team={team} />
         </div>
-        <div>
-          <h3>
-            <span className="icon">⚙️</span>Default settings{" "}
-          </h3>
-          <SettingsView
-            value={team.defaultSettings}
-            updateKey={["t", id, "s"]}
-          />
-        </div>
       </div>
     </div>
   );
@@ -337,7 +334,7 @@ function APIKeyList({
           // TODO: complexity isn't great here, would be much better to index keys by hash
           raw={
             [...(session.createdAPIKeys?.entries() || [])].find(([k, _]) =>
-              k.every((v, i) => id[i] === v),
+              u8eq(k, id),
             )?.[1]
           }
         />
@@ -359,7 +356,8 @@ function WebPasskeyList({ keys }: { keys: Map<string, CredInfo> | undefined }) {
   );
 }
 
-function AdminBody({ session, state }: { session: Session; state: State }) {
+function AdminBody({ session }: { session: Session }) {
+  const state = useContext(StateCtx).value;
   const uid = session.uid;
   const user = loadUser(state, uid);
   if (user === undefined) {
@@ -375,7 +373,7 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
               type="text"
               value={user.name}
               whenMissing="anonymous"
-              editLabel="rename"
+              buttonText="rename"
               submit={(v) => sendUpdate("u", new Map([[2, v]]))}
             />
           </h2>
@@ -441,9 +439,9 @@ function AdminBody({ session, state }: { session: Session; state: State }) {
 }
 
 export function Admin() {
-  const state = useContext(StateCtx);
-  const ready = state.value.ready;
-  const session = loadSession(state.value);
+  const state = useContext(StateCtx).value;
+  const ready = state.ready;
+  const session = loadSession(state);
   if (ready && session?.uid === undefined) {
     route("/");
     return <></>;
@@ -454,7 +452,7 @@ export function Admin() {
       <Header session={session} />
       <div class="body">
         {ready && session !== undefined ? (
-          <AdminBody session={session} state={state.value} />
+          <AdminBody session={session} />
         ) : (
           <div style={{ textAlign: "center" }}>
             <em>Loading…</em>

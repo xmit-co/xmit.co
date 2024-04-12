@@ -7,15 +7,17 @@ export function EditableText({
   submit,
   whenMissing,
   type,
-  editLabel,
+  buttonText,
+  buttonIcon,
 }: {
   class?: string | undefined;
-  value: string | undefined;
+  value?: string | undefined;
   whenMissing?: string | undefined;
   prefix?: string | undefined;
   placeholder?: string | undefined;
   type?: string | undefined;
-  editLabel?: string | undefined;
+  buttonText?: string | undefined;
+  buttonIcon?: string | undefined;
   submit: (v: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -53,7 +55,10 @@ export function EditableText({
   }
   return (
     <span class="clickable" onClick={() => setEditing(true)}>
-      {value || <em>{whenMissing}</em>} <button>✎ {editLabel || "edit"}</button>
+      {value || <em>{whenMissing}</em>}{" "}
+      <button>
+        {buttonIcon || "✎"} {buttonText || "edit"}
+      </button>
     </span>
   );
 }

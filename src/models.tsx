@@ -24,6 +24,8 @@ export interface Site {
   name: string | undefined;
   settings: SiteSettings | undefined;
   domains: Map<string, undefined> | undefined;
+  uploads: Map<number, undefined> | undefined;
+  launches: Map<number, undefined> | undefined;
 }
 
 export interface CredInfo {
@@ -57,4 +59,20 @@ export interface Invite {
   teamID: number | undefined;
   createdAt: number | undefined;
   creatingUserID: number | undefined;
+}
+
+export interface Upload {
+  id: number | undefined;
+  bundle: Uint8Array | undefined;
+  at: number | undefined;
+  by: number | undefined;
+  siteID: number | undefined;
+}
+
+export interface Launch {
+  id: number | undefined;
+  uploadID: number | undefined;
+  at: number | undefined;
+  by: number | undefined;
+  siteID: number | undefined;
 }

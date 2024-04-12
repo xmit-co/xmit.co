@@ -6,9 +6,18 @@ import { signal } from "@preact/signals";
 import Sockette from "sockette";
 import { Admin } from "./admin.tsx";
 import { Docs } from "./docs.tsx";
-import { Home } from "./home.tsx";
+import { AuthRequired, Home } from "./home.tsx";
 import { createContext } from "preact";
-import { Invite, Site, State, Team, User, Node } from "./models.tsx";
+import {
+  Invite,
+  Launch,
+  Node,
+  Site,
+  State,
+  Team,
+  Upload,
+  User,
+} from "./models.tsx";
 import { SiteAdmin } from "./siteAdmin.tsx";
 import { Header } from "./header.tsx";
 
@@ -69,6 +78,8 @@ const siteMapping = {
   name: 3,
   settings: 4,
   domains: 5,
+  uploads: 6,
+  launches: 7,
 };
 
 const settingsMapping = {
@@ -129,20 +140,40 @@ export function loadSession(state: State) {
   return loadKey(state.root, "S") as Session | undefined;
 }
 
-export function loadUser(state: State, id: number) {
+export function loadUser(state: State, id: number | undefined) {
   return loadKey(state.root, ["u", id || 0]) as User | undefined;
 }
 
-export function loadTeam(state: State, id: number) {
+export function loadTeam(state: State, id: number | undefined) {
   return loadKey(state.root, ["t", id || 0]) as Team | undefined;
 }
 
 export function loadInvite(state: State, id: string) {
-  return loadKey(state.root, ["i", id || 0]) as Invite | undefined;
+  return loadKey(state.root, ["i", id]) as Invite | undefined;
 }
 
 export function loadSite(state: State, id: number) {
   return loadKey(state.root, ["s", id || 0]) as Site | undefined;
+}
+
+export function loadUpload(
+  state: State,
+  siteID: number | undefined,
+  id: number | undefined,
+) {
+  return loadKey(state.root, ["s", siteID || 0, "u", id || 0]) as
+    | Upload
+    | undefined;
+}
+
+export function loadLaunch(
+  state: State,
+  siteID: number | undefined,
+  id: number | undefined,
+) {
+  return loadKey(state.root, ["s", siteID || 0, "l", id || 0]) as
+    | Launch
+    | undefined;
 }
 
 function ingestMessage(state: State, msg: Map<number, any>): State {
@@ -422,6 +453,7 @@ export function App() {
       <Errors />
       <Router>
         <Route path="/" component={Home} />
+        <Route path="/signin/:url" component={AuthRequired} />
         <Route path="/docs" component={Docs} />
         <Route path="/admin" component={Admin} />
         <Route path="/site/:id" component={SiteAdmin} />
@@ -429,4 +461,17 @@ export function App() {
       </Router>
     </StateCtx.Provider>
   );
+}
+
+export function u8eq(
+  a: Uint8Array | undefined,
+  b: Uint8Array | undefined,
+): boolean {
+  if (a === undefined || b === undefined) {
+    return a === b;
+  }
+  if (a.length !== b.length) {
+    return false;
+  }
+  return b.every((v, i) => a[i] === v);
 }

@@ -81,7 +81,8 @@ button,
 }
 
 header a,
-button {
+button,
+.live {
   text-decoration: none;
   border: 1px solid #888;
   color: #fff;
@@ -91,6 +92,11 @@ button {
   border-radius: 2pt;
   display: inline-block;
   font-size: 9pt;
+}
+
+.live {
+  background-color: #080;
+  border-color: #080;
 }
 
 button.add {

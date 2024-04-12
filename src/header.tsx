@@ -4,10 +4,10 @@ import { signout } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
 
 export function Header({ session }: { session?: Session }) {
-  const state = useContext(StateCtx);
+  const state = useContext(StateCtx).value;
   const uid = session?.uid;
 
-  const mark = state.value.ready ? (uid !== undefined ? "🟢" : "🔴") : "🟡";
+  const mark = state.ready ? (uid !== undefined ? "🟢" : "🔴") : "🟡";
 
   if (uid !== undefined) {
     return (

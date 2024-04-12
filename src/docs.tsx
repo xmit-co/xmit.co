@@ -1,5 +1,5 @@
 import { Header } from "./header.tsx";
-import { loadSession, StateCtx } from "./app.tsx";
+import { loadSession, logError, StateCtx } from "./app.tsx";
 import { useContext } from "preact/hooks";
 import { Footer } from "./footer.tsx";
 
@@ -7,9 +7,7 @@ function CopiableCode({ children }: { children: string }) {
   return (
     <code
       class="clickable"
-      onClick={() => {
-        navigator.clipboard.writeText(children);
-      }}
+      onClick={() => navigator.clipboard.writeText(children).catch(logError)}
     >
       {children}
       <button>📋</button>
@@ -18,8 +16,8 @@ function CopiableCode({ children }: { children: string }) {
 }
 
 export function Docs() {
-  const state = useContext(StateCtx);
-  const session = loadSession(state.value);
+  const state = useContext(StateCtx).value;
+  const session = loadSession(state);
   return (
     <div class="with-header">
       <Header session={session} />
