@@ -1,4 +1,5 @@
-import { encoder, reconnectChannel } from "./app.tsx";
+import { reconnectChannel } from "./app.tsx";
+import { encoder } from "./utils.ts";
 
 const userName = "passkey";
 const userID = new TextEncoder().encode(userName);

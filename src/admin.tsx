@@ -9,7 +9,6 @@ import {
   sendUpdate,
   Session,
   StateCtx,
-  u8eq,
 } from "./app.tsx";
 import { route } from "preact-router";
 import { useContext, useState } from "preact/hooks";
@@ -18,6 +17,7 @@ import { Footer } from "./footer.tsx";
 import { Link } from "preact-router/match";
 import { EditableText } from "./editableText.tsx";
 import { CredInfo, Invite, Site, SiteSettings, Team, User } from "./models.tsx";
+import { u8eq } from "./utils.ts";
 
 export function dateTime(t: number | undefined) {
   if (t === undefined) {

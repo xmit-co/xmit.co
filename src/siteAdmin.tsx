@@ -12,9 +12,9 @@ import {
   loadUser,
   sendUpdate,
   StateCtx,
-  u8eq,
 } from "./app.tsx";
 import { dateTime, nameAndID, SettingsView } from "./admin.tsx";
+import { u8eq } from "./utils.ts";
 
 function shortHexHash(hash: Uint8Array | undefined) {
   if (hash === undefined) {

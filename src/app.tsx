@@ -1,7 +1,6 @@
 import "preact/debug";
 import "./app.css";
 import Router, { Route } from "preact-router";
-import { Decoder, Encoder } from "cbor-x";
 import { signal } from "@preact/signals";
 import Sockette from "sockette";
 import { Admin } from "./admin.tsx";
@@ -20,14 +19,7 @@ import {
 } from "./models.tsx";
 import { SiteAdmin } from "./siteAdmin.tsx";
 import { Header } from "./header.tsx";
-
-const CBOROptions = {
-  useRecords: false,
-  mapsAsObjects: false,
-};
-export const encoder = new Encoder(CBOROptions);
-
-export const decoder = new Decoder(CBOROptions);
+import { decoder, encoder } from "./utils.ts";
 
 export const reconnectChannel = new BroadcastChannel("reconnect");
 new BroadcastChannel("reconnect").onmessage = connect;
@@ -461,17 +453,4 @@ export function App() {
       </Router>
     </StateCtx.Provider>
   );
-}
-
-export function u8eq(
-  a: Uint8Array | undefined,
-  b: Uint8Array | undefined,
-): boolean {
-  if (a === undefined || b === undefined) {
-    return a === b;
-  }
-  if (a.length !== b.length) {
-    return false;
-  }
-  return b.every((v, i) => a[i] === v);
 }
