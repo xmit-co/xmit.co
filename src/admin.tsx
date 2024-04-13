@@ -123,7 +123,11 @@ function APIKey({
 
 function Members({ team }: { team: Team }) {
   if (team.users === undefined || team.users.size === 0) {
-    return <em>No members.</em>;
+    return (
+      <p>
+        <em>None.</em>
+      </p>
+    );
   }
   const state = useContext(StateCtx).value;
   const users = Array.from(team.users.keys()).map((id) => loadUser(state, id));
@@ -204,7 +208,11 @@ function SiteList({ team }: { team: Team }) {
     loadSite(state, id),
   );
   if (sites.length === 0) {
-    return <em>No sites.</em>;
+    return (
+      <p>
+        <em>None.</em>
+      </p>
+    );
   }
   return <ul>{sites.map((site) => site && <SiteView site={site} />)}</ul>;
 }
@@ -224,12 +232,13 @@ export function SettingsView({
         <input
           type="checkbox"
           checked={publishInstantly}
-          onChange={(e) =>
+          onClick={(e) => {
             sendUpdate(
               updateKey,
               new Map([[1, (e.target as HTMLInputElement).checked]]),
-            )
-          }
+            );
+            e.preventDefault();
+          }}
         />
         Launch on upload
       </label>
@@ -273,7 +282,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
       <div class="ssections">
         <div>
           <h3>
-            <span className="icon">🔑️</span>API keys{" "}
+            <span class="icon">🔑️</span>API keys{" "}
             <button class="add" onClick={() => sendUpdate(["t", id, "k"])}>
               + create
             </button>
@@ -282,7 +291,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         </div>
         <div>
           <h3>
-            <span className="icon">⚙️</span>Default settings
+            <span class="icon">⚙️</span>Default settings
           </h3>
           <SettingsView
             value={team.defaultSettings}
@@ -291,7 +300,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         </div>
         <div>
           <h3>
-            <span className="icon">👥</span>Members{" "}
+            <span class="icon">👥</span>Members{" "}
             <button class="add" onClick={() => sendUpdate(["t", id, "i"])}>
               + invite
             </button>
@@ -301,7 +310,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         </div>
         <div>
           <h3>
-            <span className="icon">🌐</span>Sites
+            <span class="icon">🌐</span>Sites
           </h3>
           <SiteList team={team} />
         </div>
@@ -318,7 +327,11 @@ function APIKeyList({
   keys: Map<Uint8Array, CredInfo> | undefined;
 }) {
   if (keys === undefined || keys.size === 0) {
-    return <em>No keys.</em>;
+    return (
+      <p>
+        <em>None.</em>
+      </p>
+    );
   }
   const entries = Array.from(keys?.entries() || []);
   entries.sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
@@ -342,7 +355,11 @@ function APIKeyList({
 
 function WebPasskeyList({ keys }: { keys: Map<string, CredInfo> | undefined }) {
   if (keys === undefined || keys.size === 0) {
-    return <em>No keys.</em>;
+    return (
+      <p>
+        <em>None.</em>
+      </p>
+    );
   }
   return (
     <ul>

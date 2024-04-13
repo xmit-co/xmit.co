@@ -1,7 +1,7 @@
 import { useContext } from "preact/hooks";
 import { route } from "preact-router";
 import { Header } from "./header.tsx";
-import { Site, Upload } from "./models.tsx";
+import { Site, Team, Upload } from "./models.tsx";
 import { EditableText } from "./editableText.tsx";
 import { Footer } from "./footer.tsx";
 import {
@@ -46,7 +46,11 @@ function UploadList({
 }) {
   const state = useContext(StateCtx).value;
   if (uploadIDs.length === 0) {
-    return <em>No uploads.</em>;
+    return (
+      <p>
+        <em>None.</em>
+      </p>
+    );
   }
   const uploads = uploadIDs.map((id) => loadUpload(state, site.id, id));
   return (
@@ -69,13 +73,15 @@ function UploadList({
             {isDeployed ? (
               <span class="live">live</span>
             ) : (
-              <button onClick={() => sendUpdate(uploadKey, true)}>
-                🚀 launch
-              </button>
+              <>
+                <button onClick={() => sendUpdate(uploadKey, true)}>
+                  🚀 launch
+                </button>
+                <button class="delete" onClick={() => sendUpdate(uploadKey)}>
+                  ✕ destroy
+                </button>
+              </>
             )}
-            <button class="delete" onClick={() => sendUpdate(uploadKey)}>
-              ✕ destroy
-            </button>
             <br />
             at {dateTime(upload.at)} by{" "}
             {nameAndID(loadUser(state, upload.by || 0))}
@@ -97,7 +103,11 @@ function LaunchList({
 }) {
   const state = useContext(StateCtx).value;
   if (launchIDs.length === 0) {
-    return <em>No launches.</em>;
+    return (
+      <p>
+        <em>None.</em>
+      </p>
+    );
   }
   const launches = launchIDs.map((id) => loadLaunch(state, site.id, id));
   return (
@@ -116,7 +126,7 @@ function LaunchList({
         if (upload === undefined) {
           return (
             <li key={launch.id || 0}>
-              <em>upload destroyed</em>
+              <em>Upload {launch.uploadID} destroyed</em>
               <br />
               {atBy}
             </li>
@@ -149,17 +159,18 @@ function LaunchList({
 }
 
 function DomainsView({ site }: { site: Site }) {
-  if (site.domains === undefined || site.domains.size === 0) {
-    return <em>No domains.</em>;
-  }
-  return (
-    <>
+  const list =
+    site.domains === undefined || site.domains.size === 0 ? (
+      <p>
+        <em>None.</em>
+      </p>
+    ) : (
       <ul>
         {Array.from(site.domains.keys()).map((domain) => (
           <li key={domain}>
             {domain}{" "}
             <button
-              class="delete"
+              className="delete"
               onClick={() => sendUpdate(["s", site.id || 0, "d", domain])}
             >
               ✕ unmap
@@ -167,11 +178,54 @@ function DomainsView({ site }: { site: Site }) {
           </li>
         ))}
       </ul>
+    );
+  return (
+    <>
+      {list}
       <EditableText
-        buttonText="new domain"
+        buttonText="add"
         buttonIcon="+"
         submit={(v) => sendUpdate(["s", site.id || 0, "d", v], true)}
       />
+    </>
+  );
+}
+
+function TransferOwnership({ site }: { site: Site }) {
+  const state = useContext(StateCtx).value;
+  const teams = state.root.children?.get("t")?.children;
+  if (teams === undefined) {
+    return null;
+  }
+  const teamCount = teams.size || 0;
+  if (teamCount < 2) {
+    return null;
+  }
+  const teamIDs = Array.from(teams.keys());
+  teamIDs.sort((a, b) => a - b);
+  return (
+    <>
+      in{" "}
+      <select
+        onChange={(e) => {
+          const target = e.target as HTMLSelectElement;
+          sendUpdate(["s", site.id || 0, "t", Number(target.value)]);
+          target.value = String(site.teamID || 0);
+        }}
+      >
+        {teamIDs.map((teamID) => {
+          const team = teams.get(teamID)?.value as Team;
+          if (team === undefined) {
+            return;
+          }
+          const selected = site.teamID === team.id;
+          return (
+            <option key={teamID} value={teamID} selected={selected}>
+              {team.name}
+            </option>
+          );
+        })}
+      </select>
     </>
   );
 }
@@ -184,6 +238,7 @@ function SiteAdminBody({ site }: { site: Site }) {
   const uploadIDs = [...(site.uploads?.keys() || [])];
   uploadIDs.sort((a, b) => b - a);
   const latestLaunch = loadLaunch(state, site.id, launchIDs[0]);
+
   const deployedBundleID = loadUpload(
     state,
     site.id,
@@ -200,6 +255,7 @@ function SiteAdminBody({ site }: { site: Site }) {
             buttonText="rename"
             submit={(v) => sendUpdate(["s", siteID], new Map([[1, v]]))}
           />
+          <TransferOwnership site={site} />
           <button class="delete" onClick={() => sendUpdate(["s", siteID])}>
             ✕ destroy
           </button>
