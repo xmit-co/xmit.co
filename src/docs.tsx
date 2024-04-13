@@ -32,10 +32,10 @@ export function Docs() {
               Point your domains to our services by creating CNAMEs like:
               <pre>{"@ CNAME 42.xmit.co.\n* CNAME 42.xmit.co."}</pre>
               (we need a <code>*</code> or <code>www</code> record for any
-              domain that doesn't start with <code>www</code>)
+              domain that doesn't start with <code>www</code>);
             </li>
             <li>
-              If you use a CDN, also create <code>@ TXT "xmit=42"</code>.
+              If you use a CDN, create <code>@ TXT "xmit=42"</code>.
             </li>
           </ul>
         </div>
