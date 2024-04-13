@@ -206,13 +206,7 @@ function SiteList({ team }: { team: Team }) {
   if (sites.length === 0) {
     return <em>No sites.</em>;
   }
-  return (
-    <ul>
-      {sites.map((site) => (
-        <SiteView site={site!} />
-      ))}
-    </ul>
-  );
+  return <ul>{sites.map((site) => site && <SiteView site={site} />)}</ul>;
 }
 
 export function SettingsView({

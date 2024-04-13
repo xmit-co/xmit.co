@@ -258,16 +258,16 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
     setKey(child, tail, v);
   }
 
-  function deleteKey(root: Node, k: any) {
-    if (k === undefined) {
-      root.value = undefined;
-      return;
-    }
+  function deleteKey(node: Node, k: any) {
     if (!Array.isArray(k)) {
       k = [k];
     }
+    if (k.length === 0) {
+      delete node.value;
+      return;
+    }
     const [head, ...tail] = k;
-    const child = root.children?.get(head);
+    const child = node.children?.get(head);
     if (child === undefined) {
       return;
     }
@@ -282,7 +282,7 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
       if (v === undefined || v === null) {
         deleteKey(root, k);
         if (debug) {
-          state.updates!.push([k, []]);
+          state.updates!.push([k, undefined]);
         }
       } else {
         const value = transform(decoder.decode(v), k);
