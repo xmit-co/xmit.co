@@ -30,7 +30,8 @@ export function Docs() {
           <ul>
             <li>
               Point your domains to our services by creating CNAME/ALIAS records
-              like:
+              for both the domain(s) and its/their <code>www</code>{" "}
+              subdomain(s), like:
               <pre>{"@ CNAME 42.xmit.co.\n* CNAME 42.xmit.co."}</pre>
               (we need a <code>*</code> or <code>www</code> record for any
               domain that doesn't start with <code>www</code>);
