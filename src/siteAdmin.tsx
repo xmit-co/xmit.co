@@ -318,12 +318,7 @@ export function SiteAdmin({ id }: { id: string }) {
       <Header session={session} />
       <div class="body">
         {ready && site !== undefined ? (
-          <>
-            <p style={{ textAlign: "center", color: "#f00" }}>
-              This page is very much work in progress.
-            </p>
-            <SiteAdminBody site={site} />
-          </>
+          <SiteAdminBody site={site} />
         ) : (
           <div style={{ textAlign: "center" }}>
             <em>Loading…</em>
