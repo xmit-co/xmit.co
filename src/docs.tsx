@@ -37,8 +37,8 @@ export function Docs() {
               domain that doesn't start with <code>www</code>);
             </li>
             <li>
-              If you use a CDN or created ALIAS records, create{" "}
-              <code>@ TXT "xmit=42"</code>.
+              If you use a CDN or created ALIAS records, create a corresponding{" "}
+              <code>@ TXT "xmit=42"</code> record.
             </li>
           </ul>
         </div>
