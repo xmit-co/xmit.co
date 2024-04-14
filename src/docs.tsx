@@ -29,13 +29,15 @@ export function Docs() {
           <p>Assuming your team number is 42:</p>
           <ul>
             <li>
-              Point your domains to our services by creating CNAMEs like:
+              Point your domains to our services by creating CNAME/ALIAS records
+              like:
               <pre>{"@ CNAME 42.xmit.co.\n* CNAME 42.xmit.co."}</pre>
               (we need a <code>*</code> or <code>www</code> record for any
               domain that doesn't start with <code>www</code>);
             </li>
             <li>
-              If you use a CDN, create <code>@ TXT "xmit=42"</code>.
+              If you use a CDN or created ALIAS records, create{" "}
+              <code>@ TXT "xmit=42"</code>.
             </li>
           </ul>
         </div>
