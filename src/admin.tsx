@@ -377,6 +377,8 @@ function AdminBody({ session }: { session: Session }) {
   if (user === undefined) {
     return <></>;
   }
+  const teamIDs = [...(user.teams?.keys() || [])];
+  teamIDs.sort((a, b) => b - a);
   return (
     <>
       <div class="section">
@@ -445,7 +447,7 @@ function AdminBody({ session }: { session: Session }) {
         </button>
         <JoinTeam />
       </div>
-      {[...(user.teams?.keys() || [])].map((id) => (
+      {teamIDs.map((id) => (
         <TeamView id={id} session={session} />
       ))}
     </>
