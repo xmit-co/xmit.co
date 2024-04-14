@@ -168,7 +168,7 @@ function DomainsView({ site }: { site: Site }) {
       <ul>
         {Array.from(site.domains.keys()).map((domain) => (
           <li key={domain}>
-            {domain}{" "}
+            <a href={`https://${domain}/`}>{domain}</a>{" "}
             <button
               className="delete"
               onClick={() => sendUpdate(["s", site.id || 0, "d", domain])}
