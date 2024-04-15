@@ -142,8 +142,8 @@ export function Docs() {
             <span class="icon">😔</span>Custom 404
           </h2>
           <p>
-            Create in the uploaded directory a file called{" "}
-            <code>xmit.toml</code> with:
+            Create in the uploaded directory (in <code>public</code> for Vite) a
+            file called <code>xmit.toml</code> with:
           </p>
           <pre>404 = "404.html"</pre>
         </div>
