@@ -20,6 +20,17 @@ export function Home() {
       <h1>
         {title} <span class="mark">{mark}</span>
       </h1>
+      <p>
+        We'll host your static web pages, including single page apps, for free.
+      </p>
+      <p>
+        With efficient uploads and a blazing fast admin interface, we promise
+        not to waste your time.
+      </p>
+      <p>Located in Europe.</p>
+      <p>
+        <a href="https://xmit.dev/posts/origin/">Learn more</a> from our blog.
+      </p>
       <div>
         <button onClick={() => route("/docs")}>📚 docs</button>
         <button
@@ -51,8 +62,8 @@ export function AuthRequired({ url }: { url: string }) {
       <h1>🔐 Authentication required</h1>
       <p>
         You must{" "}
-        <button onClick={() => signin().catch(logError)}>sign in</button> to
-        access <code>{url}</code>
+        <button onClick={() => signin().catch(logError)}>sign in</button>
+        to access <code>{url}</code>
       </p>
     </div>
   );
