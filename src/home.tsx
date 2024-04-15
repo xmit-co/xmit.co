@@ -21,15 +21,17 @@ export function Home() {
         {title} <span class="mark">{mark}</span>
       </h1>
       <p>
-        We'll host your static web pages, including single page apps, for free.
+        We host your static web pages, including single page apps, for free.
       </p>
       <p>
-        With efficient uploads and a blazing fast admin interface, we promise
+        With efficient uploads &amp; a blazing fast admin interface, we promise
         not to waste your time.
       </p>
-      <p>Located in Europe.</p>
       <p>
-        <a href="https://xmit.dev/posts/origin/">Learn more</a> from our blog.
+        <a href="https://xmit.dev/posts/origin/">
+          Learn more from our first post
+        </a>
+        .
       </p>
       <div>
         <button onClick={() => route("/docs")}>📚 docs</button>
