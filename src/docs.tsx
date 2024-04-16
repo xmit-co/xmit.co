@@ -57,7 +57,8 @@ export function Docs() {
             </li>
             <li>
               Create a <code>deploy</code> script in <code>package.json</code>{" "}
-              like this example:
+              like this example for TypeScrip + vite (hence the first 2 commands
+              to build the project):
               <pre>
                 {
                   '{\n  "scripts": {\n    "deploy":  "tsc && vite build && xmit example.com"\n  }\n}'

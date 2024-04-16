@@ -14,6 +14,10 @@ export function Home() {
     return <></>;
   }
   const mark = state.ready ? "🔴" : "🟡";
+  const hasCredentials = navigator.credentials !== undefined;
+  const firefox = navigator.userAgent.includes("Firefox");
+  const linux = navigator.userAgent.includes("Linux");
+  const android = navigator.userAgent.includes("Android");
 
   return (
     <div class="home">
@@ -33,6 +37,26 @@ export function Home() {
         </a>
         .
       </p>
+      {firefox && (linux || android) ? (
+        <p class="red">
+          Firefox support for passkeys is limited on{" "}
+          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1870436">
+            Android
+          </a>{" "}
+          and{" "}
+          <a href="https://connect.mozilla.org/t5/ideas/support-webauthn-passkeys/idi-p/14069">
+            Linux
+          </a>
+          . Please switch browsers if authentication fails.
+        </p>
+      ) : (
+        !hasCredentials && (
+          <p class="red">
+            Your browser appears not to support webauthn. Please switch browsers
+            if authentication fails.
+          </p>
+        )
+      )}
       <div>
         <button onClick={() => route("/docs")}>📚 docs</button>
         <button

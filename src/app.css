@@ -229,3 +229,7 @@ pre {
   padding: 0.2em;
   border: 1px dotted red;
 }
+
+.red {
+  background-color: #400;
+}
