@@ -94,7 +94,7 @@ function APIKey({
   raw: string | undefined;
 }) {
   const state = useContext(StateCtx).value;
-  const createdBy = loadUser(state, info.createdBy || 0);
+  const createdBy = loadUser(state, info.createdBy);
   return (
     <li key={id}>
       <EditableText
@@ -158,7 +158,7 @@ function Invites({ team }: { team: Team }) {
   const state = useContext(StateCtx).value;
   const entries = [...team.invites.keys()].map((id) => {
     const invite = loadInvite(state, id);
-    const user = invite && loadUser(state, invite.creatingUserID || 0);
+    const user = invite && loadUser(state, invite.creatingUserID);
     return { invite, user };
   }) as { invite: Invite; user: User | undefined }[];
   entries.sort((a, b) => (b.invite.createdAt || 0) - (a.invite.createdAt || 0));
