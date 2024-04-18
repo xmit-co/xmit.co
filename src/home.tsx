@@ -15,9 +15,31 @@ export function Home() {
   }
   const mark = state.ready ? "🔴" : "🟡";
   const hasCredentials = navigator.credentials !== undefined;
-  const firefox = navigator.userAgent.includes("Firefox");
-  const linux = navigator.userAgent.includes("Linux");
-  const android = navigator.userAgent.includes("Android");
+
+  let message = undefined;
+  if (!hasCredentials) {
+    message = (
+      <p className="red">
+        Your browser appears not to support webauthn. Unfortunately, you'll have
+        to use another one to authenticate.
+      </p>
+    );
+  } else {
+    if (navigator.userAgent.includes("Linux")) {
+      message = (
+        <p>
+          Under{" "}
+          {(navigator.userAgent.includes("Android") && "Android") || "Linux"},
+          we recommend credentials managers like the free{" "}
+          <a href="https://bitwarden.com/download/" target="_blank">
+            bitwarden
+          </a>{" "}
+          <br />
+          if authentication is difficult.
+        </p>
+      );
+    }
+  }
 
   return (
     <div class="home">
@@ -32,31 +54,13 @@ export function Home() {
         not to waste your time.
       </p>
       <p>
-        <a href="https://xmit.dev/posts/origin/">
-          Learn more from our first post
+        Learn more from our{" "}
+        <a href="https://xmit.dev/posts/origin/" target="_blank">
+          origin story
         </a>
         .
       </p>
-      {firefox && (linux || android) ? (
-        <p class="red">
-          Firefox support for passkeys is limited on{" "}
-          <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1870436">
-            Android
-          </a>{" "}
-          and{" "}
-          <a href="https://connect.mozilla.org/t5/ideas/support-webauthn-passkeys/idi-p/14069">
-            Linux
-          </a>
-          . Please switch browsers if authentication fails.
-        </p>
-      ) : (
-        !hasCredentials && (
-          <p class="red">
-            Your browser appears not to support webauthn. Please switch browsers
-            if authentication fails.
-          </p>
-        )
-      )}
+      {message}
       <div>
         <button onClick={() => route("/docs")}>📚 docs</button>
         <button
