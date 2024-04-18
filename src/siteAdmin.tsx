@@ -67,7 +67,7 @@ function UploadList({
         const uploadKey = ["s", site.id || 0, "u", upload.id || 0];
         return (
           <li key={upload.id || 0}>
-            <a href={previewURL(upload)}>
+            <a href={previewURL(upload)} target="_blank">
               {upload.id} ({shortHexHash(upload.bundle)})
             </a>{" "}
             {isDeployed ? (
@@ -135,7 +135,7 @@ function LaunchList({
         const isDeployed = u8eq(deployedBundleID, upload.bundle);
         return (
           <li key={launch.id || 0}>
-            <a href={previewURL(upload)}>
+            <a href={previewURL(upload)} target="_blank">
               Upload {launch.uploadID} ({shortHexHash(upload?.bundle)})
             </a>{" "}
             {isDeployed ? (
@@ -168,7 +168,9 @@ function DomainsView({ site }: { site: Site }) {
       <ul>
         {Array.from(site.domains.keys()).map((domain) => (
           <li key={domain}>
-            <a href={`https://${domain}/`}>{domain}</a>{" "}
+            <a href={`https://${domain}/`} target="_blank">
+              {domain}
+            </a>{" "}
             <button
               className="delete"
               onClick={() => sendUpdate(["s", site.id || 0, "d", domain])}
