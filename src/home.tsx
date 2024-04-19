@@ -54,11 +54,9 @@ export function Home() {
         not to waste your time.
       </p>
       <p>
-        Learn more from our{" "}
-        <a href="https://xmit.dev/posts/origin/" target="_blank">
-          origin story
+        <a href="https://xmit.dev/" target="_blank">
+          Learn more from our blog.
         </a>
-        .
       </p>
       {message}
       <div>
