@@ -49,6 +49,48 @@ export function Docs() {
           <h2>
             <span class="icon">📥</span>Install <code>xmit</code>
           </h2>
+          <p>Each situation is unique. Pick the most convenient solution.</p>
+          <h3>
+            with <code>brew</code> (Mac)
+          </h3>
+          <ul>
+            <li>
+              Install <a href="https://brew.sh/">brew</a> if you haven't
+              already;
+            </li>
+            <li>
+              Run <CopiableCode>brew install xmit-co/tap/xmit</CopiableCode>.
+            </li>
+          </ul>
+          <h3>
+            with <code>go</code>
+          </h3>
+          <ul>
+            <li>
+              Install with{" "}
+              <CopiableCode>
+                go install github.com/xmit-co/xmit@latest
+              </CopiableCode>
+              ;
+            </li>
+            <li>
+              Make sure your <code>PATH</code> includes{" "}
+              <code>$(go env GOPATH)/bin</code>.
+            </li>
+          </ul>
+          <h3>from an archive (Windows &amp; Linux)</h3>
+          <ul>
+            <li>
+              Download from the{" "}
+              <a href="https://github.com/xmit-co/xmit/releases/latest">
+                latest release
+              </a>
+              ;
+            </li>
+            <li>
+              Place the <code>xmit</code> binary in your <code>PATH</code>.
+            </li>
+          </ul>
           <h3>
             with <code>npm</code>
           </h3>
@@ -76,47 +118,6 @@ export function Docs() {
           <p>
             Invoke with <CopiableCode>npx @xmit.co/xmit</CopiableCode>.
           </p>
-          <h3>
-            with <code>go</code>
-          </h3>
-          <ul>
-            <li>
-              Install with{" "}
-              <CopiableCode>
-                go install github.com/xmit-co/xmit@latest
-              </CopiableCode>
-              ;
-            </li>
-            <li>
-              Make sure your <code>PATH</code> includes{" "}
-              <code>$(go env GOPATH)/bin</code>.
-            </li>
-          </ul>
-          <h3>
-            with <code>brew</code> (Mac)
-          </h3>
-          <ul>
-            <li>
-              Install <a href="https://brew.sh/">brew</a> if you haven't
-              already;
-            </li>
-            <li>
-              Run <CopiableCode>brew install xmit-co/tap/xmit</CopiableCode>.
-            </li>
-          </ul>
-          <h3>from an archive (Windows &amp; Linux)</h3>
-          <ul>
-            <li>
-              Download from the{" "}
-              <a href="https://github.com/xmit-co/xmit/releases/latest">
-                latest release
-              </a>
-              ;
-            </li>
-            <li>
-              Place the <code>xmit</code> binary in your <code>PATH</code>.
-            </li>
-          </ul>
         </div>
         <div class="section">
           <h2>
