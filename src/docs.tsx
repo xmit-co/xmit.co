@@ -26,7 +26,10 @@ export function Docs() {
           <h2>
             <span class="icon">📇</span>Configure DNS
           </h2>
-          <p>Assuming your team number is 42:</p>
+          <p>
+            Domains are tied to sites which belong to teams. Start by creating
+            or joining a team. Assuming its number is 42:
+          </p>
           <ul>
             <li>
               Point your domains to our services by creating CNAME/ALIAS records
