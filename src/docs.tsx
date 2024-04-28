@@ -22,7 +22,7 @@ export function Docs() {
     <div class="with-header">
       <Header session={session} />
       <div class="body docs">
-        <div class="section">
+        <div class="section" id="dns">
           <h2>
             <span class="icon">📇</span>Configure DNS
           </h2>
@@ -119,17 +119,38 @@ export function Docs() {
             Invoke with <CopiableCode>npx @xmit.co/xmit</CopiableCode>.
           </p>
         </div>
-        <div class="section">
+        <div class="section" id="api">
           <h2>
-            <span class="icon">🔑</span>Set your API key
+            <span class="icon">🔑</span>Set an API key
           </h2>
           <p>
             For developer machines, create an API key for your user and store it
-            with <code>xmit set-key</code>.
+            with <code>xmit set-key</code>. Pass it as argument, or enter it
+            interactively to keep it out of your shell history and terminal
+            output.
           </p>
           <p>
             In shared environments like CI, create an API key for your team and
             set the environment variable <code>XMIT_KEY</code>.
+          </p>
+        </div>
+        <div class="section">
+          <h2>
+            <span class="icon">📦</span>Upload your site
+          </h2>
+          <p>
+            You must <a href="#dns">configure DNS</a> and{" "}
+            <a href="#api">set an API key</a> first.
+          </p>
+          <p>
+            Upload your project with <code>xmit my.example.com</code> in the
+            root of your site hierarchy (or, if it's called <code>dist</code>,
+            its parent directory). Alternatively, to specify a directory, pass a
+            second argument, like <code>xmit my.example.com example/</code>.
+          </p>
+          <p>
+            By default, uploads are launched automatically; if you've turned
+            that off, visit your site's admin page to launch the upload.
           </p>
         </div>
         <div class="section">
