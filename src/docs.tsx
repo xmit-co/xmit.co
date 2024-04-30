@@ -2,6 +2,7 @@ import { Header } from "./header.tsx";
 import { loadSession, logError, StateCtx } from "./app.tsx";
 import { useContext } from "preact/hooks";
 import { Footer } from "./footer.tsx";
+import { Link } from "preact-router/match";
 
 function CopiableCode({ children }: { children: string }) {
   return (
@@ -22,26 +23,53 @@ export function Docs() {
     <div class="with-header">
       <Header session={session} />
       <div class="body docs">
+        <div class="section" id="team">
+          <h2>
+            <span className="icon">ℹ️</span>Guides available
+          </h2>
+          <p>
+            This documentation is purposefully concise. We publish guides on{" "}
+            <a href="https://xmit.dev/" target="_blank">
+              our blog
+            </a>
+            .
+          </p>
+        </div>
+        <div className="section" id="team">
+          <h2>
+            <span className="icon">🏭</span>Create or join a team
+          </h2>
+          <p>
+            Domains are tied to sites which belong to teams. Start by creating
+            or joining a team from the <Link href="/admin">admin page</Link>,
+            and note its number.
+          </p>
+        </div>
         <div class="section" id="dns">
           <h2>
             <span class="icon">📇</span>Configure DNS
           </h2>
           <p>
-            Domains are tied to sites which belong to teams. Start by creating
-            or joining a team. Assuming its number is 42:
+            You can skip this section to deploy to a subdomain of{" "}
+            <code>xmit.dev</code>. Otherwise, if your domain will belong to team
+            #42:
           </p>
           <ul>
             <li>
-              Point your domains to our services by creating CNAME/ALIAS records
-              for both the domain(s) and its/their <code>www</code>{" "}
-              subdomain(s), like:
+              Point your domains to our services by creating CNAME or, whenever
+              not possible, ALIAS records for both the domain and its{" "}
+              <code>www</code> subdomain, like:
               <pre>{"@ CNAME 42.xmit.co.\n* CNAME 42.xmit.co."}</pre>
-              (we need a <code>*</code> or <code>www</code> record for any
-              domain that doesn't start with <code>www</code>);
+              We need a <code>*</code> or <code>www</code> record for any domain
+              that doesn't start with <code>www</code>.
             </li>
             <li>
-              If you use a CDN or created ALIAS records, create a corresponding{" "}
-              <code>@ TXT "xmit=42"</code> record.
+              If you had to create an ALIAS record, or if you use the DNS
+              servers of a CDN like Cloudflare, create a corresponding TXT
+              record:
+              <pre>@ TXT "xmit=42"</pre>
+              This lets us establish ownership when we cannot read the team
+              number otherwise.
             </li>
           </ul>
         </div>
@@ -102,11 +130,10 @@ export function Docs() {
             </li>
             <li>
               Create a <code>deploy</code> script in <code>package.json</code>{" "}
-              like this example for TypeScrip + vite (hence the first 2 commands
-              to build the project):
+              like this example where we first run a build script:
               <pre>
                 {
-                  '{\n  "scripts": {\n    "deploy":  "tsc && vite build && xmit example.com"\n  }\n}'
+                  '{\n  "scripts": {\n    "deploy":  "npm run build && xmit example.com"\n  }\n}'
                 }
               </pre>
             </li>
@@ -138,20 +165,23 @@ export function Docs() {
           <h2>
             <span class="icon">📦</span>Upload your site
           </h2>
-          <p>
-            You must <a href="#dns">configure DNS</a> and{" "}
-            <a href="#api">set an API key</a> first.
-          </p>
-          <p>
-            Upload your project with <code>xmit my.example.com</code> in the
-            root of your site hierarchy (or, if it's called <code>dist</code>,
-            its parent directory). Alternatively, to specify a directory, pass a
-            second argument, like <code>xmit my.example.com example/</code>.
-          </p>
-          <p>
-            By default, uploads are launched automatically; if you've turned
-            that off, visit your site's admin page to launch the upload.
-          </p>
+          <ul>
+            <li>
+              You've already <a href="#api">configured an API key</a>, and
+              either deploy to a subdomain of <code>xmit.dev</code> or{" "}
+              <a href="#dns">configured DNS</a>.
+            </li>
+            <li>
+              Upload your project with <code>xmit my.example.com</code> in the
+              root of your site hierarchy (or, if it's called <code>dist</code>,
+              its parent directory). Alternatively, to specify a directory, pass
+              a second argument, like <code>xmit my.example.com example/</code>.
+            </li>
+            <li>
+              By default, uploads are launched automatically; if you've turned
+              that off, visit your site's admin page to launch the upload.
+            </li>
+          </ul>
         </div>
         <div class="section">
           <h2>
