@@ -4,10 +4,10 @@ export function Footer() {
       <p>
         <a href="mailto:help@xmit.dev">Reach out</a> for help and suggestions.
       </p>
+      <p>Located in Europe. Running on renewable energy.</p>
       <p>
         Check out our <a href="https://xmit.dev">blog</a>.
       </p>
-      <p>Located in Europe.</p>
     </footer>
   );
 }
