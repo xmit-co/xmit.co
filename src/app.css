@@ -84,27 +84,28 @@ header a,
 button,
 .live {
   text-decoration: none;
-  border: 1px solid #888;
+  border: none;
+  border-radius: 2pt;
+  outline: 1px solid #888;
   color: #fff;
   background-color: #000;
   padding: 2pt 4pt 1pt 4pt;
   margin: 2pt;
-  border-radius: 2pt;
   display: inline-block;
   font-size: 10pt;
 }
 
 .live {
   background-color: #080;
-  border-color: #080;
+  outline-color: #080;
 }
 
 button.add {
-  border-color: #080;
+  outline-color: #080;
 }
 
 button.delete {
-  border-color: #800;
+  outline-color: #800;
 }
 
 header a:hover,
@@ -115,7 +116,7 @@ button:hover {
 header a.header-active {
   color: #fff;
   background-color: #080;
-  border: 1px solid #080;
+  outline: 1px solid #080;
 }
 
 div.home {
@@ -150,13 +151,14 @@ input,
 select {
   font-family: monospace;
   width: 10em;
-  border: 1px solid white;
+  border: none;
+  border-radius: 2pt;
+  outline: 1px solid white;
   color: #fff;
   background-color: #000;
   font-size: inherit;
   padding: 1pt;
   margin: 2pt;
-  border-radius: 2pt;
 }
 
 input[type="checkbox"] {
@@ -227,7 +229,7 @@ pre {
 .inspector {
   margin: 0;
   padding: 0.2em;
-  border: 1px dotted red;
+  outline: 1px dotted red;
 }
 
 .red {
