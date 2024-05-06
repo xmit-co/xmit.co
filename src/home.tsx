@@ -52,11 +52,6 @@ export function Home() {
         With efficient uploads &amp; a blazing fast admin interface, we promise
         not to waste your time.
       </p>
-      <p>
-        <a href="https://xmit.dev/" target="_blank">
-          Learn more from our blog.
-        </a>
-      </p>
       {message}
       <div>
         <button onClick={() => route("/docs")}>📚 docs</button>
