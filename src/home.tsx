@@ -34,7 +34,6 @@ export function Home() {
           <a href="https://bitwarden.com/download/" target="_blank">
             bitwarden
           </a>{" "}
-          <br />
           if authentication is difficult.
         </p>
       );
