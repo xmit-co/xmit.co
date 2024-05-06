@@ -53,7 +53,7 @@ export function Home() {
         not to waste your time.
       </p>
       {message}
-      <div>
+      <div style={{ marginTop: "2em" }}>
         <button onClick={() => route("/docs")}>📚 docs</button>
         <button
           onClick={() =>
