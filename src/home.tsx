@@ -62,9 +62,9 @@ export function Home() {
               .catch(logError)
           }
         >
-          🤗 first time
+          🤗 sign up
         </button>
-        <button onClick={() => signin().catch(logError)}>🧐 returning</button>
+        <button onClick={() => signin().catch(logError)}>🧐 sign in</button>
       </div>
       <Footer />
     </div>
