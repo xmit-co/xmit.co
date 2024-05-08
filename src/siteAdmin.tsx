@@ -226,7 +226,7 @@ function TransferOwnership({ site }: { site: Site }) {
           const selected = site.teamID === team.id;
           return (
             <option key={teamID} value={teamID} selected={selected}>
-              {team.name}
+              #{team.id}: {team.name || <em>unnamed</em>}
             </option>
           );
         })}
