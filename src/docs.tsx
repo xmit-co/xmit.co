@@ -152,7 +152,8 @@ export function Docs() {
           </h2>
           <p>
             Keys are provisioned for users or teams from the{" "}
-            <Link href="/admin">admin page</Link>.
+            <Link href="/admin">admin page</Link>. User keys have the same
+            rights as team keys in all teams a user belongs to.
           </p>
           <p>
             For developer machines, create an API key for your user and store it
