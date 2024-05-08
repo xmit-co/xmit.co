@@ -151,6 +151,10 @@ export function Docs() {
             <span class="icon">🔑</span>Set an API key
           </h2>
           <p>
+            Keys are provisioned for users or teams from
+            <Link href="/admin">the admin panel</Link>.
+          </p>
+          <p>
             For developer machines, create an API key for your user and store it
             with <code>xmit set-key</code>. Pass it as argument, or enter it
             interactively to keep it out of your shell history and terminal
