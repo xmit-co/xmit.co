@@ -23,7 +23,7 @@ export function Docs() {
     <div class="with-header">
       <Header session={session} />
       <div class="body docs">
-        <div class="section" id="team">
+        <div class="section">
           <h2>
             <span class="icon">ℹ️</span>Guides available
           </h2>
@@ -151,8 +151,8 @@ export function Docs() {
             <span class="icon">🔑</span>Set an API key
           </h2>
           <p>
-            Keys are provisioned for users or teams from
-            <Link href="/admin">the admin panel</Link>.
+            Keys are provisioned for users or teams from the{" "}
+            <Link href="/admin">admin page</Link>.
           </p>
           <p>
             For developer machines, create an API key for your user and store it
@@ -169,12 +169,13 @@ export function Docs() {
           <h2>
             <span class="icon">📦</span>Upload your site
           </h2>
+          <p>
+            You've already <a href="#team">created or joined a team</a>,{" "}
+            <a href="#api">configured an API key</a>, and either deploy to a
+            subdomain of <code>xmit.dev</code> or{" "}
+            <a href="#dns">configured DNS</a>.
+          </p>
           <ul>
-            <li>
-              You've already <a href="#api">configured an API key</a>, and
-              either deploy to a subdomain of <code>xmit.dev</code> or{" "}
-              <a href="#dns">configured DNS</a>.
-            </li>
             <li>
               Upload your project with <code>xmit my.example.com</code> in the
               root of your site hierarchy (or, if it's called <code>dist</code>,
