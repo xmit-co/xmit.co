@@ -64,7 +64,12 @@ function WebKey({ id, info }: { id: string; info: CredInfo }) {
         buttonText="rename"
         submit={(v) => sendUpdate(["p", id], new Map([[1, v]]))}
       />
-      <button class="delete" onClick={() => sendUpdate(["p", id])}>
+      <button
+        class="delete"
+        onClick={() => {
+          if (window.confirm("Are you sure?")) sendUpdate(["p", id]);
+        }}
+      >
         ✕ forget
       </button>
       <br />
@@ -111,7 +116,12 @@ function APIKey({
           📋 copy
         </button>
       ) : null}
-      <button class="delete" onClick={() => sendUpdate(["k", id])}>
+      <button
+        class="delete"
+        onClick={() => {
+          if (window.confirm("Are you sure?")) sendUpdate(["k", id]);
+        }}
+      >
         ✕ forget
       </button>
       <br />
@@ -140,7 +150,10 @@ function Members({ team }: { team: Team }) {
           {users.length > 1 && (
             <button
               class="delete"
-              onClick={() => sendUpdate(["t", teamID, "u", u?.id || 0])}
+              onClick={() => {
+                if (window.confirm("Are you sure?"))
+                  sendUpdate(["t", teamID, "u", u?.id || 0]);
+              }}
             >
               ✕ exclude
             </button>
@@ -274,7 +287,12 @@ function TeamView({ session, id }: { session: Session; id: number }) {
             buttonText="rename"
             submit={(v) => sendUpdate(["t", id], new Map([[1, v]]))}
           />
-          <button class="delete" onClick={() => sendUpdate(["t", id])}>
+          <button
+            class="delete"
+            onClick={() => {
+              if (window.confirm("Are you sure?")) sendUpdate(["t", id]);
+            }}
+          >
             ✕ destroy
           </button>
         </h2>

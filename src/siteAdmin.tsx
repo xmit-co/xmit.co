@@ -172,8 +172,11 @@ function DomainsView({ site }: { site: Site }) {
               {domain}
             </a>{" "}
             <button
-              className="delete"
-              onClick={() => sendUpdate(["s", site.id || 0, "d", domain])}
+              class="delete"
+              onClick={() => {
+                if (window.confirm("Are you sure?"))
+                  sendUpdate(["s", site.id || 0, "d", domain]);
+              }}
             >
               ✕ unmap
             </button>
@@ -258,7 +261,12 @@ function SiteAdminBody({ site }: { site: Site }) {
             submit={(v) => sendUpdate(["s", siteID], new Map([[1, v]]))}
           />
           <TransferOwnership site={site} />
-          <button class="delete" onClick={() => sendUpdate(["s", siteID])}>
+          <button
+            class="delete"
+            onClick={() => {
+              if (window.confirm("Are you sure?")) sendUpdate(["s", siteID]);
+            }}
+          >
             ✕ destroy
           </button>
         </h2>

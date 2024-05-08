@@ -19,7 +19,7 @@ export function Home() {
   let message = undefined;
   if (!hasCredentials) {
     message = (
-      <p className="red">
+      <p class="red">
         Your browser appears not to support webauthn. Unfortunately, you'll have
         to use another one to authenticate.
       </p>

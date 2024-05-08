@@ -1,10 +1,10 @@
-import { defineConfig, ProxyOptions } from "vite";
+import { defineConfig, ProxyOptions, UserConfig } from "vite";
 import preact from "@preact/preset-vite";
 import basicSsl from "@vitejs/plugin-basic-ssl";
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode }): UserConfig => {
   const host = mode === "localdev" ? "lh.xmit.dev:8443" : "xmit.co";
-  const secure = mode === "localdev" ? false : true;
+  const secure = mode !== "localdev";
   return {
     plugins: [preact(), basicSsl()],
     server: {

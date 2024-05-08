@@ -25,7 +25,7 @@ export function Docs() {
       <div class="body docs">
         <div class="section" id="team">
           <h2>
-            <span className="icon">ℹ️</span>Guides available
+            <span class="icon">ℹ️</span>Guides available
           </h2>
           <p>
             This documentation is purposefully concise. We publish guides on{" "}
@@ -35,9 +35,9 @@ export function Docs() {
             .
           </p>
         </div>
-        <div className="section" id="team">
+        <div class="section" id="team">
           <h2>
-            <span className="icon">🏭</span>Create or join a team
+            <span class="icon">🏭</span>Create or join a team
           </h2>
           <p>
             Domains are tied to sites which belong to teams. Start by creating
