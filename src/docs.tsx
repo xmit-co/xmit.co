@@ -51,8 +51,8 @@ export function Docs() {
           </h2>
           <p>
             You can skip this section to deploy to a subdomain of{" "}
-            <code>xmit.dev</code>. Otherwise, if your domain will belong to team
-            #42:
+            <code>xmit.dev</code> or <code>madethis.site</code>. Otherwise, if
+            your domain will belong to team #42:
           </p>
           <ul>
             <li>
@@ -173,7 +173,7 @@ export function Docs() {
           <p>
             You've already <a href="#team">created or joined a team</a>,{" "}
             <a href="#api">configured an API key</a>, and either deploy to a
-            subdomain of <code>xmit.dev</code> or{" "}
+            subdomain of <code>xmit.dev</code> or <code>madethis.site</code>, or{" "}
             <a href="#dns">configured DNS</a>.
           </p>
           <ul>
