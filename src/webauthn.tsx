@@ -1,10 +1,10 @@
 import { reconnectChannel } from "./app.tsx";
 import { encoder } from "./utils.ts";
 
-const userName = "passkey";
-const userID = new TextEncoder().encode(userName);
-
 export async function enroll() {
+  const userName = `From ${new Date().toISOString().replace(/\....Z$/, "Z")}`;
+  const userID = new TextEncoder().encode(userName);
+
   const creds = (await navigator.credentials.create({
     publicKey: {
       challenge: new Uint8Array(),
