@@ -22,10 +22,10 @@ export function Docs() {
   return (
     <div class="with-header">
       <Header session={session} />
-      <div class="body docs">
-        <div class="section">
+      <div className="body docs">
+        <div className="section">
           <h2>
-            <span class="icon">ℹ️</span>Guides available
+            <span className="icon">ℹ️</span>Guides available
           </h2>
           <p>
             This documentation is purposefully concise. We publish guides on{" "}
@@ -35,9 +35,9 @@ export function Docs() {
             .
           </p>
         </div>
-        <div class="section" id="team">
+        <div className="section" id="team">
           <h2>
-            <span class="icon">🏭</span>Create or join a team
+            <span className="icon">🏭</span>Create or join a team
           </h2>
           <p>
             Domains are tied to sites which belong to teams. Start by creating
@@ -45,9 +45,22 @@ export function Docs() {
             and note its number.
           </p>
         </div>
-        <div class="section" id="dns">
+        <div className="section" id="domain">
           <h2>
-            <span class="icon">📇</span>Configure DNS
+            <span className="icon">🌐</span>Choose a domain
+          </h2>
+          <p>
+            You can deploy to any domain you own, or any subdomain of{" "}
+            <code>xmit.dev</code> or <code>madethis.site</code>.
+          </p>
+          <p>
+            This choice isn't final, as you can add and remove domains on sites
+            when you want from their admin page.
+          </p>
+        </div>
+        <div className="section" id="dns">
+          <h2>
+            <span className="icon">📇</span>Configure DNS
           </h2>
           <p>
             You can skip this section to deploy to a subdomain of{" "}
@@ -73,9 +86,9 @@ export function Docs() {
             </li>
           </ul>
         </div>
-        <div class="section">
+        <div className="section">
           <h2>
-            <span class="icon">📥</span>Install <code>xmit</code>
+            <span className="icon">📥</span>Install <code>xmit</code>
           </h2>
           <p>Each situation is unique. Pick the most convenient solution.</p>
           <h3>
@@ -146,9 +159,9 @@ export function Docs() {
             Invoke with <CopiableCode>npx @xmit.co/xmit</CopiableCode>.
           </p>
         </div>
-        <div class="section" id="api">
+        <div className="section" id="api">
           <h2>
-            <span class="icon">🔑</span>Set an API key
+            <span className="icon">🔑</span>Set an API key
           </h2>
           <p>
             Keys are provisioned for users or teams from the{" "}
@@ -166,9 +179,9 @@ export function Docs() {
             set the environment variable <code>XMIT_KEY</code>.
           </p>
         </div>
-        <div class="section">
+        <div className="section">
           <h2>
-            <span class="icon">📦</span>Upload your site
+            <span className="icon">📦</span>Upload your site
           </h2>
           <p>
             You've already <a href="#team">created or joined a team</a>,{" "}
@@ -189,19 +202,24 @@ export function Docs() {
             </li>
           </ul>
         </div>
-        <div class="section">
+        <div className="section">
           <h2>
-            <span class="icon">1️⃣</span>Single Page Applications
+            <span className="icon">1️⃣</span>Single Page Applications
           </h2>
+          <p>
+            This settings is not for single page websites but specifically
+            single page applications, where you want any path that's not backed
+            by an asset to serve the same page.
+          </p>
           <p>
             Create in the uploaded directory (in <code>public</code> for Vite) a
             file called <code>xmit.toml</code> with:
           </p>
           <pre>fallback = "index.html"</pre>
         </div>
-        <div class="section">
+        <div className="section">
           <h2>
-            <span class="icon">😔</span>Custom 404
+            <span className="icon">😔</span>Custom 404
           </h2>
           <p>
             Create in the uploaded directory (in <code>public</code> for Vite) a
@@ -209,9 +227,9 @@ export function Docs() {
           </p>
           <pre>404 = "404.html"</pre>
         </div>
-        <div class="section">
+        <div className="section">
           <h2>
-            <span class="icon">🏷️</span>Custom headers
+            <span className="icon">🏷️</span>Custom headers
           </h2>
           <p>
             Create in the uploaded directory (in <code>public</code> for Vite) a
@@ -223,9 +241,9 @@ export function Docs() {
             }
           </pre>
         </div>
-        <div class="section">
+        <div className="section">
           <h2>
-            <span class="icon">↪️</span>Redirects
+            <span className="icon">↪️</span>Redirects
           </h2>
           <p>
             Create in the uploaded directory (in <code>public</code> for Vite) a
