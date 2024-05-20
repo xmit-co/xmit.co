@@ -20,6 +20,7 @@ import {
 import { SiteAdmin } from "./siteAdmin.tsx";
 import { Header } from "./header.tsx";
 import { decoder, encoder } from "./utils.ts";
+import { Footer } from "./footer.tsx";
 
 export const reconnectChannel = new BroadcastChannel("reconnect");
 new BroadcastChannel("reconnect").onmessage = connect;
@@ -435,6 +436,7 @@ function Debug() {
       <NodeInspector node={state.value.root} />
       <h2>Updates</h2>
       <UpdatesInspector updates={state.value.updates} />
+      <Footer />
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import { Link } from "preact-router/match";
+
 export function Footer() {
   return (
     <footer>
@@ -7,10 +9,22 @@ export function Footer() {
       </p>
       <p>Running from Europe on renewable energy.</p>
       <p>
-        <a href="https://xmit.instatus.com/">Status</a> |{" "}
-        <a href="https://xmit.dev">Blog</a> |{" "}
-        <a href="https://trello.com/b/5mtTbTW4/xmit">Trello</a> |{" "}
-        <a href="https://discord.gg/EThbKNZDrP">Discord</a>
+        <a href="https://xmit.instatus.com/" target="_blank">
+          Status
+        </a>{" "}
+        |{" "}
+        <a href="https://xmit.dev" target="_blank">
+          Blog
+        </a>{" "}
+        |{" "}
+        <a href="https://trello.com/b/5mtTbTW4/xmit" target="_blank">
+          Trello
+        </a>{" "}
+        |{" "}
+        <a href="https://discord.gg/EThbKNZDrP" target="_blank">
+          Discord
+        </a>{" "}
+        | <Link href="/debug">Debug</Link>
       </p>
     </footer>
   );
