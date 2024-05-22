@@ -148,15 +148,18 @@ function Members({ team }: { team: Team }) {
         <li key={u?.id || 0}>
           {nameAndID(u)}
           {users.length > 1 && (
-            <button
-              class="delete"
-              onClick={() => {
-                if (window.confirm("Are you sure?"))
-                  sendUpdate(["t", teamID, "u", u?.id || 0]);
-              }}
-            >
-              ✕ exclude
-            </button>
+            <>
+              {" "}
+              <button
+                class="delete"
+                onClick={() => {
+                  if (window.confirm("Are you sure?"))
+                    sendUpdate(["t", teamID, "u", u?.id || 0]);
+                }}
+              >
+                ✕ exclude
+              </button>
+            </>
           )}
         </li>
       ))}
