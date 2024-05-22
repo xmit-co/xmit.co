@@ -252,7 +252,7 @@ export function SettingsView({
             );
             e.preventDefault();
           }}
-        />
+        />{" "}
         Launch on upload
       </label>
       <br />
