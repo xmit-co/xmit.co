@@ -7,6 +7,9 @@ export default defineConfig(({ mode }): UserConfig => {
   const secure = mode !== "localdev";
   return {
     plugins: [preact(), basicSsl()],
+    build: {
+      sourcemap: true,
+    },
     server: {
       proxy: {
         "/api/web": {
