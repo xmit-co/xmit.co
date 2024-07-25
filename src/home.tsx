@@ -1,4 +1,11 @@
-import { loadSession, logError, reconnectChannel, StateCtx } from "./app.tsx";
+import {
+  loadSession,
+  loadSite,
+  loadUpload,
+  logError,
+  reconnectChannel,
+  StateCtx,
+} from "./app.tsx";
 import { route } from "preact-router";
 import { enroll, signin } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
@@ -72,21 +79,63 @@ export function Home() {
 }
 
 export function AuthRequired({ url }: { url: string }) {
+  const u = new URL(url);
+  const match = u.hostname.match("^(\\d+)\\.(\\d+)*");
+  if (!match) {
+    return (
+      <div class="home">
+        <h1>Unsupported URL</h1>
+      </div>
+    );
+  }
+  const uploadID = Number(match[1]);
+  const siteID = Number(match[2]);
   const state = useContext(StateCtx).value;
   const session = loadSession(state);
   const uid = session?.uid;
   if (uid !== undefined) {
-    window.location.href = url;
-    return <></>;
+    const site = loadSite(state, siteID);
+    if (!site) {
+      return (
+        <div class="home">
+          <h1>🛑 Not authorized</h1>
+        </div>
+      );
+    }
+    const bundle = loadUpload(state, siteID, uploadID)?.bundle;
+    if (!bundle) {
+      return (
+        <div class="home">
+          <h1>😢 Bundle not found</h1>
+        </div>
+      );
+    }
+    const bundleHex = Array.from(bundle)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    u.search = `?:${bundleHex}:${u.search.length > 0 ? u.search.substring(1) : ""}`;
+    window.location.href = u.toString();
+    return (
+      <div class="home">
+        <h1>Redirecting…</h1>
+      </div>
+    );
+  }
+  if (state.ready) {
+    return (
+      <div class="home">
+        <h1>🔐 Authentication required</h1>
+        <p>
+          You must{" "}
+          <button onClick={() => signin().catch(logError)}>sign in</button>
+          to access <code>{url}</code>
+        </p>
+      </div>
+    );
   }
   return (
     <div class="home">
-      <h1>🔐 Authentication required</h1>
-      <p>
-        You must{" "}
-        <button onClick={() => signin().catch(logError)}>sign in</button> to
-        access <code>{url}</code>
-      </p>
+      <h1>Loading…</h1>
     </div>
   );
 }
