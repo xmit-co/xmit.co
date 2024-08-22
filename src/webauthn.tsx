@@ -7,7 +7,7 @@ export async function enroll() {
 
   const creds = (await navigator.credentials.create({
     publicKey: {
-      challenge: new Uint8Array(),
+      challenge: new Uint8Array(16),
       rp: {
         name: window.location.hostname,
         id: window.location.hostname,
@@ -21,9 +21,6 @@ export async function enroll() {
         { alg: -7, type: "public-key" },
         { alg: -257, type: "public-key" },
       ],
-      authenticatorSelection: {
-        requireResidentKey: true,
-      },
     },
   })) as PublicKeyCredential | null;
   if (creds === null) {
@@ -39,7 +36,7 @@ export async function enroll() {
       new Map<number, any>([
         [1, id],
         [2, attestationObject],
-      ]),
+      ])
     ),
   });
   if (resp.status != 200) {
@@ -77,7 +74,7 @@ export async function signin() {
         [2, clientDataJSON],
         [3, authenticatorData],
         [4, signature],
-      ]),
+      ])
     ),
   });
   if (resp.status != 200) {
