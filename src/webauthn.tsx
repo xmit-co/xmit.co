@@ -21,6 +21,10 @@ export async function enroll() {
         { alg: -7, type: "public-key" },
         { alg: -257, type: "public-key" },
       ],
+      authenticatorSelection: {
+        residentKey: "preferred",
+        userVerification: "preferred",
+      },
     },
   })) as PublicKeyCredential | null;
   if (creds === null) {
@@ -56,6 +60,7 @@ export async function signin() {
     publicKey: {
       rpId: window.location.hostname,
       challenge,
+      userVerification: "preferred",
     },
   })) as PublicKeyCredential | null;
   if (creds == null) {
