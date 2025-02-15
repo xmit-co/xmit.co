@@ -93,10 +93,10 @@ button,
   outline: 1px solid #888;
   color: #fff;
   background-color: #000;
-  padding: 2pt 4pt 1pt 4pt;
+  padding: 1pt 4pt 1pt 4pt;
   margin: 2pt;
   display: inline-block;
-  font-size: 10pt;
+  font-size: calc(1rem - 2pt);
 }
 
 .live {
