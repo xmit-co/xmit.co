@@ -2,8 +2,8 @@ html,
 body {
   overscroll-behavior: none;
   font-family: system-ui, sans-serif;
-  font-size: 12pt;
   font-variant-numeric: tabular-nums;
+  font-variant-emoji: unicode;
   color: #ccc;
   background-image: linear-gradient(#333, #222);
   margin: 0;
