@@ -11,7 +11,8 @@ body {
   min-height: 100svh;
 }
 
-code, pre {
+code,
+pre {
   font-family: ui-monospace, monospace;
 }
 
@@ -97,6 +98,10 @@ button,
   margin: 2pt;
   display: inline-block;
   font-size: calc(1rem - 2pt);
+}
+
+:focus {
+  outline-width: 2px;
 }
 
 .live {
