@@ -153,7 +153,7 @@ div.section {
 
 input,
 select {
-  font-family: monospace;
+  font-family: ui-monospace, monospace;
   width: 10em;
   border: none;
   border-radius: 2pt;
