@@ -40,8 +40,8 @@ export function Docs() {
             <span className="icon">🏭</span>Create or join a team
           </h2>
           <p>
-            Domains are tied to sites which belong to teams. Start by creating
-            or joining a team from the <Link href="/admin">admin page</Link>,
+            Domains belong to sites which belong to teams. Every account starts with a default team.
+            Pick one from the <Link href="/admin">admin page</Link>,
             and note its number.
           </p>
         </div>
@@ -184,10 +184,9 @@ export function Docs() {
             <span className="icon">📦</span>Upload your site
           </h2>
           <p>
-            You've already <a href="#team">created or joined a team</a>,{" "}
-            <a href="#api">configured an API key</a>, and either deploy to a
-            subdomain of <code>xmit.dev</code> or <code>madethis.site</code>, or{" "}
-            <a href="#dns">configured DNS</a>.
+            You've already <a href="#api">configured an API key</a>, and either
+            deploy to a subdomain of <code>xmit.dev</code> or <code>madethis.site</code>,
+            or <a href="#dns">configured DNS</a>.
           </p>
           <ul>
             <li>
