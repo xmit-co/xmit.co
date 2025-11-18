@@ -86,6 +86,20 @@ export function Docs() {
             </li>
           </ul>
         </div>
+        <div className="section" id="onclebob">
+          <h2>
+            <span className="icon">🖥️</span>Use Oncle Bob
+          </h2>
+          <p>
+            For those who prefer a graphical interface, download the app from{" "}
+            <a href="https://onclebob.com/" target="_blank">
+              onclebob.com
+            </a>
+            . This is an alternative to the command-line with a user-friendly interface.
+            It also supports <code>xmit.toml</code> files described below; feel free to jump to
+            {' '}<Link href="#spa">Single Page Applications</Link>.
+          </p>
+        </div>
         <div className="section">
           <h2>
             <span className="icon">📥</span>Install <code>xmit</code>
@@ -201,7 +215,7 @@ export function Docs() {
             </li>
           </ul>
         </div>
-        <div className="section">
+        <div className="section" id="spa">
           <h2>
             <span className="icon">1️⃣</span>Single Page Applications
           </h2>

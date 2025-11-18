@@ -76,3 +76,10 @@ export interface Launch {
   by: number | undefined;
   siteID: number | undefined;
 }
+
+export interface KeyRequest {
+  id: string | undefined;
+  createdAt: number | undefined;
+  key: string | undefined;
+  name: string | undefined;
+}

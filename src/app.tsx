@@ -6,9 +6,11 @@ import Sockette from "sockette";
 import { Admin } from "./admin.tsx";
 import { Docs } from "./docs.tsx";
 import { AuthRequired, Home } from "./home.tsx";
+import { ProvideKey } from "./provideKey.tsx";
 import { createContext } from "preact";
 import {
   Invite,
+  KeyRequest,
   Launch,
   Node,
   Site,
@@ -96,6 +98,13 @@ const launchMapping = {
   siteID: 5,
 };
 
+const keyRequestMapping = {
+  id: 1,
+  createdAt: 2,
+  key: 3,
+  name: 4,
+};
+
 export const StateCtx = createContext(state);
 
 function loadKey(node: Node, key: any) {
@@ -169,6 +178,10 @@ export function loadLaunch(
     | undefined;
 }
 
+export function loadKeyRequest(state: State, id: string) {
+  return loadKey(state.root, ["r", id]) as KeyRequest | undefined;
+}
+
 function ingestMessage(state: State, msg: Map<number, any>): State {
   let { ready, root, errors } = state;
   if (msg.get(1) != undefined) {
@@ -217,6 +230,8 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
             return t;
           case "i":
             return map(value, inviteMapping);
+          case "r":
+            return map(value, keyRequestMapping);
           case "s":
             const s = map(value, siteMapping);
             if (s.settings) {
@@ -451,6 +466,7 @@ export function App() {
         <Route path="/docs" component={Docs} />
         <Route path="/admin" component={Admin} />
         <Route path="/site/:id" component={SiteAdmin} />
+        <Route path="/provide-key/:id" component={ProvideKey} />
         <Route path="/debug" component={Debug} />
       </Router>
     </StateCtx.Provider>
