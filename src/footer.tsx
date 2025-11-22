@@ -16,14 +16,6 @@ export function Footer() {
         <a href="https://xmit.dev" target="_blank">
           Blog
         </a>{" "}
-        |{" "}
-        <a href="https://trello.com/b/5mtTbTW4/xmit" target="_blank">
-          Trello
-        </a>{" "}
-        |{" "}
-        <a href="https://discord.gg/EThbKNZDrP" target="_blank">
-          Discord
-        </a>{" "}
         | <Link href="/debug">Debug</Link>
       </p>
     </footer>
