@@ -5,11 +5,9 @@ import {
   loadSession,
   loadTeam,
   loadUser,
-  logError,
   sendUpdate,
   StateCtx,
 } from "./app.tsx";
-import { enroll, signin } from "./webauthn.tsx";
 import { Header } from "./header.tsx";
 import { Footer } from "./footer.tsx";
 
@@ -59,33 +57,57 @@ export function ProvideKey({ id }: { id: string }) {
   }, []);
 
   const handleCancel = () => {
+    // Try to close the window/tab
     window.close();
+    // If window.close() doesn't work (not opened by script), navigate away
+    route("/admin");
   };
+
+  // Loading - waiting for state to be ready
+  if (!state.ready) {
+    return (
+      <div class="with-header">
+        <Header session={session} />
+        <main class="home">
+          <h1>🔑 API Key Request</h1>
+          <div class="section">
+            <p>Loading…</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   // Not logged in - show sign in/sign up
   if (uid === undefined) {
     return (
       <div class="with-header">
         <Header session={session} />
-        <div class="home">
-          <h1>🔑 API Key requested</h1>
-          {keyRequest?.name && (
+        <main class="home">
+          <h1>🔑 API Key Request</h1>
+
+          <div class="section">
+            <h2>
+              <span class="icon">📋</span>Request Details
+            </h2>
+            {keyRequest?.name && (
+              <p>
+                <strong>Application:</strong> {keyRequest.name}
+              </p>
+            )}
             <p>
-              <strong>Application:</strong> {keyRequest.name}
+              <strong>Request ID:</strong> <code>{id}</code>
             </p>
-          )}
-          <p>
-            <strong>Request ID:</strong> <code>{id}</code>
-          </p>
-          <p>
-            Please verify this matches the identifier shown in the application.
-          </p>
-          <p>To provide an API key, you must first authenticate:</p>
-          <div style={{ marginTop: "2em" }}>
-            <button onClick={() => enroll().catch(logError)}>🤗 sign up</button>
-            <button onClick={() => signin().catch(logError)}>🧐 sign in</button>
+            <p>
+              Please verify this matches the identifier shown in the application.
+            </p>
           </div>
-        </div>
+
+          <div class="section">
+            <p>To provide an API key, sign in or sign up first.</p>
+          </div>
+        </main>
         <Footer />
       </div>
     );
@@ -96,9 +118,12 @@ export function ProvideKey({ id }: { id: string }) {
     return (
       <div class="with-header">
         <Header session={session} />
-        <div class="home">
-          <h1>Loading…</h1>
-        </div>
+        <main class="home">
+          <h1>🔑 API Key Request</h1>
+          <div class="section">
+            <p>Loading…</p>
+          </div>
+        </main>
         <Footer />
       </div>
     );
@@ -109,17 +134,22 @@ export function ProvideKey({ id }: { id: string }) {
     return (
       <div class="with-header">
         <Header session={session} />
-        <div class="home">
-          <h1>❌ Key Request Not Found</h1>
-          <p>
-            This key request (ID: <code>{id}</code>) was not found or has
-            expired.
-          </p>
-          <p>
-            Key requests expire after 10 minutes. Please create a new request
-            from your application.
-          </p>
-        </div>
+        <main class="home">
+          <h1>🔑 API Key Request</h1>
+          <div class="section">
+            <h2>
+              <span class="icon">❌</span>Not Found
+            </h2>
+            <p>
+              This key request (ID: <code>{id}</code>) was not found or has
+              expired.
+            </p>
+            <p>
+              Key requests expire after 10 minutes. Please create a new request
+              from your application.
+            </p>
+          </div>
+        </main>
         <Footer />
       </div>
     );
@@ -130,10 +160,15 @@ export function ProvideKey({ id }: { id: string }) {
     return (
       <div class="with-header">
         <Header session={session} />
-        <div class="home">
-          <h1>✅ Key Already Provided</h1>
-          <p>An API key has already been provided for this request.</p>
-        </div>
+        <main class="home">
+          <h1>🔑 API Key Request</h1>
+          <div class="section">
+            <h2>
+              <span class="icon">✅</span>Already Provided
+            </h2>
+            <p>An API key has already been provided for this request.</p>
+          </div>
+        </main>
         <Footer />
       </div>
     );
@@ -145,9 +180,14 @@ export function ProvideKey({ id }: { id: string }) {
     return (
       <div class="with-header">
         <Header session={session} />
-        <div class="home">
-          <h1>❌ User Not Found</h1>
-        </div>
+        <main class="home">
+          <h1>🔑 API Key Request</h1>
+          <div class="section">
+            <h2>
+              <span class="icon">❌</span>User Not Found
+            </h2>
+          </div>
+        </main>
         <Footer />
       </div>
     );
@@ -167,49 +207,58 @@ export function ProvideKey({ id }: { id: string }) {
   return (
     <div class="with-header">
       <Header session={session} />
-      <div class="home">
-        <h1>🔑 API Key requested</h1>
-        {keyRequest.name && (
-          <p>
-            <strong>Application:</strong> {keyRequest.name}
-          </p>
-        )}
-        <p>
-          <strong>Request ID:</strong> <code>{id}</code>
-        </p>
+      <main class="home">
+        <h1>🔑 API Key Request</h1>
 
-        {teams.length > 0 && (
-          <div>
-            <div class="account-selector">
-              <label>
+        <div class="section">
+          <h2>
+            <span class="icon">📋</span>Request Details
+          </h2>
+          {keyRequest.name && (
+            <p>
+              <strong>Application:</strong> {keyRequest.name}
+            </p>
+          )}
+          <p>
+            <strong>Request ID:</strong> <code>{id}</code>
+          </p>
+          <p>
+            Please verify this matches the identifier shown in the application.
+          </p>
+        </div>
+
+        <div class="section">
+          <h2>
+            <span class="icon">🔐</span>Select Account
+          </h2>
+          <div class="account-selector">
+            <label>
+              <input
+                type="radio"
+                name="account"
+                checked={selectedTeam === undefined}
+                onChange={() => setSelectedTeam(undefined)}
+              />{" "}
+              👤 #{uid}: {user.name || "Personal Account"}
+            </label>
+            {teams.map(({ id: teamID, team }) => (
+              <label key={teamID}>
                 <input
                   type="radio"
                   name="account"
-                  checked={selectedTeam === undefined}
-                  onChange={() => setSelectedTeam(undefined)}
+                  checked={selectedTeam === teamID}
+                  onChange={() => setSelectedTeam(teamID)}
                 />{" "}
-                👤 Personal Account ({user.name || `User #${uid}`})
+                🏭 #{teamID}: {team?.name || "Loading..."}
               </label>
-              {teams.map(({ id: teamID, team }) => (
-                <label key={teamID}>
-                  <input
-                    type="radio"
-                    name="account"
-                    checked={selectedTeam === teamID}
-                    onChange={() => setSelectedTeam(teamID)}
-                  />{" "}
-                  🏭 {team?.name || `Team #${teamID}`}
-                </label>
-              ))}
-            </div>
+            ))}
           </div>
-        )}
-
-        <div>
-          <button onClick={handleApprove}>✅ Provide an API key</button>
-          <button onClick={handleCancel}>❌ Cancel</button>
+          <div>
+            <button onClick={handleApprove}>✅ Provide API Key</button>
+            <button onClick={handleCancel}>❌ Cancel</button>
+          </div>
         </div>
-      </div>
+      </main>
       <Footer />
     </div>
   );

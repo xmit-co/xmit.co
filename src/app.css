@@ -256,44 +256,45 @@ span.icon {
   color: #fff;
 }
 
-.docs {
-  max-width: 60em;
-  padding: 0 1em;
-  margin: 0 auto;
+main h1 {
+  font-size: 200%;
+  font-weight: bold;
+  margin: 1em 0;
+  text-align: center;
 }
 
-.docs .section {
+.section {
   background-color: #000;
   margin: 1em 0;
   border-radius: 0.5em;
   padding: 1.5em;
 }
 
-.docs h2 {
+.section h2 {
   margin-top: 0;
 }
 
-.docs h3 {
+.section h3 {
   margin-top: 1.5em;
 }
 
-.docs h4 {
+.section h4 {
   margin-top: 1em;
 }
 
-.docs p,
-.docs pre {
+.section p,
+.section pre {
   margin-top: 0.75em;
   margin-bottom: 0.75em;
 }
 
-.docs ul {
+.section ul {
   margin-left: 1rem;
   margin-top: 0.75em;
   margin-bottom: 0.75em;
 }
 
-.docs li {
+.section li {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
 }
