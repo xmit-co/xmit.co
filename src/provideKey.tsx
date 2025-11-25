@@ -100,7 +100,8 @@ export function ProvideKey({ id }: { id: string }) {
               <strong>Request ID:</strong> <code>{id}</code>
             </p>
             <p>
-              Please verify this matches the identifier shown in the application.
+              Please verify this matches the identifier shown in the
+              application.
             </p>
           </div>
 
