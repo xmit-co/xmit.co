@@ -478,7 +478,7 @@ function TeamSummary({ teamID }: { teamID: number }) {
             return (
               <span key={id}>
                 {idx > 0 && ", "}
-                {user?.name || `#${id}`}
+                #{id}: {user?.name || <em>anonymous</em>}
               </span>
             );
           })}
