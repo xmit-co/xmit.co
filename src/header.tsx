@@ -1,8 +1,10 @@
 import { Link } from "preact-router/match";
 import { logError, reconnectChannel, Session, StateCtx } from "./app.tsx";
 import { enroll, signin, signout } from "./webauthn.tsx";
-import { useContext } from "preact/hooks";
+import { useContext, useEffect } from "preact/hooks";
 import { route } from "preact-router";
+
+let pendingRedirect: string | null = null;
 
 export const title = "🛰 xmit — launch fast";
 
@@ -14,6 +16,15 @@ export function Header({ session }: { session?: Session }) {
   const state = useContext(StateCtx).value;
   const uid = session?.uid;
   const ready = state.ready;
+
+  // Check for pending redirect after sign-in
+  useEffect(() => {
+    if (ready && uid !== undefined && pendingRedirect) {
+      const target = pendingRedirect;
+      pendingRedirect = null;
+      route(target);
+    }
+  }, [ready, uid]);
 
   return (
     <header>
@@ -64,11 +75,10 @@ export function Header({ session }: { session?: Session }) {
               onClick={(e) => {
                 e.preventDefault();
                 const currentPath = window.location.pathname;
-                signin()
-                  .then(() =>
-                    route(currentPath === "/" ? "/admin" : currentPath),
-                  )
-                  .catch(logError);
+                if (currentPath === "/") {
+                  pendingRedirect = "/admin";
+                }
+                signin().catch(logError);
               }}
             >
               🚪 sign in

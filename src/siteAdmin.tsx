@@ -339,7 +339,11 @@ export function SiteAdmin({ id }: { id: string }) {
     <div class="with-header">
       <Header session={session} />
       <main>
-        {ready && site !== undefined && <SiteAdminBody site={site} />}
+        {!ready ? (
+          <h1>Loading…</h1>
+        ) : (
+          site !== undefined && <SiteAdminBody site={site} />
+        )}
       </main>
       <Footer />
     </div>

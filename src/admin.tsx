@@ -571,12 +571,16 @@ export function Admin() {
   const state = useContext(StateCtx).value;
   const ready = state.ready;
   const session = loadSession(state);
+  if (ready && session?.uid === undefined) {
+    route("/");
+    return <></>;
+  }
 
   return (
     <div class="with-header">
       <Header session={session} />
       <main>
-        {ready && session !== undefined && <AdminBody session={session} />}
+        {!ready ? <h1>Loading…</h1> : session && <AdminBody session={session} />}
       </main>
       <Footer />
     </div>
@@ -596,7 +600,11 @@ export function UserAdmin() {
     <div class="with-header">
       <Header session={session} />
       <main>
-        {ready && session !== undefined && <UserAdminBody session={session} />}
+        {!ready ? (
+          <h1>Loading…</h1>
+        ) : (
+          session !== undefined && <UserAdminBody session={session} />
+        )}
       </main>
       <Footer />
     </div>
@@ -622,8 +630,12 @@ export function TeamAdmin({ id }: { id: string }) {
     <div class="with-header">
       <Header session={session} />
       <main>
-        {ready && session !== undefined && (
-          <TeamAdminBody session={session} id={teamID} />
+        {!ready ? (
+          <h1>Loading…</h1>
+        ) : (
+          session !== undefined && (
+            <TeamAdminBody session={session} id={teamID} />
+          )
         )}
       </main>
       <Footer />
