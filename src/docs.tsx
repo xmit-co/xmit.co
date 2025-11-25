@@ -1,6 +1,6 @@
 import { Header } from "./header.tsx";
-import { loadSession, logError, StateCtx } from "./app.tsx";
-import { useContext } from "preact/hooks";
+import { loadSession, loadTeam, loadUser, logError, StateCtx } from "./app.tsx";
+import { useContext, useState, useEffect } from "preact/hooks";
 import { Footer } from "./footer.tsx";
 import { Link } from "preact-router/match";
 
@@ -19,6 +19,24 @@ function CopiableCode({ children }: { children: string }) {
 export function Docs() {
   const state = useContext(StateCtx).value;
   const session = loadSession(state);
+  const uid = session?.uid;
+  const user = uid !== undefined ? loadUser(state, uid) : undefined;
+  const teamIDs = user?.teams ? Array.from(user.teams.keys()) : [];
+  const [selectedTeamID, setSelectedTeamID] = useState<number | undefined>(
+    teamIDs.length > 0 ? teamIDs[0] : undefined
+  );
+  const [installTab, setInstallTab] = useState<string>("brew");
+  const [configTab, setConfigTab] = useState<string>("spa");
+
+  // Update selectedTeamID when user signs in and teams become available
+  useEffect(() => {
+    if (teamIDs.length > 0 && selectedTeamID === undefined) {
+      setSelectedTeamID(teamIDs[0]);
+    }
+  }, [teamIDs, selectedTeamID]);
+
+  const teamNumber = selectedTeamID || 42;
+
   return (
     <div class="with-header">
       <Header session={session} />
@@ -33,16 +51,6 @@ export function Docs() {
               our blog
             </a>
             .
-          </p>
-        </div>
-        <div className="section" id="team">
-          <h2>
-            <span className="icon">🏭</span>Create or join a team
-          </h2>
-          <p>
-            Domains belong to sites which belong to teams. Every account starts with a default team.
-            Pick one from the <Link href="/admin">admin page</Link>,
-            and note its number.
           </p>
         </div>
         <div className="section" id="domain">
@@ -62,17 +70,37 @@ export function Docs() {
           <h2>
             <span className="icon">📇</span>Configure DNS
           </h2>
+          {uid !== undefined && teamIDs.length > 0 && (
+            <p>
+              Deploying under team:{" "}
+              <select
+                value={selectedTeamID}
+                onChange={(e) =>
+                  setSelectedTeamID(Number((e.target as HTMLSelectElement).value))
+                }
+              >
+                {teamIDs.map((teamID: number) => {
+                  const team = loadTeam(state, teamID);
+                  return (
+                    <option key={teamID} value={teamID}>
+                      #{teamID}: {team?.name || "Loading..."}
+                    </option>
+                  );
+                })}
+              </select>
+            </p>
+          )}
           <p>
             You can skip this section to deploy to a subdomain of{" "}
-            <code>xmit.dev</code> or <code>madethis.site</code>. Otherwise, if
-            your domain will belong to team #42:
+            <code>xmit.dev</code> or <code>madethis.site</code>. Otherwise
+            {uid === undefined && ", if your domain will belong to team #42"}:
           </p>
           <ul>
             <li>
-              Point your domains to our services by creating CNAME or, whenever
+              Point your domains to our services by creating a CNAME or, whenever
               not possible, ALIAS records for both the domain and its{" "}
               <code>www</code> subdomain, like:
-              <pre>{"@ CNAME 42.xmit.co.\n* CNAME 42.xmit.co."}</pre>
+              <pre>{`@ CNAME ${teamNumber}.xmit.co.\n* CNAME ${teamNumber}.xmit.co.`}</pre>
               We need a <code>*</code> or <code>www</code> record for any domain
               that doesn't start with <code>www</code>.
             </li>
@@ -80,7 +108,7 @@ export function Docs() {
               If you had to create an ALIAS record, or if you use the DNS
               servers of a CDN like Cloudflare, create a corresponding TXT
               record:
-              <pre>@ TXT "xmit=42"</pre>
+              <pre>{`@ TXT "xmit=${teamNumber}"`}</pre>
               This lets us establish ownership when we cannot read the team
               number otherwise.
             </li>
@@ -97,81 +125,112 @@ export function Docs() {
             </a>
             . This is an alternative to the command-line with a user-friendly interface.
             It also supports <code>xmit.toml</code> files described below; feel free to jump to
-            {' '}<Link href="#spa">Single Page Applications</Link>.
+            {' '}<Link href="#config">configuration</Link>.
           </p>
         </div>
         <div className="section">
           <h2>
             <span className="icon">📥</span>Install <code>xmit</code>
           </h2>
-          <p>Each situation is unique. Pick the most convenient solution.</p>
-          <h3>
-            with <code>brew</code> (Mac)
-          </h3>
-          <ul>
-            <li>
-              Install <a href="https://brew.sh/">brew</a> if you haven't
-              already;
-            </li>
-            <li>
-              Run <CopiableCode>brew install xmit-co/tap/xmit</CopiableCode>.
-            </li>
-          </ul>
-          <h3>
-            with <code>go</code>
-          </h3>
-          <ul>
-            <li>
-              Install with{" "}
-              <CopiableCode>
-                go install github.com/xmit-co/xmit@latest
-              </CopiableCode>
-              ;
-            </li>
-            <li>
-              Make sure your <code>PATH</code> includes{" "}
-              <code>$(go env GOPATH)/bin</code>.
-            </li>
-          </ul>
-          <h3>from an archive (Windows &amp; Linux)</h3>
-          <ul>
-            <li>
-              Download from the{" "}
-              <a href="https://github.com/xmit-co/xmit/releases/latest">
-                latest release
-              </a>
-              ;
-            </li>
-            <li>
-              Place the <code>xmit</code> binary in your <code>PATH</code>.
-            </li>
-          </ul>
-          <h3>
-            with <code>npm</code>
-          </h3>
-          <h4>in a project</h4>
-          <ul>
-            <li>
-              Add a dependency with{" "}
-              <CopiableCode>npm install --save-dev @xmit.co/xmit</CopiableCode>;
-            </li>
-            <li>
-              Create a <code>deploy</code> script in <code>package.json</code>{" "}
-              like this example where we first run a build script:
-              <pre>
-                {
-                  '{\n  "scripts": {\n    "deploy":  "npm run build && xmit example.com"\n  }\n}'
-                }
-              </pre>
-            </li>
-            <li>
-              Invoke it with <CopiableCode>npm run deploy</CopiableCode>.
-            </li>
-          </ul>
-          <h4>globally</h4>
-          <p>
-            Invoke with <CopiableCode>npx @xmit.co/xmit</CopiableCode>.
-          </p>
+          <div className="tabs">
+            <button
+              className={installTab === "brew" ? "active" : ""}
+              onClick={() => setInstallTab("brew")}
+            >
+              brew (Mac)
+            </button>
+            <button
+              className={installTab === "go" ? "active" : ""}
+              onClick={() => setInstallTab("go")}
+            >
+              go
+            </button>
+            <button
+              className={installTab === "npm-project" ? "active" : ""}
+              onClick={() => setInstallTab("npm-project")}
+            >
+              npm (in your project)
+            </button>
+            <button
+              className={installTab === "npm-global" ? "active" : ""}
+              onClick={() => setInstallTab("npm-global")}
+            >
+              npm (global)
+            </button>
+            <button
+              className={installTab === "archive" ? "active" : ""}
+              onClick={() => setInstallTab("archive")}
+            >
+              archive
+            </button>
+          </div>
+          <div className="tab-content">
+            {installTab === "brew" && (
+              <ul>
+                <li>
+                  Install <a href="https://brew.sh/">brew</a> if you haven't
+                  already;
+                </li>
+                <li>
+                  Run <CopiableCode>brew install xmit-co/tap/xmit</CopiableCode>.
+                </li>
+              </ul>
+            )}
+            {installTab === "go" && (
+              <ul>
+                <li>
+                  Install with{" "}
+                  <CopiableCode>
+                    go install github.com/xmit-co/xmit@latest
+                  </CopiableCode>
+                  ;
+                </li>
+                <li>
+                  Make sure your <code>PATH</code> includes{" "}
+                  <code>$(go env GOPATH)/bin</code>.
+                </li>
+              </ul>
+            )}
+            {installTab === "archive" && (
+              <ul>
+                <li>
+                  Download from the{" "}
+                  <a href="https://github.com/xmit-co/xmit/releases/latest">
+                    latest release
+                  </a>
+                  ;
+                </li>
+                <li>
+                  Place the <code>xmit</code> binary in your <code>PATH</code>.
+                </li>
+              </ul>
+            )}
+            {installTab === "npm-project" && (
+              <ul>
+                <li>
+                  Add a dependency with{" "}
+                  <CopiableCode>npm install --save-dev @xmit.co/xmit</CopiableCode>;
+                </li>
+                <li>
+                  Create a <code>deploy</code> script in <code>package.json</code>{" "}
+                  like this example where we first run a build script:
+                  <pre>
+                    {
+                      '{\n  "scripts": {\n    "deploy":  "npm run build && xmit example.com"\n  }\n}'
+                    }
+                  </pre>
+                </li>
+                <li>
+                  Invoke it with <CopiableCode>npm run deploy</CopiableCode>.
+                </li>
+              </ul>
+            )}
+            {installTab === "npm-global" && (
+              <p>
+                Invoke with <CopiableCode>npx @xmit.co/xmit</CopiableCode>.
+              </p>
+            )}
+          </div>
         </div>
         <div className="section" id="api">
           <h2>
@@ -215,58 +274,78 @@ export function Docs() {
             </li>
           </ul>
         </div>
-        <div className="section" id="spa">
+        <div className="section" id="config">
           <h2>
-            <span className="icon">1️⃣</span>Single Page Applications
+            <span className="icon">⚙️</span>Configure with <code>xmit.toml</code>
           </h2>
           <p>
-            This settings is not for single page websites but specifically
-            single page applications, where you want any path that's not backed
-            by an asset to serve the same page.
+            Create a file called <code>xmit.toml</code> in the uploaded directory
+            (in <code>public</code> for Vite) to configure your site's behavior.
           </p>
-          <p>
-            Create in the uploaded directory (in <code>public</code> for Vite) a
-            file called <code>xmit.toml</code> with:
-          </p>
-          <pre>fallback = "index.html"</pre>
-        </div>
-        <div className="section">
-          <h2>
-            <span className="icon">😔</span>Custom 404
-          </h2>
-          <p>
-            Create in the uploaded directory (in <code>public</code> for Vite) a
-            file called <code>xmit.toml</code> with:
-          </p>
-          <pre>404 = "404.html"</pre>
-        </div>
-        <div className="section">
-          <h2>
-            <span className="icon">🏷️</span>Custom headers
-          </h2>
-          <p>
-            Create in the uploaded directory (in <code>public</code> for Vite) a
-            file called <code>xmit.toml</code> with, for example:
-          </p>
-          <pre>
-            {
-              '[[headers]] # cache assets for a year\nname = "cache-control"\nvalue = "public, max-age=31536000"\non = "^/assets/"\n\n[[headers]] # add CORS\nname = "access-control-allow-origin"\nvalue = "*"\n\n[[headers]] # unset referrer-policy\nname = "referrer-policy"'
-            }
-          </pre>
-        </div>
-        <div className="section">
-          <h2>
-            <span className="icon">↪️</span>Redirects
-          </h2>
-          <p>
-            Create in the uploaded directory (in <code>public</code> for Vite) a
-            file called <code>xmit.toml</code> with, for example:
-          </p>
-          <pre>
-            {
-              '[[redirects]]\nfrom = "^/login$"\nto = "https://login.acme.com"\n\n[[redirects]]\nfrom = "^/new/(.*)"\nto = "/$1"\npermanent = true'
-            }
-          </pre>
+          <div className="tabs">
+            <button
+              className={configTab === "spa" ? "active" : ""}
+              onClick={() => setConfigTab("spa")}
+            >
+              SPA
+            </button>
+            <button
+              className={configTab === "404" ? "active" : ""}
+              onClick={() => setConfigTab("404")}
+            >
+              Custom 404
+            </button>
+            <button
+              className={configTab === "headers" ? "active" : ""}
+              onClick={() => setConfigTab("headers")}
+            >
+              Custom headers
+            </button>
+            <button
+              className={configTab === "redirects" ? "active" : ""}
+              onClick={() => setConfigTab("redirects")}
+            >
+              Redirects
+            </button>
+          </div>
+          <div className="tab-content">
+            {configTab === "spa" && (
+              <>
+                <p>
+                  This setting is not for single page websites but specifically
+                  single page applications, where you want any path that's not backed
+                  by an asset to serve the same page. It should contain, for example:
+                </p>
+                <pre>fallback = "index.html"</pre>
+              </>
+            )}
+            {configTab === "404" && (
+              <>
+                <p>It should contain, for example:</p>
+                <pre>404 = "404.html"</pre>
+              </>
+            )}
+            {configTab === "headers" && (
+              <>
+                <p>It should contain, for example:</p>
+                <pre>
+                  {
+                    '[[headers]] # cache assets for a year\nname = "cache-control"\nvalue = "public, max-age=31536000"\non = "^/assets/"\n\n[[headers]] # add CORS\nname = "access-control-allow-origin"\nvalue = "*"\n\n[[headers]] # unset referrer-policy\nname = "referrer-policy"'
+                  }
+                </pre>
+              </>
+            )}
+            {configTab === "redirects" && (
+              <>
+                <p>It should contain, for example:</p>
+                <pre>
+                  {
+                    '[[redirects]]\nfrom = "^/login$"\nto = "https://login.acme.com"\n\n[[redirects]]\nfrom = "^/new/(.*)"\nto = "/$1"\npermanent = true'
+                  }
+                </pre>
+              </>
+            )}
+          </div>
         </div>
       </main>
       <Footer />

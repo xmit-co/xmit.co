@@ -48,10 +48,11 @@ export function Header({ session }: { session?: Session }) {
               href="#"
               onClick={(e) => {
                 e.preventDefault();
+                const currentPath = window.location.pathname;
                 enroll()
                   .then(() => {
                     reconnectChannel.postMessage(undefined);
-                    route("/admin");
+                    route(currentPath === "/" ? "/admin" : currentPath);
                   })
                   .catch(logError);
               }}
@@ -62,8 +63,9 @@ export function Header({ session }: { session?: Session }) {
               href="#"
               onClick={(e) => {
                 e.preventDefault();
+                const currentPath = window.location.pathname;
                 signin()
-                  .then(() => route("/admin"))
+                  .then(() => route(currentPath === "/" ? "/admin" : currentPath))
                   .catch(logError);
               }}
             >

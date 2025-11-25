@@ -267,40 +267,66 @@ span.icon {
 }
 
 .docs h2 {
-  margin-left: 0;
   margin-top: 0;
 }
 
 .docs h3 {
-  margin-left: 1.5rem;
   margin-top: 1.5em;
 }
 
 .docs h4 {
-  margin-left: 3rem;
   margin-top: 1em;
 }
 
 .docs p,
 .docs pre {
-  margin-left: 5rem;
   margin-top: 0.75em;
   margin-bottom: 0.75em;
 }
 
 .docs ul {
-  margin-left: 6rem;
+  margin-left: 1rem;
   margin-top: 0.75em;
   margin-bottom: 0.75em;
-}
-
-.docs ul pre {
-  margin-left: 0;
 }
 
 .docs li {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  margin: 1em 0 0 0;
+}
+
+.tabs button {
+  background-color: transparent;
+  color: #888;
+  border: none;
+  border-bottom: 2px solid #444;
+  padding: 0.75em 1.5em;
+  cursor: pointer;
+  border-radius: 0;
+  font-size: inherit;
+  transition: all 0.2s;
+}
+
+.tabs button:hover {
+  background-color: #111;
+  color: #fff;
+}
+
+.tabs button.active {
+  background-color: #000;
+  color: #fff;
+  border-bottom: 2px solid #ff0;
+}
+
+.tab-content {
+  margin-top: 0;
+  padding-top: 1em;
 }
 
 pre {
