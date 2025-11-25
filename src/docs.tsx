@@ -23,8 +23,9 @@ export function Docs() {
   const uid = session?.uid;
   const user = uid !== undefined ? loadUser(state, uid) : undefined;
   const teamIDs = user?.teams ? Array.from(user.teams.keys()) : [];
+  teamIDs.sort((a, b) => b - a);
   const [selectedTeamID, setSelectedTeamID] = useState<number | undefined>(
-    teamIDs.length > 0 ? teamIDs[0] : undefined,
+    undefined,
   );
   const [installTab, setInstallTab] = useState<string>("brew");
   const [configTab, setConfigTab] = useState<string>("404");
@@ -35,12 +36,12 @@ export function Docs() {
     "onclebob",
   );
 
-  // Update selectedTeamID when user signs in and teams become available
+  // Auto-select first team when teams become available
   useEffect(() => {
     if (teamIDs.length > 0 && selectedTeamID === undefined) {
       setSelectedTeamID(teamIDs[0]);
     }
-  }, [teamIDs, selectedTeamID]);
+  }, [teamIDs.length, selectedTeamID]);
 
   // Check if we're still loading (state not ready yet)
   const isLoading = !state.ready;
