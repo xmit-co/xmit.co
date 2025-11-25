@@ -24,20 +24,26 @@ export function Home() {
         to use another one to authenticate.
       </p>
     );
-  } else {
-    if (navigator.userAgent.includes("Linux")) {
-      message = (
-        <p>
-          Under{" "}
-          {(navigator.userAgent.includes("Android") && "Android") || "Linux"},
-          we recommend credentials managers like the free{" "}
-          <a href="https://bitwarden.com/download/" target="_blank">
-            bitwarden
-          </a>{" "}
-          if authentication is difficult.
-        </p>
-      );
-    }
+  }
+
+  // Show credential manager recommendation for non-Windows, non-Mac Firefox
+  let credentialManagerMessage = undefined;
+  const isFirefox = navigator.userAgent.includes("Firefox");
+  const isWindows = navigator.userAgent.includes("Windows");
+  const isMac = navigator.userAgent.includes("Mac");
+
+  if (isFirefox && !isWindows && !isMac) {
+    credentialManagerMessage = (
+      <p>
+        Under{" "}
+        {(navigator.userAgent.includes("Android") && "Android") || "Linux"}{" "}
+        Firefox, we recommend credentials managers like the free{" "}
+        <a href="https://bitwarden.com/download/" target="_blank">
+          bitwarden
+        </a>{" "}
+        if authentication is difficult.
+      </p>
+    );
   }
 
   return (
@@ -74,6 +80,9 @@ export function Home() {
           </p>
           {message}
         </section>
+        {credentialManagerMessage && (
+          <section>{credentialManagerMessage}</section>
+        )}
       </main>
       <Footer />
     </div>
