@@ -49,15 +49,20 @@ export function Home() {
             <span class="icon">🚀</span>Fast, free static hosting
           </h2>
           <p>
-            <span class="icon">⚡</span>Deploy your static web pages in seconds with a single <code>xmit</code> command
-            or through <a href="https://onclebob.com" target="_blank">Oncle Bob</a>.
+            <span class="icon">⚡</span>Deploy your static web pages in seconds
+            with a single <code>xmit</code> command or through{" "}
+            <a href="https://onclebob.com" target="_blank">
+              Oncle Bob
+            </a>
+            .
           </p>
           <p>
-            <span class="icon">🌐</span>Use your own domain or grab a free subdomain on xmit.dev or madethis.site.
-            Automatic HTTPS included.
+            <span class="icon">🌐</span>Use your own domain or grab a free
+            subdomain on xmit.dev or madethis.site. Automatic HTTPS included.
           </p>
           <p>
-            <span class="icon">🔐</span>Authenticate with WebAuthn passkeys. No passwords to remember or leak.
+            <span class="icon">🔐</span>Authenticate with WebAuthn passkeys. No
+            passwords to remember or leak.
           </p>
           {message}
         </section>

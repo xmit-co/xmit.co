@@ -11,7 +11,8 @@ body {
   min-height: 100svh;
 }
 
-code, pre {
+code,
+pre {
   font-family: ui-monospace, monospace;
 }
 
@@ -41,7 +42,6 @@ h1 a {
   color: #fff;
   text-decoration: none;
 }
-
 
 h2 {
   font-size: 150%;
@@ -107,8 +107,12 @@ nav {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 footer {
@@ -170,7 +174,6 @@ button.delete {
 button:hover {
   background-color: #444;
 }
-
 
 main {
   max-width: 60em;

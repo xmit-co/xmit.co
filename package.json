@@ -16,7 +16,8 @@
     "cbor-x": "^1.5.9",
     "preact": "^10.20.2",
     "preact-router": "^4.1.2",
-    "sockette": "^2.0.6"
+    "sockette": "^2.0.6",
+    "tlds": "^1.261.0"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.8.2",

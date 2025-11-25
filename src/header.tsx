@@ -27,7 +27,7 @@ export function Header({ session }: { session?: Session }) {
         <Link activeClassName="header-active" href="/docs">
           📚 docs
         </Link>
-        {uid !== undefined ? (
+        {!ready ? null : uid !== undefined ? (
           <>
             <Link activeClassName="header-active" href="/admin">
               🛠 admin
@@ -65,7 +65,9 @@ export function Header({ session }: { session?: Session }) {
                 e.preventDefault();
                 const currentPath = window.location.pathname;
                 signin()
-                  .then(() => route(currentPath === "/" ? "/admin" : currentPath))
+                  .then(() =>
+                    route(currentPath === "/" ? "/admin" : currentPath),
+                  )
                   .catch(logError);
               }}
             >

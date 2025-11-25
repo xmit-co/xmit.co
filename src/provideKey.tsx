@@ -1,6 +1,14 @@
 import { useContext, useState, useEffect } from "preact/hooks";
 import { route } from "preact-router";
-import { loadKeyRequest, loadSession, loadTeam, loadUser, logError, sendUpdate, StateCtx } from "./app.tsx";
+import {
+  loadKeyRequest,
+  loadSession,
+  loadTeam,
+  loadUser,
+  logError,
+  sendUpdate,
+  StateCtx,
+} from "./app.tsx";
 import { enroll, signin } from "./webauthn.tsx";
 import { Header } from "./header.tsx";
 import { Footer } from "./footer.tsx";
@@ -10,7 +18,9 @@ export function ProvideKey({ id }: { id: string }) {
   const session = loadSession(state);
   const uid = session?.uid;
   const keyRequest = loadKeyRequest(state, id);
-  const [selectedTeam, setSelectedTeam] = useState<number | undefined>(undefined);
+  const [selectedTeam, setSelectedTeam] = useState<number | undefined>(
+    undefined,
+  );
   const [keyRequestLoaded, setKeyRequestLoaded] = useState(false);
 
   // Subscribe to the key request when the component mounts and state is ready
@@ -70,18 +80,9 @@ export function ProvideKey({ id }: { id: string }) {
           <p>
             Please verify this matches the identifier shown in the application.
           </p>
-          <p>
-            To provide an API key, you must first authenticate:
-          </p>
+          <p>To provide an API key, you must first authenticate:</p>
           <div style={{ marginTop: "2em" }}>
-            <button
-              onClick={() =>
-                enroll()
-                  .catch(logError)
-              }
-            >
-              🤗 sign up
-            </button>
+            <button onClick={() => enroll().catch(logError)}>🤗 sign up</button>
             <button onClick={() => signin().catch(logError)}>🧐 sign in</button>
           </div>
         </div>
@@ -111,10 +112,12 @@ export function ProvideKey({ id }: { id: string }) {
         <div class="home">
           <h1>❌ Key Request Not Found</h1>
           <p>
-            This key request (ID: <code>{id}</code>) was not found or has expired.
+            This key request (ID: <code>{id}</code>) was not found or has
+            expired.
           </p>
           <p>
-            Key requests expire after 10 minutes. Please create a new request from your application.
+            Key requests expire after 10 minutes. Please create a new request
+            from your application.
           </p>
         </div>
         <Footer />
@@ -129,9 +132,7 @@ export function ProvideKey({ id }: { id: string }) {
         <Header session={session} />
         <div class="home">
           <h1>✅ Key Already Provided</h1>
-          <p>
-            An API key has already been provided for this request.
-          </p>
+          <p>An API key has already been provided for this request.</p>
         </div>
         <Footer />
       </div>
@@ -186,8 +187,8 @@ export function ProvideKey({ id }: { id: string }) {
                   name="account"
                   checked={selectedTeam === undefined}
                   onChange={() => setSelectedTeam(undefined)}
-                />
-                {" "}👤 Personal Account ({user.name || `User #${uid}`})
+                />{" "}
+                👤 Personal Account ({user.name || `User #${uid}`})
               </label>
               {teams.map(({ id: teamID, team }) => (
                 <label key={teamID}>
@@ -196,8 +197,8 @@ export function ProvideKey({ id }: { id: string }) {
                     name="account"
                     checked={selectedTeam === teamID}
                     onChange={() => setSelectedTeam(teamID)}
-                  />
-                  {" "}🏭 {team?.name || `Team #${teamID}`}
+                  />{" "}
+                  🏭 {team?.name || `Team #${teamID}`}
                 </label>
               ))}
             </div>
@@ -205,12 +206,8 @@ export function ProvideKey({ id }: { id: string }) {
         )}
 
         <div>
-          <button onClick={handleApprove}>
-            ✅ Provide an API key
-          </button>
-          <button onClick={handleCancel}>
-            ❌ Cancel
-          </button>
+          <button onClick={handleApprove}>✅ Provide an API key</button>
+          <button onClick={handleCancel}>❌ Cancel</button>
         </div>
       </div>
       <Footer />

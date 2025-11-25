@@ -40,7 +40,7 @@ export async function enroll() {
       new Map<number, any>([
         [1, id],
         [2, attestationObject],
-      ])
+      ]),
     ),
   });
   if (resp.status != 200) {
@@ -79,7 +79,7 @@ export async function signin() {
         [2, clientDataJSON],
         [3, authenticatorData],
         [4, signature],
-      ])
+      ]),
     ),
   });
   if (resp.status != 200) {

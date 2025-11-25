@@ -311,10 +311,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
       <h3>
         <span class="icon">⚙️</span>Default settings
       </h3>
-      <SettingsView
-        value={team.defaultSettings}
-        updateKey={["t", id, "s"]}
-      />
+      <SettingsView value={team.defaultSettings} updateKey={["t", id, "s"]} />
       <h3>
         <span class="icon">👥</span>Members{" "}
         <button class="add" onClick={() => sendUpdate(["t", id, "i"])}>
@@ -446,7 +443,13 @@ export function UserAdminBody({ session }: { session: Session }) {
   );
 }
 
-export function TeamAdminBody({ session, id }: { session: Session; id: number }) {
+export function TeamAdminBody({
+  session,
+  id,
+}: {
+  session: Session;
+  id: number;
+}) {
   return <TeamView session={session} id={id} />;
 }
 
@@ -489,9 +492,7 @@ function TeamSummary({ teamID }: { teamID: number }) {
           return (
             <span key={id}>
               {idx > 0 && ", "}
-              <Link href={`/admin/site/${id}`}>
-                {site?.name || `#${id}`}
-              </Link>
+              <Link href={`/admin/site/${id}`}>{site?.name || `#${id}`}</Link>
             </span>
           );
         })
@@ -521,7 +522,9 @@ function AdminBody({ session }: { session: Session }) {
           <span class="icon">👤</span>User {nameAndID(user)}
         </h3>
         <p>
-          <Link href="/admin/user">Manage your profile, API keys and web passkeys</Link>
+          <Link href="/admin/user">
+            Manage your profile, API keys and web passkeys
+          </Link>
         </p>
         <h3>
           <span class="icon">🏭</span>Teams
@@ -603,7 +606,9 @@ export function TeamAdmin({ id }: { id: string }) {
     <div class="with-header">
       <Header session={session} />
       <main>
-        {ready && session !== undefined && <TeamAdminBody session={session} id={teamID} />}
+        {ready && session !== undefined && (
+          <TeamAdminBody session={session} id={teamID} />
+        )}
       </main>
       <Footer />
     </div>

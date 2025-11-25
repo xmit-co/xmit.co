@@ -3,6 +3,7 @@ import { loadSession, loadTeam, loadUser, logError, StateCtx } from "./app.tsx";
 import { useContext, useState, useEffect } from "preact/hooks";
 import { Footer } from "./footer.tsx";
 import { Link } from "preact-router/match";
+import tlds from "tlds";
 
 function CopiableCode({ children }: { children: string }) {
   return (
@@ -23,10 +24,11 @@ export function Docs() {
   const user = uid !== undefined ? loadUser(state, uid) : undefined;
   const teamIDs = user?.teams ? Array.from(user.teams.keys()) : [];
   const [selectedTeamID, setSelectedTeamID] = useState<number | undefined>(
-    teamIDs.length > 0 ? teamIDs[0] : undefined
+    teamIDs.length > 0 ? teamIDs[0] : undefined,
   );
   const [installTab, setInstallTab] = useState<string>("brew");
   const [configTab, setConfigTab] = useState<string>("spa");
+  const [domain, setDomain] = useState<string>("");
 
   // Update selectedTeamID when user signs in and teams become available
   useEffect(() => {
@@ -35,7 +37,51 @@ export function Docs() {
     }
   }, [teamIDs, selectedTeamID]);
 
+  // Check if we're still loading (state not ready yet)
+  const isLoading = !state.ready;
+
   const teamNumber = selectedTeamID || 42;
+
+  // Parse domain to determine DNS instructions
+  const trimmedDomain = domain.trim().toLowerCase();
+  const canSkipDNS =
+    trimmedDomain.endsWith(".xmit.dev") ||
+    trimmedDomain.endsWith(".madethis.site");
+  const parts = trimmedDomain.split(".");
+
+  // Find matching TLD by checking all possible suffixes (longest first)
+  let matchedTld = null;
+  for (let i = 1; i < parts.length; i++) {
+    const suffix = parts.slice(-i).join(".");
+    if (tlds.includes(suffix)) {
+      matchedTld = suffix;
+    }
+  }
+
+  // Determine if this is a zone apex (root domain) or subdomain
+  const tldPartCount = matchedTld ? matchedTld.split(".").length : 1;
+  const minPartsForApex = tldPartCount + 1; // domain + TLD (e.g., "pcarrier" + "co.uk" = 2 parts)
+  const isZoneApex =
+    parts.length === minPartsForApex && trimmedDomain.length > 0;
+  // isWWW is true for any domain starting with www.
+  const isWWW = trimmedDomain.startsWith("www.");
+  const isSubdomain = parts.length > minPartsForApex && !isWWW;
+  // For subdomains, extract everything before the root domain (e.g., "hello.foo" from "hello.foo.pcarrier.co.uk")
+  const subdomainName = isSubdomain
+    ? parts.slice(0, parts.length - minPartsForApex).join(".")
+    : "";
+  const wwwSubdomainName = isWWW
+    ? parts.slice(0, parts.length - minPartsForApex).join(".")
+    : "";
+  const note = (
+    <p>
+      If you intend to deploy multiple sites on subdomains, you can use instead:
+      <pre>
+        {isZoneApex && `@ ALIAS ${teamNumber}.xmit.co.\n`}
+        {`* CNAME ${teamNumber}.xmit.co.\n@ TXT "xmit=${teamNumber}"`}
+      </pre>
+    </p>
+  );
 
   return (
     <div class="with-header">
@@ -70,49 +116,120 @@ export function Docs() {
           <h2>
             <span className="icon">📇</span>Configure DNS
           </h2>
-          {uid !== undefined && teamIDs.length > 0 && (
-            <p>
-              Deploying under team:{" "}
-              <select
-                value={selectedTeamID}
-                onChange={(e) =>
-                  setSelectedTeamID(Number((e.target as HTMLSelectElement).value))
-                }
-              >
-                {teamIDs.map((teamID: number) => {
-                  const team = loadTeam(state, teamID);
-                  return (
-                    <option key={teamID} value={teamID}>
-                      #{teamID}: {team?.name || "Loading..."}
-                    </option>
-                  );
-                })}
-              </select>
-            </p>
+          {isLoading ? (
+            <p>Loading…</p>
+          ) : uid === undefined ? (
+            <p>Please sign in or sign up to view instructions.</p>
+          ) : (
+            <>
+              <p>
+                {teamIDs.length > 0 && (
+                  <>
+                    Team:{" "}
+                    <select
+                      value={selectedTeamID}
+                      onChange={(e) =>
+                        setSelectedTeamID(
+                          Number((e.target as HTMLSelectElement).value),
+                        )
+                      }
+                      style={{ marginRight: "16px" }}
+                    >
+                      {teamIDs.map((teamID: number) => {
+                        const team = loadTeam(state, teamID);
+                        return (
+                          <option key={teamID} value={teamID}>
+                            #{teamID}: {team?.name || "Loading..."}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </>
+                )}
+                Domain:{" "}
+                <input
+                  type="text"
+                  placeholder="example.com"
+                  value={domain}
+                  onInput={(e) =>
+                    setDomain((e.target as HTMLInputElement).value)
+                  }
+                  onChange={(e) =>
+                    setDomain((e.target as HTMLInputElement).value)
+                  }
+                  onKeyUp={(e) =>
+                    setDomain((e.target as HTMLInputElement).value)
+                  }
+                />
+              </p>
+              {trimmedDomain && canSkipDNS && (
+                <p style={{ color: "#0a0" }}>
+                  ✓ Domains ending in <code>.xmit.dev</code> or{" "}
+                  <code>.madethis.site</code> don't require DNS configuration.
+                  You can skip this section!
+                </p>
+              )}
+              {trimmedDomain && !canSkipDNS && isZoneApex && (
+                <>
+                  <ul>
+                    <li>
+                      For the zone apex, create an <strong>ALIAS</strong> or{" "}
+                      <strong>ANAME</strong> record:
+                      <pre>{`@ ALIAS ${teamNumber}.xmit.co.`}</pre>
+                    </li>
+                    <li>
+                      For its <code>www</code> subdomain, create a{" "}
+                      <strong>CNAME</strong> record:
+                      <pre>{`www CNAME ${teamNumber}.xmit.co.`}</pre>
+                    </li>
+                    <li>
+                      Create a <strong>TXT</strong> record to establish
+                      ownership:
+                      <pre>{`@ TXT "xmit=${teamNumber}"`}</pre>
+                    </li>
+                  </ul>
+                  {note}
+                </>
+              )}
+              {trimmedDomain && !canSkipDNS && isWWW && (
+                <>
+                  <ul>
+                    <li>
+                      Create a <strong>CNAME</strong> record:
+                      <pre>{`${wwwSubdomainName} CNAME ${teamNumber}.xmit.co.`}</pre>
+                    </li>
+                    <li>
+                      Create a <strong>TXT</strong> record to establish
+                      ownership:
+                      <pre>{`${wwwSubdomainName} TXT "xmit=${teamNumber}"`}</pre>
+                    </li>
+                  </ul>
+                  {note}
+                </>
+              )}
+              {trimmedDomain && !canSkipDNS && isSubdomain && (
+                <>
+                  <ul>
+                    <li>
+                      For the subdomain, create a <strong>CNAME</strong> record:
+                      <pre>{`${subdomainName} CNAME ${teamNumber}.xmit.co.`}</pre>
+                    </li>
+                    <li>
+                      For its <code>www</code> subdomain, create a{" "}
+                      <strong>CNAME</strong> record:
+                      <pre>{`www.${subdomainName} CNAME ${teamNumber}.xmit.co.`}</pre>
+                    </li>
+                    <li>
+                      Create a <strong>TXT</strong> record to establish
+                      ownership:
+                      <pre>{`${subdomainName} TXT "xmit=${teamNumber}"`}</pre>
+                    </li>
+                  </ul>
+                  {note}
+                </>
+              )}
+            </>
           )}
-          <p>
-            You can skip this section to deploy to a subdomain of{" "}
-            <code>xmit.dev</code> or <code>madethis.site</code>. Otherwise
-            {uid === undefined && ", if your domain will belong to team #42"}:
-          </p>
-          <ul>
-            <li>
-              Point your domains to our services by creating a CNAME or, whenever
-              not possible, ALIAS records for both the domain and its{" "}
-              <code>www</code> subdomain, like:
-              <pre>{`@ CNAME ${teamNumber}.xmit.co.\n* CNAME ${teamNumber}.xmit.co.`}</pre>
-              We need a <code>*</code> or <code>www</code> record for any domain
-              that doesn't start with <code>www</code>.
-            </li>
-            <li>
-              If you had to create an ALIAS record, or if you use the DNS
-              servers of a CDN like Cloudflare, create a corresponding TXT
-              record:
-              <pre>{`@ TXT "xmit=${teamNumber}"`}</pre>
-              This lets us establish ownership when we cannot read the team
-              number otherwise.
-            </li>
-          </ul>
         </div>
         <div className="section" id="onclebob">
           <h2>
@@ -123,9 +240,10 @@ export function Docs() {
             <a href="https://onclebob.com/" target="_blank">
               onclebob.com
             </a>
-            . This is an alternative to the command-line with a user-friendly interface.
-            It also supports <code>xmit.toml</code> files described below; feel free to jump to
-            {' '}<Link href="#config">configuration</Link>.
+            . This is an alternative to the command-line with a user-friendly
+            interface. It also supports <code>xmit.toml</code> files described
+            below; feel free to jump to{" "}
+            <Link href="#config">configuration</Link>.
           </p>
         </div>
         <div className="section">
@@ -172,7 +290,8 @@ export function Docs() {
                   already;
                 </li>
                 <li>
-                  Run <CopiableCode>brew install xmit-co/tap/xmit</CopiableCode>.
+                  Run <CopiableCode>brew install xmit-co/tap/xmit</CopiableCode>
+                  .
                 </li>
               </ul>
             )}
@@ -209,11 +328,15 @@ export function Docs() {
               <ul>
                 <li>
                   Add a dependency with{" "}
-                  <CopiableCode>npm install --save-dev @xmit.co/xmit</CopiableCode>;
+                  <CopiableCode>
+                    npm install --save-dev @xmit.co/xmit
+                  </CopiableCode>
+                  ;
                 </li>
                 <li>
-                  Create a <code>deploy</code> script in <code>package.json</code>{" "}
-                  like this example where we first run a build script:
+                  Create a <code>deploy</code> script in{" "}
+                  <code>package.json</code> like this example where we first run
+                  a build script:
                   <pre>
                     {
                       '{\n  "scripts": {\n    "deploy":  "npm run build && xmit example.com"\n  }\n}'
@@ -257,9 +380,8 @@ export function Docs() {
             <span className="icon">📦</span>Upload your site
           </h2>
           <p>
-            You've already <a href="#api">configured an API key</a>, and either
-            deploy to a subdomain of <code>xmit.dev</code> or <code>madethis.site</code>,
-            or <a href="#dns">configured DNS</a>.
+            You've already <a href="#api">provisioned an API key</a> and{" "}
+            <a href="#dns">configured DNS</a>.
           </p>
           <ul>
             <li>
@@ -276,11 +398,13 @@ export function Docs() {
         </div>
         <div className="section" id="config">
           <h2>
-            <span className="icon">⚙️</span>Configure with <code>xmit.toml</code>
+            <span className="icon">⚙️</span>Configure with{" "}
+            <code>xmit.toml</code>
           </h2>
           <p>
-            Create a file called <code>xmit.toml</code> in the uploaded directory
-            (in <code>public</code> for Vite) to configure your site's behavior.
+            Create a file called <code>xmit.toml</code> in the uploaded
+            directory (in <code>public</code> for Vite) to configure your site's
+            behavior.
           </p>
           <div className="tabs">
             <button
@@ -313,8 +437,9 @@ export function Docs() {
               <>
                 <p>
                   This setting is not for single page websites but specifically
-                  single page applications, where you want any path that's not backed
-                  by an asset to serve the same page. It should contain, for example:
+                  single page applications, where you want any path that's not
+                  backed by an asset to serve the same page. It should contain,
+                  for example:
                 </p>
                 <pre>fallback = "index.html"</pre>
               </>
