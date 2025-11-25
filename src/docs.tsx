@@ -671,6 +671,12 @@ export function Docs() {
             >
               SPA
             </button>
+            <button
+              className={configTab === "form2mail" ? "active" : ""}
+              onClick={() => setConfigTab("form2mail")}
+            >
+              Form2Mail
+            </button>
           </div>
           <div className="tab-content">
             {configTab === "spa" && (
@@ -708,6 +714,24 @@ export function Docs() {
                     '[[redirects]]\nfrom = "^/login$"\nto = "https://login.acme.com"\n\n[[redirects]]\nfrom = "^/new/(.*)"\nto = "/$1"\npermanent = true'
                   }
                 </pre>
+              </>
+            )}
+            {configTab === "form2mail" && (
+              <>
+                <p>
+                  Handle form submissions by email without backend code. It should contain, for example:
+                </p>
+                <pre>
+                  {
+                    '[[forms]]\nfrom = "/contact"\nto = "you@example.com"\nthen = "/thank-you"'
+                  }
+                </pre>
+                <p>
+                  Learn more about{" "}
+                  <a href="https://nothing.pcarrier.com/posts/form2mail/" target="_blank">
+                    form2mail configuration and usage
+                  </a>.
+                </p>
               </>
             )}
           </div>
