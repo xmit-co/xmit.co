@@ -538,7 +538,7 @@ function AdminBody({ session }: { session: Session }) {
         <p>
           <Link href="/admin/user">
             Manage your profile, API keys and web passkeys
-          </Link>
+          </Link>.
         </p>
       </section>
       <section>
