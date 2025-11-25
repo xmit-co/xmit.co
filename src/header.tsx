@@ -6,7 +6,7 @@ import { route } from "preact-router";
 
 let pendingRedirect: string | null = null;
 
-export const title = "🛰 xmit — launch fast";
+export const title = "🛰 xmit";
 
 function LoadingSpinner() {
   return <span class="spinner">⟳</span>;
