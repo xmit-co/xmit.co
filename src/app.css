@@ -264,7 +264,8 @@ div.errors > div {
 /* Tabs */
 .tabs {
   display: flex;
-  gap: 0;
+  flex-wrap: wrap;
+  row-gap: 0.5em;
   margin: 1em 0 0 0;
 }
 
