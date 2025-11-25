@@ -32,7 +32,6 @@ export function Header({ session }: { session?: Session }) {
         <h1>
           <Link href="/">{title}</Link>
         </h1>
-        {!ready && <LoadingSpinner />}
       </div>
       <nav>
         <Link activeClassName="header-active" href="/docs">
@@ -85,6 +84,7 @@ export function Header({ session }: { session?: Session }) {
             </a>
           </>
         )}
+        {!ready && <LoadingSpinner />}
       </nav>
     </header>
   );
