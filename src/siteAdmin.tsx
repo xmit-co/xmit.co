@@ -1,5 +1,6 @@
 import { useContext } from "preact/hooks";
 import { route } from "preact-router";
+import { Link } from "preact-router/match";
 import { Header } from "./header.tsx";
 import { Site, Team, Upload } from "./models.tsx";
 import { EditableText } from "./editableText.tsx";
@@ -8,6 +9,7 @@ import {
   loadLaunch,
   loadSession,
   loadSite,
+  loadTeam,
   loadUpload,
   loadUser,
   sendUpdate,
@@ -238,6 +240,8 @@ function TransferOwnership({ site }: { site: Site }) {
 function SiteAdminBody({ site }: { site: Site }) {
   const state = useContext(StateCtx).value;
   const siteID = site.id || 0;
+  const teamID = site.teamID || 0;
+  const team = loadTeam(state, teamID);
   const launchIDs = [...(site.launches?.keys() || [])];
   launchIDs.sort((a, b) => b - a);
   const uploadIDs = [...(site.uploads?.keys() || [])];
@@ -250,62 +254,59 @@ function SiteAdminBody({ site }: { site: Site }) {
     latestLaunch?.uploadID,
   )?.bundle;
   return (
-    <div class="section">
-      <div class="ssections">
-        <h2>
-          <span class="icon">🌐</span>
-          <EditableText
-            value={site.name}
-            whenMissing="unnamed"
-            buttonText="rename"
-            submit={(v) => sendUpdate(["s", siteID], new Map([[1, v]]))}
-          />
-          <TransferOwnership site={site} />
-          <button
-            class="delete"
-            onClick={() => {
-              if (window.confirm("Are you sure?")) sendUpdate(["s", siteID]);
-            }}
-          >
-            ✕ destroy
-          </button>
-        </h2>
+    <section>
+      <div class="breadcrumb">
+        <Link href="/admin">← Admin</Link>
+        <span> / </span>
+        <Link href={`/admin/team/${teamID}`}>
+          Team #{teamID}: {team?.name || <em>unnamed</em>}
+        </Link>
       </div>
-      <div class="ssections">
-        <div>
-          <h3>
-            <span class="icon">⚙️</span>Settings
-          </h3>
-          <SettingsView value={site.settings} updateKey={["s", siteID, "s"]} />
-        </div>
-        <div>
-          <h3>
-            <span class="icon">🔗</span>Domains
-          </h3>
-          <DomainsView site={site} />
-        </div>
-        <div>
-          <h3>
-            <span class="icon">📤</span>Uploads
-          </h3>
-          <UploadList
-            site={site}
-            uploadIDs={uploadIDs}
-            deployedBundleID={deployedBundleID}
-          />
-        </div>
-        <div>
-          <h3>
-            <span class="icon">🚀</span>Launches
-          </h3>
-          <LaunchList
-            site={site}
-            launchIDs={launchIDs}
-            deployedBundleID={deployedBundleID}
-          />
-        </div>
+      <h2>
+        <span class="icon">🌐</span>Site #{siteID}:{" "}
+        <EditableText
+          value={site.name}
+          whenMissing="unnamed"
+          buttonText="rename"
+          submit={(v) => sendUpdate(["s", siteID], new Map([[1, v]]))}
+        />
+        <button
+          class="delete"
+          onClick={() => {
+            if (window.confirm("Are you sure?")) sendUpdate(["s", siteID]);
+          }}
+        >
+          ✕ destroy
+        </button>
+      </h2>
+      <div>
+        <TransferOwnership site={site} />
       </div>
-    </div>
+      <h3>
+        <span class="icon">⚙️</span>Settings
+      </h3>
+      <SettingsView value={site.settings} updateKey={["s", siteID, "s"]} />
+      <h3>
+        <span class="icon">🔗</span>Domains
+      </h3>
+      <DomainsView site={site} />
+      <h3>
+        <span class="icon">📤</span>Uploads
+      </h3>
+      <UploadList
+        site={site}
+        uploadIDs={uploadIDs}
+        deployedBundleID={deployedBundleID}
+      />
+      <h3>
+        <span class="icon">🚀</span>Launches
+      </h3>
+      <LaunchList
+        site={site}
+        launchIDs={launchIDs}
+        deployedBundleID={deployedBundleID}
+      />
+    </section>
   );
 }
 
@@ -326,15 +327,9 @@ export function SiteAdmin({ id }: { id: string }) {
   return (
     <div class="with-header">
       <Header session={session} />
-      <div class="body">
-        {ready && site !== undefined ? (
-          <SiteAdminBody site={site} />
-        ) : (
-          <div style={{ textAlign: "center" }}>
-            <em>Loading…</em>
-          </div>
-        )}
-      </div>
+      <main>
+        {ready && site !== undefined && <SiteAdminBody site={site} />}
+      </main>
       <Footer />
     </div>
   );

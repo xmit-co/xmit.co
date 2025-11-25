@@ -3,7 +3,7 @@ import "./app.css";
 import Router, { Route } from "preact-router";
 import { signal } from "@preact/signals";
 import Sockette from "sockette";
-import { Admin } from "./admin.tsx";
+import { Admin, UserAdmin, TeamAdmin } from "./admin.tsx";
 import { Docs } from "./docs.tsx";
 import { AuthRequired, Home } from "./home.tsx";
 import { ProvideKey } from "./provideKey.tsx";
@@ -465,7 +465,9 @@ export function App() {
         <Route path="/signin/:url" component={AuthRequired} />
         <Route path="/docs" component={Docs} />
         <Route path="/admin" component={Admin} />
-        <Route path="/site/:id" component={SiteAdmin} />
+        <Route path="/admin/user" component={UserAdmin} />
+        <Route path="/admin/team/:id" component={TeamAdmin} />
+        <Route path="/admin/site/:id" component={SiteAdmin} />
         <Route path="/provide-key/:id" component={ProvideKey} />
         <Route path="/debug" component={Debug} />
       </Router>

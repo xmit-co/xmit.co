@@ -3,24 +3,17 @@ import {
   loadSite,
   loadUpload,
   logError,
-  reconnectChannel,
   StateCtx,
 } from "./app.tsx";
+import { signin } from "./webauthn.tsx";
 import { route } from "preact-router";
-import { enroll, signin } from "./webauthn.tsx";
 import { useContext } from "preact/hooks";
 import { Footer } from "./footer.tsx";
-import { title } from "./header.tsx";
+import { Header } from "./header.tsx";
 
 export function Home() {
   const state = useContext(StateCtx).value;
   const session = loadSession(state);
-  const uid = session?.uid;
-  if (uid !== undefined) {
-    route("/admin");
-    return <></>;
-  }
-  const mark = state.ready ? "🔴" : "🟡";
   const hasCredentials = navigator.credentials !== undefined;
 
   let message = undefined;
@@ -48,31 +41,27 @@ export function Home() {
   }
 
   return (
-    <div class="home">
-      <h1>
-        {title} <span class="mark">{mark}</span>
-      </h1>
-      <p>
-        We host your static web pages, including single page apps, for free.
-      </p>
-      <p>
-        With efficient uploads &amp; a blazing fast admin interface, we promise
-        not to waste your time.
-      </p>
-      {message}
-      <div style={{ marginTop: "2em" }}>
-        <button onClick={() => route("/docs")}>📚 docs</button>
-        <button
-          onClick={() =>
-            enroll()
-              .then(() => reconnectChannel.postMessage(undefined))
-              .catch(logError)
-          }
-        >
-          🤗 sign up
-        </button>
-        <button onClick={() => signin().catch(logError)}>🧐 sign in</button>
-      </div>
+    <div class="with-header">
+      <Header session={session} />
+      <main>
+        <section>
+          <h2>
+            <span class="icon">🚀</span>Fast, free static hosting
+          </h2>
+          <p>
+            <span class="icon">⚡</span>Deploy your static web pages in seconds with a single <code>xmit</code> command
+            or through <a href="https://onclebob.com" target="_blank">Oncle Bob</a>.
+          </p>
+          <p>
+            <span class="icon">🌐</span>Use your own domain or grab a free subdomain on xmit.dev or madethis.site.
+            Automatic HTTPS included.
+          </p>
+          <p>
+            <span class="icon">🔐</span>Authenticate with WebAuthn passkeys. No passwords to remember or leak.
+          </p>
+          {message}
+        </section>
+      </main>
       <Footer />
     </div>
   );
@@ -83,9 +72,9 @@ export function AuthRequired({ url }: { url: string }) {
   const match = u.hostname.match("^(\\d+)\\.(\\d+)*");
   if (!match) {
     return (
-      <div class="home">
+      <main class="home">
         <h1>Unsupported URL</h1>
-      </div>
+      </main>
     );
   }
   const uploadID = Number(match[1]);
@@ -97,17 +86,17 @@ export function AuthRequired({ url }: { url: string }) {
     const site = loadSite(state, siteID);
     if (!site) {
       return (
-        <div class="home">
+        <main class="home">
           <h1>🛑 Not authorized</h1>
-        </div>
+        </main>
       );
     }
     const bundle = loadUpload(state, siteID, uploadID)?.bundle;
     if (!bundle) {
       return (
-        <div class="home">
+        <main class="home">
           <h1>😢 Bundle not found</h1>
-        </div>
+        </main>
       );
     }
     const bundleHex = Array.from(bundle)
@@ -116,26 +105,34 @@ export function AuthRequired({ url }: { url: string }) {
     u.search = `?:${bundleHex}:${u.search.length > 0 ? u.search.substring(1) : ""}`;
     window.location.href = u.toString();
     return (
-      <div class="home">
+      <main class="home">
         <h1>Redirecting…</h1>
-      </div>
+      </main>
     );
   }
   if (state.ready) {
     return (
-      <div class="home">
+      <main class="home">
         <h1>🔐 Authentication required</h1>
         <p>
           You must{" "}
-          <button onClick={() => signin().catch(logError)}>sign in</button>
+          <button
+            onClick={() =>
+              signin()
+                .then(() => route("/admin"))
+                .catch(logError)
+            }
+          >
+            sign in
+          </button>
           to access <code>{url}</code>
         </p>
-      </div>
+      </main>
     );
   }
   return (
-    <div class="home">
+    <main class="home">
       <h1>Loading…</h1>
-    </div>
+    </main>
   );
 }

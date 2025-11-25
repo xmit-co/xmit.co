@@ -22,7 +22,7 @@ export function Docs() {
   return (
     <div class="with-header">
       <Header session={session} />
-      <div className="body docs">
+      <main className="docs">
         <div className="section">
           <h2>
             <span className="icon">ℹ️</span>Guides available
@@ -268,7 +268,7 @@ export function Docs() {
             }
           </pre>
         </div>
-      </div>
+      </main>
       <Footer />
     </div>
   );

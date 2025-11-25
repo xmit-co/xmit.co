@@ -211,7 +211,7 @@ function SiteView({ site }: { site: Site }) {
   const siteID = site.id || 0;
   return (
     <li key={siteID}>
-      <Link href={`/site/${siteID}`}>
+      <Link href={`/admin/site/${siteID}`}>
         #{siteID}: {site.name || <em>unnamed</em>}
       </Link>
     </li>
@@ -279,64 +279,55 @@ function TeamView({ session, id }: { session: Session; id: number }) {
     return <></>;
   }
   return (
-    <div class="section">
-      <div class="ssections">
-        <h2>
-          <span class="icon">🏭</span>#{team.id || 0}:{" "}
-          <EditableText
-            type="text"
-            value={team.name}
-            whenMissing="unnamed"
-            buttonText="rename"
-            submit={(v) => sendUpdate(["t", id], new Map([[1, v]]))}
-          />
-          <button
-            class="delete"
-            onClick={() => {
-              if (window.confirm("Are you sure?")) sendUpdate(["t", id]);
-            }}
-          >
-            ✕ destroy
-          </button>
-        </h2>
+    <section>
+      <div class="breadcrumb">
+        <Link href="/admin">← Admin</Link>
       </div>
-      <div class="ssections">
-        <div>
-          <h3>
-            <span class="icon">🔑️</span>API keys{" "}
-            <button class="add" onClick={() => sendUpdate(["t", id, "k"])}>
-              + create
-            </button>
-          </h3>
-          <APIKeyList session={session} keys={team.apiKeys} />
-        </div>
-        <div>
-          <h3>
-            <span class="icon">⚙️</span>Default settings
-          </h3>
-          <SettingsView
-            value={team.defaultSettings}
-            updateKey={["t", id, "s"]}
-          />
-        </div>
-        <div>
-          <h3>
-            <span class="icon">👥</span>Members{" "}
-            <button class="add" onClick={() => sendUpdate(["t", id, "i"])}>
-              + invite
-            </button>
-          </h3>
-          <Members team={team} />
-          <Invites team={team} />
-        </div>
-        <div>
-          <h3>
-            <span class="icon">🌐</span>Sites
-          </h3>
-          <SiteList team={team} />
-        </div>
-      </div>
-    </div>
+      <h2>
+        <span class="icon">🏭</span>Team #{team.id || 0}:{" "}
+        <EditableText
+          type="text"
+          value={team.name}
+          whenMissing="unnamed"
+          buttonText="rename"
+          submit={(v) => sendUpdate(["t", id], new Map([[1, v]]))}
+        />
+        <button
+          class="delete"
+          onClick={() => {
+            if (window.confirm("Are you sure?")) sendUpdate(["t", id]);
+          }}
+        >
+          ✕ destroy
+        </button>
+      </h2>
+      <h3>
+        <span class="icon">🔑️</span>API keys{" "}
+        <button class="add" onClick={() => sendUpdate(["t", id, "k"])}>
+          + create
+        </button>
+      </h3>
+      <APIKeyList session={session} keys={team.apiKeys} />
+      <h3>
+        <span class="icon">⚙️</span>Default settings
+      </h3>
+      <SettingsView
+        value={team.defaultSettings}
+        updateKey={["t", id, "s"]}
+      />
+      <h3>
+        <span class="icon">👥</span>Members{" "}
+        <button class="add" onClick={() => sendUpdate(["t", id, "i"])}>
+          + invite
+        </button>
+      </h3>
+      <Members team={team} />
+      <Invites team={team} />
+      <h3>
+        <span class="icon">🌐</span>Sites
+      </h3>
+      <SiteList team={team} />
+    </section>
   );
 }
 
@@ -391,6 +382,126 @@ function WebPasskeyList({ keys }: { keys: Map<string, CredInfo> | undefined }) {
   );
 }
 
+export function UserAdminBody({ session }: { session: Session }) {
+  const state = useContext(StateCtx).value;
+  const uid = session.uid;
+  const user = loadUser(state, uid);
+  if (user === undefined) {
+    return <></>;
+  }
+  return (
+    <section>
+      <div class="breadcrumb">
+        <Link href="/admin">← Admin</Link>
+      </div>
+      <h2>
+        <span class="icon">👤</span>User #{uid}:{" "}
+        <EditableText
+          type="text"
+          value={user.name}
+          whenMissing="anonymous"
+          buttonText="rename"
+          submit={(v) => sendUpdate("u", new Map([[2, v]]))}
+        />
+      </h2>
+      <h3>
+        <span class="icon">📇</span>Contact
+      </h3>
+      <div>
+        If we <em>need</em> to reach out?
+        <br />
+        <EditableText
+          value={user.phone}
+          whenMissing="No phone #"
+          placeholder="Phone #"
+          prefix="Phone #: "
+          type="tel"
+          submit={(v) => sendUpdate("u", new Map([[6, v]]))}
+        />
+        <br />
+        <EditableText
+          value={user.email}
+          whenMissing="No E-mail"
+          placeholder="Email"
+          prefix="Email: "
+          type="email"
+          submit={(v) => sendUpdate("u", new Map([[7, v]]))}
+        />
+      </div>
+      <h3>
+        <span class="icon">🔑</span>API keys{" "}
+        <button class="add" onClick={() => sendUpdate("k")}>
+          + create
+        </button>
+      </h3>
+      <APIKeyList session={session} keys={user.apiKeys} />
+      <h3>
+        <span class="icon">🔐</span>Web passkeys{" "}
+        <button class="add" onClick={() => enroll().catch(logError)}>
+          + create
+        </button>
+      </h3>
+      <WebPasskeyList keys={user.webKeys} />
+    </section>
+  );
+}
+
+export function TeamAdminBody({ session, id }: { session: Session; id: number }) {
+  return <TeamView session={session} id={id} />;
+}
+
+function TeamSummary({ teamID }: { teamID: number }) {
+  const state = useContext(StateCtx).value;
+  const team = loadTeam(state, teamID);
+  if (team === undefined) {
+    return <></>;
+  }
+
+  const memberIDs = [...(team.users?.keys() || [])];
+  const siteIDs = [...(team.sites?.keys() || [])];
+
+  return (
+    <div style={{ marginBottom: "1.5em" }}>
+      <h4>
+        <Link href={`/admin/team/${teamID}`}>
+          #{teamID}: {team.name || <em>unnamed</em>}
+        </Link>
+      </h4>
+      {memberIDs.length > 0 && (
+        <>
+          <strong>Members:</strong>{" "}
+          {memberIDs.map((id, idx) => {
+            const user = loadUser(state, id);
+            return (
+              <span key={id}>
+                {idx > 0 && ", "}
+                {user?.name || `#${id}`}
+              </span>
+            );
+          })}
+          <br />
+        </>
+      )}
+      <strong>Sites:</strong>{" "}
+      {siteIDs.length > 0 ? (
+        siteIDs.map((id, idx) => {
+          const site = loadSite(state, id);
+          return (
+            <span key={id}>
+              {idx > 0 && ", "}
+              <Link href={`/admin/site/${id}`}>
+                {site?.name || `#${id}`}
+              </Link>
+            </span>
+          );
+        })
+      ) : (
+        <em>none</em>
+      )}
+    </div>
+  );
+}
+
 function AdminBody({ session }: { session: Session }) {
   const state = useContext(StateCtx).value;
   const uid = session.uid;
@@ -402,80 +513,58 @@ function AdminBody({ session }: { session: Session }) {
   teamIDs.sort((a, b) => b - a);
   return (
     <>
-      <div class="section">
-        <div class="ssections">
-          <h2>
-            <span class="icon">👤</span>#{uid}:{" "}
-            <EditableText
-              type="text"
-              value={user.name}
-              whenMissing="anonymous"
-              buttonText="rename"
-              submit={(v) => sendUpdate("u", new Map([[2, v]]))}
-            />
-          </h2>
+      <section>
+        <h2>
+          <span class="icon">🛠</span>Admin
+        </h2>
+        <h3>
+          <span class="icon">👤</span>User {nameAndID(user)}
+        </h3>
+        <p>
+          <Link href="/admin/user">Manage your profile, API keys and web passkeys</Link>
+        </p>
+        <h3>
+          <span class="icon">🏭</span>Teams
+        </h3>
+        <div style={{ display: "flex", gap: "0.5em" }}>
+          <button class="add" onClick={() => sendUpdate("t")}>
+            + new team
+          </button>
+          <JoinTeam />
         </div>
-        <div class="ssections">
-          <div>
-            <h3>
-              <span class="icon">🔑</span>API keys{" "}
-              <button class="add" onClick={() => sendUpdate("k")}>
-                + create
-              </button>
-            </h3>
-            <APIKeyList session={session} keys={user.apiKeys} />
-          </div>
-          <div>
-            <h3>
-              <span class="icon">🔐</span>Web passkeys{" "}
-              <button class="add" onClick={() => enroll().catch(logError)}>
-                + create
-              </button>
-            </h3>
-            <WebPasskeyList keys={user.webKeys} />
-          </div>
-          <div>
-            <h3>
-              <span class="icon">📇</span>Contact
-            </h3>
-            <div>
-              If we <em>need</em> to reach out?
-              <br />
-              <EditableText
-                value={user.phone}
-                whenMissing="No phone #"
-                placeholder="Phone #"
-                prefix="Phone #: "
-                type="tel"
-                submit={(v) => sendUpdate("u", new Map([[6, v]]))}
-              />
-              <br />
-              <EditableText
-                value={user.email}
-                whenMissing="No E-mail"
-                placeholder="Email"
-                prefix="Email: "
-                type="email"
-                submit={(v) => sendUpdate("u", new Map([[7, v]]))}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style={{ textAlign: "center" }}>
-        <button class="add" onClick={() => sendUpdate("t")}>
-          + new team
-        </button>
-        <JoinTeam />
-      </div>
-      {teamIDs.map((id) => (
-        <TeamView id={id} session={session} />
-      ))}
+        {teamIDs.length > 0 ? (
+          <>
+            {teamIDs.map((id) => (
+              <TeamSummary key={id} teamID={id} />
+            ))}
+          </>
+        ) : (
+          <p>
+            <em>None.</em>
+          </p>
+        )}
+      </section>
     </>
   );
 }
 
 export function Admin() {
+  const state = useContext(StateCtx).value;
+  const ready = state.ready;
+  const session = loadSession(state);
+
+  return (
+    <div class="with-header">
+      <Header session={session} />
+      <main>
+        {ready && session !== undefined && <AdminBody session={session} />}
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export function UserAdmin() {
   const state = useContext(StateCtx).value;
   const ready = state.ready;
   const session = loadSession(state);
@@ -487,15 +576,35 @@ export function Admin() {
   return (
     <div class="with-header">
       <Header session={session} />
-      <div class="body">
-        {ready && session !== undefined ? (
-          <AdminBody session={session} />
-        ) : (
-          <div style={{ textAlign: "center" }}>
-            <em>Loading…</em>
-          </div>
-        )}
-      </div>
+      <main>
+        {ready && session !== undefined && <UserAdminBody session={session} />}
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export function TeamAdmin({ id }: { id: string }) {
+  const state = useContext(StateCtx).value;
+  const ready = state.ready;
+  const session = loadSession(state);
+  if (ready && session?.uid === undefined) {
+    route("/");
+    return <></>;
+  }
+  const teamID = Number(id);
+  const team = loadTeam(state, teamID);
+  if (ready && team === undefined) {
+    route("/admin");
+    return <></>;
+  }
+
+  return (
+    <div class="with-header">
+      <Header session={session} />
+      <main>
+        {ready && session !== undefined && <TeamAdminBody session={session} id={teamID} />}
+      </main>
       <Footer />
     </div>
   );

@@ -55,8 +55,8 @@ export function EditableText({
   }
   return (
     <span class="clickable" onClick={() => setEditing(true)}>
-      {value || <em>{whenMissing}</em>}{" "}
-      <button>
+      {value || <em>{whenMissing}</em>}
+      <button style={{ marginLeft: "0.5em" }}>
         {buttonIcon || "✎"} {buttonText || "edit"}
       </button>
     </span>
