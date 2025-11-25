@@ -64,6 +64,11 @@ export function Home() {
             <span class="icon">🔐</span>Authenticate with WebAuthn passkeys. No
             passwords to remember or leak.
           </p>
+          <p>
+            <a href="https://xmit.dev/posts/origin/" target="_blank">
+              Read the origin story
+            </a>.
+          </p>
           {message}
         </section>
       </main>
