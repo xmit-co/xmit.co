@@ -44,6 +44,9 @@ export function Home() {
     <div class="with-header">
       <Header session={session} />
       <main>
+        <h1>
+          <span class="icon">👋</span>Welcome to xmit!
+        </h1>
         <section>
           <h2>
             <span class="icon">🚀</span>Fast, free static hosting

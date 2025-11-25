@@ -279,11 +279,11 @@ function TeamView({ session, id }: { session: Session; id: number }) {
     return <></>;
   }
   return (
-    <section>
+    <>
       <div class="breadcrumb">
         <Link href="/admin">← Admin</Link>
       </div>
-      <h2>
+      <h1>
         <span class="icon">🏭</span>Team #{team.id || 0}:{" "}
         <EditableText
           type="text"
@@ -300,31 +300,39 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         >
           ✕ destroy
         </button>
-      </h2>
-      <h3>
-        <span class="icon">🔑️</span>API keys{" "}
-        <button class="add" onClick={() => sendUpdate(["t", id, "k"])}>
-          + create
-        </button>
-      </h3>
-      <APIKeyList session={session} keys={team.apiKeys} />
-      <h3>
-        <span class="icon">⚙️</span>Default settings
-      </h3>
-      <SettingsView value={team.defaultSettings} updateKey={["t", id, "s"]} />
-      <h3>
-        <span class="icon">👥</span>Members{" "}
-        <button class="add" onClick={() => sendUpdate(["t", id, "i"])}>
-          + invite
-        </button>
-      </h3>
-      <Members team={team} />
-      <Invites team={team} />
-      <h3>
-        <span class="icon">🌐</span>Sites
-      </h3>
-      <SiteList team={team} />
-    </section>
+      </h1>
+      <section>
+        <h2>
+          <span class="icon">🔑️</span>API keys{" "}
+          <button class="add" onClick={() => sendUpdate(["t", id, "k"])}>
+            + create
+          </button>
+        </h2>
+        <APIKeyList session={session} keys={team.apiKeys} />
+      </section>
+      <section>
+        <h2>
+          <span class="icon">⚙️</span>Default settings
+        </h2>
+        <SettingsView value={team.defaultSettings} updateKey={["t", id, "s"]} />
+      </section>
+      <section>
+        <h2>
+          <span class="icon">👥</span>Members{" "}
+          <button class="add" onClick={() => sendUpdate(["t", id, "i"])}>
+            + invite
+          </button>
+        </h2>
+        <Members team={team} />
+        <Invites team={team} />
+      </section>
+      <section>
+        <h2>
+          <span class="icon">🌐</span>Sites
+        </h2>
+        <SiteList team={team} />
+      </section>
+    </>
   );
 }
 
@@ -387,11 +395,11 @@ export function UserAdminBody({ session }: { session: Session }) {
     return <></>;
   }
   return (
-    <section>
+    <>
       <div class="breadcrumb">
         <Link href="/admin">← Admin</Link>
       </div>
-      <h2>
+      <h1>
         <span class="icon">👤</span>User #{uid}:{" "}
         <EditableText
           type="text"
@@ -400,46 +408,52 @@ export function UserAdminBody({ session }: { session: Session }) {
           buttonText="rename"
           submit={(v) => sendUpdate("u", new Map([[2, v]]))}
         />
-      </h2>
-      <h3>
-        <span class="icon">📇</span>Contact
-      </h3>
-      <div>
-        If we <em>need</em> to reach out?
-        <br />
-        <EditableText
-          value={user.phone}
-          whenMissing="No phone #"
-          placeholder="Phone #"
-          prefix="Phone #: "
-          type="tel"
-          submit={(v) => sendUpdate("u", new Map([[6, v]]))}
-        />
-        <br />
-        <EditableText
-          value={user.email}
-          whenMissing="No E-mail"
-          placeholder="Email"
-          prefix="Email: "
-          type="email"
-          submit={(v) => sendUpdate("u", new Map([[7, v]]))}
-        />
-      </div>
-      <h3>
-        <span class="icon">🔑</span>API keys{" "}
-        <button class="add" onClick={() => sendUpdate("k")}>
-          + create
-        </button>
-      </h3>
-      <APIKeyList session={session} keys={user.apiKeys} />
-      <h3>
-        <span class="icon">🔐</span>Web passkeys{" "}
-        <button class="add" onClick={() => enroll().catch(logError)}>
-          + create
-        </button>
-      </h3>
-      <WebPasskeyList keys={user.webKeys} />
-    </section>
+      </h1>
+      <section>
+        <h2>
+          <span class="icon">📇</span>Contact
+        </h2>
+        <div>
+          If we <em>need</em> to reach out?
+          <br />
+          <EditableText
+            value={user.phone}
+            whenMissing="No phone #"
+            placeholder="Phone #"
+            prefix="Phone #: "
+            type="tel"
+            submit={(v) => sendUpdate("u", new Map([[6, v]]))}
+          />
+          <br />
+          <EditableText
+            value={user.email}
+            whenMissing="No E-mail"
+            placeholder="Email"
+            prefix="Email: "
+            type="email"
+            submit={(v) => sendUpdate("u", new Map([[7, v]]))}
+          />
+        </div>
+      </section>
+      <section>
+        <h2>
+          <span class="icon">🔑</span>API keys{" "}
+          <button class="add" onClick={() => sendUpdate("k")}>
+            + create
+          </button>
+        </h2>
+        <APIKeyList session={session} keys={user.apiKeys} />
+      </section>
+      <section>
+        <h2>
+          <span class="icon">🔐</span>Web passkeys{" "}
+          <button class="add" onClick={() => enroll().catch(logError)}>
+            + create
+          </button>
+        </h2>
+        <WebPasskeyList keys={user.webKeys} />
+      </section>
+    </>
   );
 }
 
@@ -514,21 +528,23 @@ function AdminBody({ session }: { session: Session }) {
   teamIDs.sort((a, b) => b - a);
   return (
     <>
+      <h1>
+        <span class="icon">🛠</span>Admin
+      </h1>
       <section>
         <h2>
-          <span class="icon">🛠</span>Admin
-        </h2>
-        <h3>
           <span class="icon">👤</span>User {nameAndID(user)}
-        </h3>
+        </h2>
         <p>
           <Link href="/admin/user">
             Manage your profile, API keys and web passkeys
           </Link>
         </p>
-        <h3>
+      </section>
+      <section>
+        <h2>
           <span class="icon">🏭</span>Teams
-        </h3>
+        </h2>
         <div style={{ display: "flex", gap: "0.5em" }}>
           <button class="add" onClick={() => sendUpdate("t")}>
             + new team

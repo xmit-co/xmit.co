@@ -176,6 +176,9 @@ export function Docs() {
     <div class="with-header">
       <Header session={session} />
       <main className="docs">
+        <h1>
+          <span className="icon">📚</span>Documentation
+        </h1>
         <p>
           We also publish guides on{" "}<a href="https://xmit.dev/" target="_blank">our blog</a>.
         </p>

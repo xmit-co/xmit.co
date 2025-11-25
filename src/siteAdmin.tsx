@@ -212,7 +212,7 @@ function TransferOwnership({ site }: { site: Site }) {
   teamIDs.sort((a, b) => a - b);
   return (
     <>
-      in{" "}
+      Belongs to team{" "}
       <select
         onChange={(e) => {
           const target = e.target as HTMLSelectElement;
@@ -254,7 +254,7 @@ function SiteAdminBody({ site }: { site: Site }) {
     latestLaunch?.uploadID,
   )?.bundle;
   return (
-    <section>
+    <>
       <div class="breadcrumb">
         <Link href="/admin">← Admin</Link>
         <span> / </span>
@@ -262,7 +262,7 @@ function SiteAdminBody({ site }: { site: Site }) {
           Team #{teamID}: {team?.name || <em>unnamed</em>}
         </Link>
       </div>
-      <h2>
+      <h1>
         <span class="icon">🌐</span>Site #{siteID}:{" "}
         <EditableText
           value={site.name}
@@ -278,35 +278,46 @@ function SiteAdminBody({ site }: { site: Site }) {
         >
           ✕ destroy
         </button>
-      </h2>
-      <div>
+      </h1>
+      <section>
+        <h2>
+          <span class="icon">🏭</span>Team
+        </h2>
         <TransferOwnership site={site} />
-      </div>
-      <h3>
-        <span class="icon">⚙️</span>Settings
-      </h3>
-      <SettingsView value={site.settings} updateKey={["s", siteID, "s"]} />
-      <h3>
-        <span class="icon">🔗</span>Domains
-      </h3>
-      <DomainsView site={site} />
-      <h3>
-        <span class="icon">📤</span>Uploads
-      </h3>
-      <UploadList
-        site={site}
-        uploadIDs={uploadIDs}
-        deployedBundleID={deployedBundleID}
-      />
-      <h3>
-        <span class="icon">🚀</span>Launches
-      </h3>
-      <LaunchList
-        site={site}
-        launchIDs={launchIDs}
-        deployedBundleID={deployedBundleID}
-      />
-    </section>
+      </section>
+      <section>
+        <h2>
+          <span class="icon">⚙️</span>Settings
+        </h2>
+        <SettingsView value={site.settings} updateKey={["s", siteID, "s"]} />
+      </section>
+      <section>
+        <h2>
+          <span class="icon">🔗</span>Domains
+        </h2>
+        <DomainsView site={site} />
+      </section>
+      <section>
+        <h2>
+          <span class="icon">📤</span>Uploads
+        </h2>
+        <UploadList
+          site={site}
+          uploadIDs={uploadIDs}
+          deployedBundleID={deployedBundleID}
+        />
+      </section>
+      <section>
+        <h2>
+          <span class="icon">🚀</span>Launches
+        </h2>
+        <LaunchList
+          site={site}
+          launchIDs={launchIDs}
+          deployedBundleID={deployedBundleID}
+        />
+      </section>
+    </>
   );
 }
 
