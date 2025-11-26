@@ -134,6 +134,16 @@ export function Docs() {
           <>
             <div className="section">
               <h2>
+                <span className="icon">🌐</span>Choose a domain
+              </h2>
+              <p>
+                You can deploy to any domain you own, or any subdomain of{" "}
+                <code>xmit.dev</code> or <code>madethis.site</code>.
+              </p>
+              <DomainChecker state={domainState} />
+            </div>
+            <div className="section">
+              <h2>
                 <span className="icon">👥</span>Choose a team
               </h2>
               {teamIDs.length > 0 ? (
@@ -165,16 +175,6 @@ export function Docs() {
                   <Link href="/admin">Manage teams</Link>.
                 </p>
               )}
-            </div>
-            <div className="section">
-              <h2>
-                <span className="icon">🌐</span>Choose a domain
-              </h2>
-              <p>
-                You can deploy to any domain you own, or any subdomain of{" "}
-                <code>xmit.dev</code> or <code>madethis.site</code>.
-              </p>
-              <DomainChecker state={domainState} />
             </div>
           </>
         )}
