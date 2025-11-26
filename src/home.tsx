@@ -103,29 +103,20 @@ export function Home() {
               e.preventDefault();
               if (
                 domainState.checkingDomain ||
-                domainState.domainStatus !== "Available" ||
                 !domainState.trimmedDomain
               ) {
                 return;
               }
-              if (session?.uid !== undefined) {
+              if (domainState.domainStatus !== "Taken" && session?.uid !== undefined) {
                 route(
                   `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
                 );
-              } else {
-                enroll()
-                  .then(() =>
-                    route(
-                      `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
-                    ),
-                  )
-                  .catch(logError);
               }
             }}
           >
             <DomainChecker state={domainState} />
             {!domainState.checkingDomain &&
-              domainState.domainStatus === "Available" &&
+              domainState.domainStatus !== "Taken" &&
               domainState.trimmedDomain &&
               (session?.uid !== undefined ? (
                 <p>
@@ -133,7 +124,20 @@ export function Home() {
                 </p>
               ) : (
                 <p>
-                  <button type="submit">🤗 Sign up</button>{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      enroll()
+                        .then(() =>
+                          route(
+                            `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
+                          ),
+                        )
+                        .catch(logError)
+                    }
+                  >
+                    🤗 Sign up
+                  </button>{" "}
                   <button
                     type="button"
                     onClick={() =>
