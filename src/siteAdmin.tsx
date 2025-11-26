@@ -173,7 +173,8 @@ function DomainsView({ site }: { site: Site }) {
         {Array.from(site.domains.keys()).map((domain) => {
           const domainInfo = loadDomain(state, domain);
           const certStatus = domainInfo?.cert;
-          const hasCertError = certStatus && (certStatus.failures || certStatus.paused);
+          const hasCertError =
+            certStatus && (certStatus.failures || certStatus.paused);
           return (
             <li key={domain}>
               <a href={`https://${domain}/`} target="_blank">
@@ -192,13 +193,15 @@ function DomainsView({ site }: { site: Site }) {
                 <div class="cert-error">
                   {certStatus.paused ? (
                     <>
-                      ⚠ Certificate issuance paused after {certStatus.failures} failures
+                      ⚠ Certificate issuance paused after {certStatus.failures}{" "}
+                      failures
                       <br />
                       Last error: {certStatus.lastErr}
                     </>
                   ) : (
                     <>
-                      ⚠ Certificate error ({certStatus.failures} failure{certStatus.failures !== 1 ? "s" : ""})
+                      ⚠ Certificate error ({certStatus.failures} failure
+                      {certStatus.failures !== 1 ? "s" : ""})
                       <br />
                       {certStatus.lastErr}
                     </>

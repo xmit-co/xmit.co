@@ -66,17 +66,24 @@ export function Home() {
             <a href="https://onclebob.com" target="_blank">
               Oncle Bob
             </a>
-            .
-          </p>
-          <p>
-            <span class="icon">🌐</span>Bring your own domain or grab a free
-            subdomain. Automatic HTTPS included.
+            .<br />
+            Never send a file twice!
           </p>
           <p>
             <span class="icon">🔐</span>Authenticate with WebAuthn passkeys. No
             passwords to remember or leak.
           </p>
           <p>
+            <span class="icon">🧰</span>The essentials are here.
+            <br />
+            Custom 404, custom headers, redirects, Single Page Apps, forms by
+            E-mail.
+            <br />
+            HTTPS and HSTS, h2 and HTTP/3, transparent compression, ETags,
+            accept-ranges, etc.
+          </p>
+          <p>
+            <span class="icon">📖</span>
             <a href="https://xmit.dev/posts/origin/" target="_blank">
               Read the origin story
             </a>
@@ -89,50 +96,61 @@ export function Home() {
         )}
         <section>
           <h2>
-            <span class="icon">🔍</span>Check availability
+            <span class="icon">🔍</span>Choose a domain
           </h2>
-          <DomainChecker state={domainState} />
-          {!domainState.checkingDomain &&
-            domainState.domainStatus === "Available" &&
-            domainState.trimmedDomain &&
-            (session?.uid !== undefined ? (
-              <p>
-                <a
-                  href={`/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`}
-                >
-                  <button>🚀 Launch</button>
-                </a>
-              </p>
-            ) : (
-              <p>
-                <button
-                  onClick={() =>
-                    enroll()
-                      .then(() =>
-                        route(
-                          `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
-                        ),
-                      )
-                      .catch(logError)
-                  }
-                >
-                  🤗 Sign up
-                </button>{" "}
-                <button
-                  onClick={() =>
-                    signin()
-                      .then(() =>
-                        route(
-                          `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
-                        ),
-                      )
-                      .catch(logError)
-                  }
-                >
-                  🚪 Sign in
-                </button>
-              </p>
-            ))}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (
+                domainState.checkingDomain ||
+                domainState.domainStatus !== "Available" ||
+                !domainState.trimmedDomain
+              ) {
+                return;
+              }
+              if (session?.uid !== undefined) {
+                route(
+                  `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
+                );
+              } else {
+                enroll()
+                  .then(() =>
+                    route(
+                      `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
+                    ),
+                  )
+                  .catch(logError);
+              }
+            }}
+          >
+            <DomainChecker state={domainState} />
+            {!domainState.checkingDomain &&
+              domainState.domainStatus === "Available" &&
+              domainState.trimmedDomain &&
+              (session?.uid !== undefined ? (
+                <p>
+                  <button type="submit">🚀 Launch</button>
+                </p>
+              ) : (
+                <p>
+                  <button type="submit">🤗 Sign up</button>{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      signin()
+                        .then(() =>
+                          route(
+                            `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
+                          ),
+                        )
+                        .catch(logError)
+                    }
+                  >
+                    🚪 Sign in
+                  </button>
+                </p>
+              ))}
+          </form>
         </section>
       </main>
       <Footer />
