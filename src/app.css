@@ -297,6 +297,11 @@ div.errors > div {
   padding-top: 1em;
 }
 
+button.active {
+  background-color: #ff0;
+  color: #000;
+}
+
 /* Icons and decorations */
 span.icon {
   margin-right: 0.5em;

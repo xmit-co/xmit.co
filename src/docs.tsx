@@ -30,6 +30,7 @@ export function Docs() {
   );
   const [installTab, setInstallTab] = useState<string>("brew");
   const [configTab, setConfigTab] = useState<string>("404");
+  const [configFormat, setConfigFormat] = useState<"toml" | "json5">("toml");
   const [deployMethod, setDeployMethod] = useState<"onclebob" | "cli">(
     "onclebob",
   );
@@ -469,14 +470,42 @@ export function Docs() {
         )}
         <div className="section" id="config">
           <h2>
-            <span className="icon">⚙️</span>Optionally, configure with{" "}
-            <code>xmit.toml</code>
+            <span className="icon">⚙️</span>Optional configuration
           </h2>
           <p>
-            Create a file called <code>xmit.toml</code> in the uploaded
-            directory (in <code>public</code> for Vite) to configure your site's
-            behavior.
+            Choose your preferred configuration format:{" "}
+            <button
+              className={configFormat === "toml" ? "active" : ""}
+              onClick={() => setConfigFormat("toml")}
+            >
+              TOML
+            </button>
+            <button
+              className={configFormat === "json5" ? "active" : ""}
+              onClick={() => setConfigFormat("json5")}
+            >
+              JSON5
+            </button>
           </p>
+          <p>
+            Create a file called{" "}
+            <code>{configFormat === "toml" ? "xmit.toml" : "xmit.json"}</code> in
+            the uploaded directory (in <code>public</code> for Vite) to
+            configure your site's behavior.
+          </p>
+          {configFormat === "json5" ? (
+            <p>
+              The format is{" "}
+              <a href="https://json5.org/" target="_blank">JSON5</a>, which
+              supports comments, trailing commas, single-quoted strings, and
+              unquoted keys.
+            </p>
+          ) : (
+            <p>
+              Learn more about{" "}
+              <a href="https://toml.io/" target="_blank">TOML syntax</a>.
+            </p>
+          )}
           <div className="tabs">
             <button
               className={configTab === "404" ? "active" : ""}
@@ -518,22 +547,39 @@ export function Docs() {
                   backed by an asset to serve the same page. It should contain,
                   for example:
                 </p>
-                <pre>fallback = "index.html"</pre>
+                <pre>
+                  {configFormat === "toml"
+                    ? 'fallback = "index.html"'
+                    : "{ fallback: 'index.html' }"}
+                </pre>
               </>
             )}
             {configTab === "404" && (
               <>
                 <p>It should contain, for example:</p>
-                <pre>404 = "404.html"</pre>
+                <pre>
+                  {configFormat === "toml"
+                    ? '404 = "404.html"'
+                    : "{ '404': '404.html' }"}
+                </pre>
               </>
             )}
             {configTab === "headers" && (
               <>
                 <p>It should contain, for example:</p>
                 <pre>
-                  {
-                    '[[headers]] # cache assets for a year\nname = "cache-control"\nvalue = "public, max-age=31536000"\non = "^/assets/"\n\n[[headers]] # add CORS\nname = "access-control-allow-origin"\nvalue = "*"\n\n[[headers]] # unset referrer-policy\nname = "referrer-policy"'
-                  }
+                  {configFormat === "toml"
+                    ? '[[headers]] # cache assets for a year\nname = "cache-control"\nvalue = "public, max-age=31536000"\non = "^/assets/"\n\n[[headers]] # add CORS\nname = "access-control-allow-origin"\nvalue = "*"\n\n[[headers]] # unset referrer-policy\nname = "referrer-policy"'
+                    : `{
+  headers: [
+    // cache assets for a year
+    { name: 'cache-control', value: 'public, max-age=31536000', on: '^/assets/' },
+    // add CORS
+    { name: 'access-control-allow-origin', value: '*' },
+    // unset referrer-policy
+    { name: 'referrer-policy' },
+  ],
+}`}
                 </pre>
               </>
             )}
@@ -541,9 +587,14 @@ export function Docs() {
               <>
                 <p>It should contain, for example:</p>
                 <pre>
-                  {
-                    '[[redirects]]\nfrom = "^/login$"\nto = "https://login.acme.com"\n\n[[redirects]]\nfrom = "^/new/(.*)"\nto = "/$1"\npermanent = true'
-                  }
+                  {configFormat === "toml"
+                    ? '[[redirects]]\nfrom = "^/login$"\nto = "https://login.acme.com"\n\n[[redirects]]\nfrom = "^/new/(.*)"\nto = "/$1"\npermanent = true'
+                    : `{
+  redirects: [
+    { from: '^/login$', to: 'https://login.acme.com' },
+    { from: '^/new/(.*)', to: '/$1', permanent: true },
+  ],
+}`}
                 </pre>
               </>
             )}
@@ -553,9 +604,13 @@ export function Docs() {
                   Handle form submissions by email without backend code. It should contain, for example:
                 </p>
                 <pre>
-                  {
-                    '[[forms]]\nfrom = "/contact"\nto = "you@example.com"\nthen = "/thank-you"'
-                  }
+                  {configFormat === "toml"
+                    ? '[[forms]]\nfrom = "/contact"\nto = "you@example.com"\nthen = "/thank-you"'
+                    : `{
+  forms: [
+    { from: '/contact', to: 'you@example.com', then: '/thank-you' },
+  ],
+}`}
                 </pre>
                 <p>
                   Learn more about{" "}
