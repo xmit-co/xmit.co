@@ -249,6 +249,12 @@ div.errors > div {
   border-bottom: 1px solid #000;
 }
 
+.cert-error {
+  color: #f90;
+  font-size: 0.9em;
+  margin-top: 0.25em;
+}
+
 .red {
   background-color: #400;
 }

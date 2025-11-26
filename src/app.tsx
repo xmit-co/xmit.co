@@ -9,6 +9,7 @@ import { AuthRequired, Home } from "./home.tsx";
 import { ProvideKey } from "./provideKey.tsx";
 import { createContext } from "preact";
 import {
+  CertStatus,
   Invite,
   KeyRequest,
   Launch,
@@ -105,6 +106,17 @@ const keyRequestMapping = {
   name: 4,
 };
 
+const certStatusMapping = {
+  failures: 1,
+  lastFail: 2,
+  lastErr: 3,
+  paused: 4,
+};
+
+const domainMapping = {
+  cert: 5,
+};
+
 export const StateCtx = createContext(state);
 
 function loadKey(node: Node, key: any) {
@@ -182,6 +194,14 @@ export function loadKeyRequest(state: State, id: string) {
   return loadKey(state.root, ["r", id]) as KeyRequest | undefined;
 }
 
+export interface DomainInfo {
+  cert: CertStatus | undefined;
+}
+
+export function loadDomain(state: State, domain: string) {
+  return loadKey(state.root, ["d", domain]) as DomainInfo | undefined;
+}
+
 function ingestMessage(state: State, msg: Map<number, any>): State {
   let { ready, root, errors } = state;
   if (msg.get(1) != undefined) {
@@ -238,6 +258,12 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
               s.settings = map(s.settings, settingsMapping);
             }
             return s;
+          case "d":
+            const d = map(value, domainMapping);
+            if (d.cert) {
+              d.cert = map(d.cert, certStatusMapping);
+            }
+            return d;
         }
         break;
       case 4:

@@ -18,6 +18,13 @@ export interface SiteSettings {
   password: string | undefined;
 }
 
+export interface CertStatus {
+  failures: number | undefined;
+  lastFail: number | undefined;
+  lastErr: string | undefined;
+  paused: boolean | undefined;
+}
+
 export interface Site {
   id: number | undefined;
   teamID: number | undefined;

@@ -6,6 +6,7 @@ import { Site, Team, Upload } from "./models.tsx";
 import { EditableText } from "./editableText.tsx";
 import { Footer } from "./footer.tsx";
 import {
+  loadDomain,
   loadLaunch,
   loadSession,
   loadSite,
@@ -161,6 +162,7 @@ function LaunchList({
 }
 
 function DomainsView({ site }: { site: Site }) {
+  const state = useContext(StateCtx).value;
   const list =
     site.domains === undefined || site.domains.size === 0 ? (
       <p>
@@ -168,22 +170,44 @@ function DomainsView({ site }: { site: Site }) {
       </p>
     ) : (
       <ul>
-        {Array.from(site.domains.keys()).map((domain) => (
-          <li key={domain}>
-            <a href={`https://${domain}/`} target="_blank">
-              {domain}
-            </a>{" "}
-            <button
-              class="delete"
-              onClick={() => {
-                if (window.confirm("Are you sure?"))
-                  sendUpdate(["s", site.id || 0, "d", domain]);
-              }}
-            >
-              ✕ unmap
-            </button>
-          </li>
-        ))}
+        {Array.from(site.domains.keys()).map((domain) => {
+          const domainInfo = loadDomain(state, domain);
+          const certStatus = domainInfo?.cert;
+          const hasCertError = certStatus && (certStatus.failures || certStatus.paused);
+          return (
+            <li key={domain}>
+              <a href={`https://${domain}/`} target="_blank">
+                {domain}
+              </a>{" "}
+              <button
+                class="delete"
+                onClick={() => {
+                  if (window.confirm("Are you sure?"))
+                    sendUpdate(["s", site.id || 0, "d", domain]);
+                }}
+              >
+                ✕ unmap
+              </button>
+              {hasCertError && (
+                <div class="cert-error">
+                  {certStatus.paused ? (
+                    <>
+                      ⚠ Certificate issuance paused after {certStatus.failures} failures
+                      <br />
+                      Last error: {certStatus.lastErr}
+                    </>
+                  ) : (
+                    <>
+                      ⚠ Certificate error ({certStatus.failures} failure{certStatus.failures !== 1 ? "s" : ""})
+                      <br />
+                      {certStatus.lastErr}
+                    </>
+                  )}
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
     );
   return (
