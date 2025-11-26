@@ -7,7 +7,7 @@ export function Footer() {
         <a href="mailto:help@xmit.dev">Reach out</a> for help, suggestions, GDPR
         requests &amp; abuse reports.
       </p>
-      <p>Running from the European Union on renewable energy.</p>
+      <p>Running in the European Union on renewable energy.</p>
       <p>
         <a href="https://xmit.instatus.com/" target="_blank">
           Status
