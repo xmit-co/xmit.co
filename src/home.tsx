@@ -11,6 +11,7 @@ import { useContext } from "preact/hooks";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
 import { DomainChecker, useDomainChecker } from "./domainChecker.tsx";
+import { enroll } from "./webauthn.tsx";
 
 export function Home() {
   const state = useContext(StateCtx).value;
@@ -90,6 +91,38 @@ export function Home() {
             <span class="icon">🔍</span>Check availability
           </h2>
           <DomainChecker state={domainState} />
+          {!domainState.checkingDomain &&
+            domainState.domainStatus === "Available" &&
+            domainState.trimmedDomain && (
+              session?.uid !== undefined ? (
+                <p>
+                  <a href={`/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`}>
+                    <button>🚀 Launch</button>
+                  </a>
+                </p>
+              ) : (
+                <p>
+                  <button
+                    onClick={() =>
+                      enroll()
+                        .then(() => route(`/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`))
+                        .catch(logError)
+                    }
+                  >
+                    🤗 Sign up
+                  </button>{" "}
+                  <button
+                    onClick={() =>
+                      signin()
+                        .then(() => route(`/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`))
+                        .catch(logError)
+                    }
+                  >
+                    🚪 Sign in
+                  </button>
+                </p>
+              )
+            )}
         </section>
       </main>
       <Footer />

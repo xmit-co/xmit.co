@@ -36,6 +36,22 @@ export function Docs() {
   );
   const domainState = useDomainChecker();
 
+  // Pre-fill domain from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const domainParam = params.get("domain");
+    if (domainParam) {
+      const trimmed = domainParam.trim().toLowerCase();
+      if (trimmed.endsWith(".xmit.dev") || trimmed.endsWith(".madethis.site")) {
+        domainState.setDomainMode("preset");
+        domainState.setPresetDomain(trimmed);
+      } else {
+        domainState.setDomainMode("custom");
+        domainState.setDomain(trimmed);
+      }
+    }
+  }, []);
+
   // Auto-select first team when teams become available
   useEffect(() => {
     if (teamIDs.length > 0 && selectedTeamID === undefined) {
