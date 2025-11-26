@@ -4,6 +4,7 @@ import { useContext, useState, useEffect } from "preact/hooks";
 import { Footer } from "./footer.tsx";
 import { Link } from "preact-router/match";
 import tlds from "tlds";
+import { DomainChecker, useDomainChecker } from "./domainChecker.tsx";
 
 function CopiableCode({ children }: { children: string }) {
   return (
@@ -29,12 +30,10 @@ export function Docs() {
   );
   const [installTab, setInstallTab] = useState<string>("brew");
   const [configTab, setConfigTab] = useState<string>("404");
-  const [domain, setDomain] = useState<string>("");
-  const [domainMode, setDomainMode] = useState<"preset" | "custom">("preset");
-  const [presetDomain, setPresetDomain] = useState<string>("");
   const [deployMethod, setDeployMethod] = useState<"onclebob" | "cli">(
     "onclebob",
   );
+  const domainState = useDomainChecker();
 
   // Auto-select first team when teams become available
   useEffect(() => {
@@ -49,87 +48,11 @@ export function Docs() {
   const teamNumber = selectedTeamID || 42;
 
   // Parse domain to determine DNS instructions
-  const effectiveDomain = domainMode === "preset" ? presetDomain : domain;
-  const trimmedDomain = effectiveDomain.trim().toLowerCase();
+  const { trimmedDomain, domainMode } = domainState;
   const canSkipDNS =
     trimmedDomain.endsWith(".xmit.dev") ||
     trimmedDomain.endsWith(".madethis.site");
   const parts = trimmedDomain.split(".");
-
-  // Validate domain
-  const validateDomain = (
-    domain: string,
-  ): { valid: boolean; error?: string } => {
-    if (!domain) return { valid: true };
-
-    // Basic domain validation
-    if (
-      !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i.test(
-        domain,
-      )
-    ) {
-      return { valid: false, error: "Invalid domain format" };
-    }
-
-    if (domain.length > 253) {
-      return { valid: false, error: "Domain too long (max 253 characters)" };
-    }
-
-    const domainParts = domain.split(".");
-    if (domainParts.some((part) => part.length > 63)) {
-      return {
-        valid: false,
-        error: "Domain label too long (max 63 characters per part)",
-      };
-    }
-
-    if (domainParts.length < 2) {
-      return {
-        valid: false,
-        error: "Domain must have at least two parts (e.g., example.com)",
-      };
-    }
-
-    return { valid: true };
-  };
-
-  // Validate preset subdomain (should be exactly 1 part)
-  const validatePresetSubdomain = (
-    subdomain: string,
-  ): { valid: boolean; error?: string } => {
-    if (!subdomain) return { valid: true };
-    const subdomainOnly = subdomain.replace(
-      /\.(xmit\.dev|madethis\.site)$/,
-      "",
-    );
-    if (!subdomainOnly) return { valid: true };
-
-    if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i.test(subdomainOnly)) {
-      return { valid: false, error: "Invalid subdomain format" };
-    }
-
-    if (subdomainOnly.includes(".")) {
-      return {
-        valid: false,
-        error: "Subdomain must be a single part (e.g., mysite)",
-      };
-    }
-
-    if (subdomainOnly.length > 63) {
-      return { valid: false, error: "Subdomain too long (max 63 characters)" };
-    }
-
-    return { valid: true };
-  };
-
-  const domainValidation =
-    domainMode === "custom"
-      ? validateDomain(trimmedDomain)
-      : validatePresetSubdomain(presetDomain);
-  const showDomainError =
-    domainMode === "custom"
-      ? trimmedDomain && !domainValidation.valid
-      : presetDomain && !domainValidation.valid;
 
   // Find matching TLD by checking all possible suffixes (longest first)
   let matchedTld = null;
@@ -234,99 +157,7 @@ export function Docs() {
                 You can deploy to any domain you own, or any subdomain of{" "}
                 <code>xmit.dev</code> or <code>madethis.site</code>.
               </p>
-              <p>
-                <label style={{ marginRight: "16px" }}>
-                  <input
-                    type="radio"
-                    name="domainMode"
-                    value="preset"
-                    checked={domainMode === "preset"}
-                    onChange={() => setDomainMode("preset")}
-                  />{" "}
-                  Free subdomain
-                </label>
-                <label style={{ marginRight: "16px" }}>
-                  <input
-                    type="radio"
-                    name="domainMode"
-                    value="custom"
-                    checked={domainMode === "custom"}
-                    onChange={() => setDomainMode("custom")}
-                  />{" "}
-                  Custom domain
-                </label>
-              </p>
-              <p>
-                {domainMode === "preset" ? (
-                  <>
-                    <input
-                      type="text"
-                      placeholder="mysite"
-                      value={presetDomain.replace(
-                        /\.(xmit\.dev|madethis\.site)$/,
-                        "",
-                      )}
-                      onInput={(e) => {
-                        const subdomain = (e.target as HTMLInputElement).value;
-                        setPresetDomain(
-                          subdomain ? `${subdomain}.xmit.dev` : "",
-                        );
-                      }}
-                      onChange={(e) => {
-                        const subdomain = (e.target as HTMLInputElement).value;
-                        setPresetDomain(
-                          subdomain ? `${subdomain}.xmit.dev` : "",
-                        );
-                      }}
-                      onKeyUp={(e) => {
-                        const subdomain = (e.target as HTMLInputElement).value;
-                        setPresetDomain(
-                          subdomain ? `${subdomain}.xmit.dev` : "",
-                        );
-                      }}
-                      style={{ width: "10em", marginRight: "4px" }}
-                    />
-                    <select
-                      value={
-                        presetDomain.endsWith(".madethis.site")
-                          ? ".madethis.site"
-                          : ".xmit.dev"
-                      }
-                      onChange={(e) => {
-                        const suffix = (e.target as HTMLSelectElement).value;
-                        const subdomain = presetDomain.replace(
-                          /\.(xmit\.dev|madethis\.site)$/,
-                          "",
-                        );
-                        setPresetDomain(
-                          subdomain ? `${subdomain}${suffix}` : "",
-                        );
-                      }}
-                    >
-                      <option value=".xmit.dev">.xmit.dev</option>
-                      <option value=".madethis.site">.madethis.site</option>
-                    </select>
-                  </>
-                ) : (
-                  <input
-                    type="text"
-                    placeholder="example.com"
-                    value={domain}
-                    onInput={(e) =>
-                      setDomain((e.target as HTMLInputElement).value)
-                    }
-                    onChange={(e) =>
-                      setDomain((e.target as HTMLInputElement).value)
-                    }
-                    onKeyUp={(e) =>
-                      setDomain((e.target as HTMLInputElement).value)
-                    }
-                  />
-                )}
-              </p>
-              {showDomainError && (
-                <p style={{ color: "#f00" }}>⚠ {domainValidation.error}</p>
-              )}
+              <DomainChecker state={domainState} />
             </div>
           </>
         )}
@@ -419,7 +250,7 @@ export function Docs() {
         )}
         <div className="section">
           <h2>
-            <span className="icon">🚀</span>Get Started
+            <span className="icon">🚀</span>Launch
           </h2>
           <p>Choose your preferred method:</p>
           <div style={{ display: "flex", gap: "1em", marginTop: "1em" }}>

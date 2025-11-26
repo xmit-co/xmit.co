@@ -10,11 +10,13 @@ import { route } from "preact-router";
 import { useContext } from "preact/hooks";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
+import { DomainChecker, useDomainChecker } from "./domainChecker.tsx";
 
 export function Home() {
   const state = useContext(StateCtx).value;
   const session = loadSession(state);
   const hasCredentials = navigator.credentials !== undefined;
+  const domainState = useDomainChecker();
 
   let message = undefined;
   if (!hasCredentials) {
@@ -83,6 +85,12 @@ export function Home() {
         {credentialManagerMessage && (
           <section>{credentialManagerMessage}</section>
         )}
+        <section>
+          <h2>
+            <span class="icon">🔍</span>Check availability
+          </h2>
+          <DomainChecker state={domainState} />
+        </section>
       </main>
       <Footer />
     </div>

@@ -481,7 +481,7 @@ function TeamSummary({ teamID }: { teamID: number }) {
     <div style={{ marginBottom: "1.5em" }}>
       <h4>
         <Link href={`/admin/team/${teamID}`}>
-          #{teamID}: {team.name || <em>unnamed</em>}
+          Team #{teamID}: {team.name || <em>unnamed</em>}
         </Link>
       </h4>
       {memberIDs.length > 0 && (
@@ -537,7 +537,7 @@ function AdminBody({ session }: { session: Session }) {
         </h2>
         <p>
           <Link href="/admin/user">
-            Manage your profile, API keys and web passkeys
+            Manage profile, API keys and web passkeys
           </Link>.
         </p>
       </section>
