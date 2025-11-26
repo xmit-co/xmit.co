@@ -1,5 +1,5 @@
 import { Link } from "preact-router/match";
-import { logError, reconnectChannel, Session, StateCtx } from "./app.tsx";
+import { logError, Session, StateCtx } from "./app.tsx";
 import { enroll, signin, signout } from "./webauthn.tsx";
 import { useContext, useEffect } from "preact/hooks";
 import { route } from "preact-router";
@@ -61,7 +61,6 @@ export function Header({ session }: { session?: Session }) {
                 const currentPath = window.location.pathname;
                 enroll()
                   .then(() => {
-                    reconnectChannel.postMessage(undefined);
                     route(currentPath === "/" ? "/admin" : currentPath);
                   })
                   .catch(logError);

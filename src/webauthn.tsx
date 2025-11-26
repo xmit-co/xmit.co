@@ -47,6 +47,7 @@ export async function enroll() {
     const body = await resp.text();
     throw new Error(`Could not enroll: ${body}`);
   }
+  reconnectChannel.postMessage(undefined);
 }
 
 export async function signin() {
