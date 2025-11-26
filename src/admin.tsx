@@ -491,8 +491,7 @@ function TeamSummary({ teamID }: { teamID: number }) {
             const user = loadUser(state, id);
             return (
               <span key={id}>
-                {idx > 0 && ", "}
-                #{id}: {user?.name || <em>anonymous</em>}
+                {idx > 0 && ", "}#{id}: {user?.name || <em>anonymous</em>}
               </span>
             );
           })}
@@ -538,7 +537,8 @@ function AdminBody({ session }: { session: Session }) {
         <p>
           <Link href="/admin/user">
             Manage profile, API keys and web passkeys
-          </Link>.
+          </Link>
+          .
         </p>
       </section>
       <section>
@@ -580,7 +580,11 @@ export function Admin() {
     <div class="with-header">
       <Header session={session} />
       <main>
-        {!ready ? <h1>Loading…</h1> : session && <AdminBody session={session} />}
+        {!ready ? (
+          <h1>Loading…</h1>
+        ) : (
+          session && <AdminBody session={session} />
+        )}
       </main>
       <Footer />
     </div>

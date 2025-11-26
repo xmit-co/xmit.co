@@ -2,9 +2,10 @@ import { useState, useEffect } from "preact/hooks";
 import { logError } from "./app.tsx";
 
 // Validate full domain
-export function validateDomain(
-  domain: string,
-): { valid: boolean; error?: string } {
+export function validateDomain(domain: string): {
+  valid: boolean;
+  error?: string;
+} {
   if (!domain) return { valid: true };
   if (
     !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i.test(
@@ -33,14 +34,12 @@ export function validateDomain(
 }
 
 // Validate preset subdomain (should be exactly 1 part)
-export function validatePresetSubdomain(
-  subdomain: string,
-): { valid: boolean; error?: string } {
+export function validatePresetSubdomain(subdomain: string): {
+  valid: boolean;
+  error?: string;
+} {
   if (!subdomain) return { valid: true };
-  const subdomainOnly = subdomain.replace(
-    /\.(xmit\.dev|madethis\.site)$/,
-    "",
-  );
+  const subdomainOnly = subdomain.replace(/\.(xmit\.dev|madethis\.site)$/, "");
   if (!subdomainOnly) return { valid: true };
   if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i.test(subdomainOnly)) {
     return { valid: false, error: "Invalid subdomain format" };
@@ -171,6 +170,7 @@ export function DomainChecker({
 
   return (
     <>
+      <p>You can deploy to any domain you own, or use a free subdomain.</p>
       <p>
         <label style={{ marginRight: "16px" }}>
           <input
@@ -199,10 +199,7 @@ export function DomainChecker({
             <input
               type="text"
               placeholder="mysite"
-              value={presetDomain.replace(
-                /\.(xmit\.dev|madethis\.site)$/,
-                "",
-              )}
+              value={presetDomain.replace(/\.(xmit\.dev|madethis\.site)$/, "")}
               onInput={(e) => {
                 const subdomain = (e.target as HTMLInputElement).value;
                 setPresetDomain(subdomain ? `${subdomain}.xmit.dev` : "");

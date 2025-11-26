@@ -120,7 +120,11 @@ export function Docs() {
           <span className="icon">📚</span>Documentation
         </h1>
         <p>
-          We also publish guides on{" "}<a href="https://xmit.dev/" target="_blank">our blog</a>.
+          We also publish guides on{" "}
+          <a href="https://xmit.dev/" target="_blank">
+            our blog
+          </a>
+          .
         </p>
         {isLoading ? (
           <div className="section">
@@ -128,7 +132,10 @@ export function Docs() {
           </div>
         ) : uid === undefined ? (
           <div className="section">
-            <p>Please sign in or sign up to view all instructions, tailored to your situation.</p>
+            <p>
+              Please sign in or sign up to view all instructions, tailored to
+              your situation.
+            </p>
           </div>
         ) : (
           <>
@@ -136,10 +143,6 @@ export function Docs() {
               <h2>
                 <span className="icon">🌐</span>Choose a domain
               </h2>
-              <p>
-                You can deploy to any domain you own, or any subdomain of{" "}
-                <code>xmit.dev</code> or <code>madethis.site</code>.
-              </p>
               <DomainChecker state={domainState} />
             </div>
             <div className="section">
@@ -160,7 +163,8 @@ export function Docs() {
                             checked={selectedTeamID === teamID}
                             onChange={() => setSelectedTeamID(teamID)}
                           />{" "}
-                          #{teamID}{team?.name ? `: ${team.name}` : ""}
+                          #{teamID}
+                          {team?.name ? `: ${team.name}` : ""}
                         </label>
                       </p>
                     );
@@ -505,21 +509,26 @@ export function Docs() {
           </p>
           <p>
             Create a file called{" "}
-            <code>{configFormat === "toml" ? "xmit.toml" : "xmit.json"}</code> in
-            the uploaded directory (in <code>public</code> for Vite) to
+            <code>{configFormat === "toml" ? "xmit.toml" : "xmit.json"}</code>{" "}
+            in the uploaded directory (in <code>public</code> for Vite) to
             configure your site's behavior.
           </p>
           {configFormat === "json5" ? (
             <p>
               The format is{" "}
-              <a href="https://json5.org/" target="_blank">JSON5</a>, which
-              supports comments, trailing commas, single-quoted strings, and
-              unquoted keys.
+              <a href="https://json5.org/" target="_blank">
+                JSON5
+              </a>
+              , which supports comments, trailing commas, single-quoted strings,
+              and unquoted keys.
             </p>
           ) : (
             <p>
               Learn more about{" "}
-              <a href="https://toml.io/" target="_blank">TOML syntax</a>.
+              <a href="https://toml.io/" target="_blank">
+                TOML syntax
+              </a>
+              .
             </p>
           )}
           <div className="tabs">
@@ -617,7 +626,8 @@ export function Docs() {
             {configTab === "form2mail" && (
               <>
                 <p>
-                  Handle form submissions by email without backend code. It should contain, for example:
+                  Handle form submissions by email without backend code. It
+                  should contain, for example:
                 </p>
                 <pre>
                   {configFormat === "toml"
@@ -630,9 +640,13 @@ export function Docs() {
                 </pre>
                 <p>
                   Learn more about{" "}
-                  <a href="https://nothing.pcarrier.com/posts/form2mail/" target="_blank">
+                  <a
+                    href="https://nothing.pcarrier.com/posts/form2mail/"
+                    target="_blank"
+                  >
                     form2mail configuration and usage
-                  </a>.
+                  </a>
+                  .
                 </p>
               </>
             )}

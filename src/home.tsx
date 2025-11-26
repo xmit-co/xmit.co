@@ -69,8 +69,8 @@ export function Home() {
             .
           </p>
           <p>
-            <span class="icon">🌐</span>Use your own domain or grab a free
-            subdomain on xmit.dev or madethis.site. Automatic HTTPS included.
+            <span class="icon">🌐</span>Bring your own domain or grab a free
+            subdomain. Automatic HTTPS included.
           </p>
           <p>
             <span class="icon">🔐</span>Authenticate with WebAuthn passkeys. No
@@ -79,7 +79,8 @@ export function Home() {
           <p>
             <a href="https://xmit.dev/posts/origin/" target="_blank">
               Read the origin story
-            </a>.
+            </a>
+            .
           </p>
           {message}
         </section>
@@ -93,36 +94,45 @@ export function Home() {
           <DomainChecker state={domainState} />
           {!domainState.checkingDomain &&
             domainState.domainStatus === "Available" &&
-            domainState.trimmedDomain && (
-              session?.uid !== undefined ? (
-                <p>
-                  <a href={`/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`}>
-                    <button>🚀 Launch</button>
-                  </a>
-                </p>
-              ) : (
-                <p>
-                  <button
-                    onClick={() =>
-                      enroll()
-                        .then(() => route(`/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`))
-                        .catch(logError)
-                    }
-                  >
-                    🤗 Sign up
-                  </button>{" "}
-                  <button
-                    onClick={() =>
-                      signin()
-                        .then(() => route(`/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`))
-                        .catch(logError)
-                    }
-                  >
-                    🚪 Sign in
-                  </button>
-                </p>
-              )
-            )}
+            domainState.trimmedDomain &&
+            (session?.uid !== undefined ? (
+              <p>
+                <a
+                  href={`/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`}
+                >
+                  <button>🚀 Launch</button>
+                </a>
+              </p>
+            ) : (
+              <p>
+                <button
+                  onClick={() =>
+                    enroll()
+                      .then(() =>
+                        route(
+                          `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
+                        ),
+                      )
+                      .catch(logError)
+                  }
+                >
+                  🤗 Sign up
+                </button>{" "}
+                <button
+                  onClick={() =>
+                    signin()
+                      .then(() =>
+                        route(
+                          `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
+                        ),
+                      )
+                      .catch(logError)
+                  }
+                >
+                  🚪 Sign in
+                </button>
+              </p>
+            ))}
         </section>
       </main>
       <Footer />
