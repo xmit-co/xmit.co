@@ -198,14 +198,7 @@ export function Docs() {
                     Enter a domain above to see DNS configuration instructions.
                   </p>
                 )}
-                {trimmedDomain && canSkipDNS && (
-                  <p style={{ color: "#0a0" }}>
-                    ✓ Domains ending in <code>.xmit.dev</code> or{" "}
-                    <code>.madethis.site</code> don't require DNS configuration.
-                    You can skip this section!
-                  </p>
-                )}
-                {trimmedDomain && !canSkipDNS && isZoneApex && (
+                {trimmedDomain && isZoneApex && (
                   <>
                     <ul>
                       <li>
@@ -227,7 +220,7 @@ export function Docs() {
                     {note}
                   </>
                 )}
-                {trimmedDomain && !canSkipDNS && isWWW && (
+                {trimmedDomain && isWWW && (
                   <>
                     <ul>
                       <li>
@@ -243,7 +236,7 @@ export function Docs() {
                     {note}
                   </>
                 )}
-                {trimmedDomain && !canSkipDNS && isSubdomain && (
+                {trimmedDomain && isSubdomain && (
                   <>
                     <ul>
                       <li>
