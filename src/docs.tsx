@@ -1,6 +1,6 @@
 import { Header } from "./header.tsx";
 import { loadSession, loadTeam, loadUser, logError, StateCtx } from "./app.tsx";
-import { useContext, useState, useEffect } from "preact/hooks";
+import { useContext, useState, useEffect, useRef } from "preact/hooks";
 import { Footer } from "./footer.tsx";
 import { Link } from "preact-router/match";
 import tlds from "tlds";
@@ -18,6 +18,18 @@ function CopiableCode({ children }: { children: string }) {
   );
 }
 
+function getInitialParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    domain: params.get("domain") || "",
+    team: params.get("team") ? Number(params.get("team")) : undefined,
+    deploy: (params.get("deploy") as "onclebob" | "cli") || "onclebob",
+    install: params.get("install") || "brew",
+    configTab: params.get("configTab") || "404",
+    configFormat: (params.get("configFormat") as "toml" | "json5") || "toml",
+  };
+}
+
 export function Docs() {
   const state = useContext(StateCtx).value;
   const session = loadSession(state);
@@ -25,21 +37,22 @@ export function Docs() {
   const user = uid !== undefined ? loadUser(state, uid) : undefined;
   const teamIDs = user?.teams ? Array.from(user.teams.keys()) : [];
   teamIDs.sort((a, b) => b - a);
+
+  const initialParams = useRef(getInitialParams());
   const [selectedTeamID, setSelectedTeamID] = useState<number | undefined>(
-    undefined,
+    initialParams.current.team,
   );
-  const [installTab, setInstallTab] = useState<string>("brew");
-  const [configTab, setConfigTab] = useState<string>("404");
-  const [configFormat, setConfigFormat] = useState<"toml" | "json5">("toml");
+  const [installTab, setInstallTab] = useState<string>(initialParams.current.install);
+  const [configTab, setConfigTab] = useState<string>(initialParams.current.configTab);
+  const [configFormat, setConfigFormat] = useState<"toml" | "json5">(initialParams.current.configFormat);
   const [deployMethod, setDeployMethod] = useState<"onclebob" | "cli">(
-    "onclebob",
+    initialParams.current.deploy,
   );
   const domainState = useDomainChecker();
 
   // Pre-fill domain from URL params
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const domainParam = params.get("domain");
+    const domainParam = initialParams.current.domain;
     if (domainParam) {
       const trimmed = domainParam.trim().toLowerCase();
       if (trimmed.endsWith(".xmit.dev") || trimmed.endsWith(".madethis.site")) {
@@ -52,12 +65,44 @@ export function Docs() {
     }
   }, []);
 
-  // Auto-select first team when teams become available
+  // Auto-select first team when teams become available (only if not set from URL)
   useEffect(() => {
     if (teamIDs.length > 0 && selectedTeamID === undefined) {
-      setSelectedTeamID(teamIDs[0]);
+      // Check if URL had a team param that matches available teams
+      const urlTeam = initialParams.current.team;
+      if (urlTeam !== undefined && teamIDs.includes(urlTeam)) {
+        setSelectedTeamID(urlTeam);
+      } else {
+        setSelectedTeamID(teamIDs[0]);
+      }
     }
   }, [teamIDs.length, selectedTeamID]);
+
+  // Update URL when state changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (domainState.trimmedDomain) {
+      params.set("domain", domainState.trimmedDomain);
+    }
+    if (selectedTeamID !== undefined) {
+      params.set("team", String(selectedTeamID));
+    }
+    if (deployMethod !== "onclebob") {
+      params.set("deploy", deployMethod);
+    }
+    if (deployMethod === "cli" && installTab !== "brew") {
+      params.set("install", installTab);
+    }
+    if (configTab !== "404") {
+      params.set("configTab", configTab);
+    }
+    if (configFormat !== "toml") {
+      params.set("configFormat", configFormat);
+    }
+    const search = params.toString();
+    const newUrl = search ? `?${search}` : window.location.pathname;
+    window.history.replaceState(null, "", newUrl);
+  }, [domainState.trimmedDomain, selectedTeamID, deployMethod, installTab, configTab, configFormat]);
 
   // Check if we're still loading (state not ready yet)
   const isLoading = !state.ready;
