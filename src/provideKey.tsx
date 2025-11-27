@@ -81,7 +81,6 @@ export function ProvideKey({ id }: { id: string }) {
     );
   }
 
-  // Not logged in - show sign in/sign up
   if (uid === undefined) {
     return (
       <div class="with-header">
@@ -108,7 +107,7 @@ export function ProvideKey({ id }: { id: string }) {
           </div>
 
           <div class="section">
-            <p>To provide an API key, sign in or sign up first.</p>
+            <p>To provide an API key, sign up or sign in first.</p>
             <p>
               <button onClick={() => enroll().catch(logError)}>
                 🤗 Sign up

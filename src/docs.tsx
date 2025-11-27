@@ -133,7 +133,7 @@ export function Docs() {
         ) : uid === undefined ? (
           <div className="section">
             <p>
-              Please sign in or sign up to view all instructions, tailored to
+              Please sign up or sign in to view all instructions, tailored to
               your situation.
             </p>
           </div>
@@ -190,7 +190,7 @@ export function Docs() {
             {isLoading ? (
               <p>Loading…</p>
             ) : uid === undefined ? (
-              <p>Please sign in or sign up to view all instructions.</p>
+              <p>Please sign up or sign in to view all instructions.</p>
             ) : (
               <>
                 {!trimmedDomain && (
