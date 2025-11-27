@@ -5,11 +5,13 @@ import {
   loadSession,
   loadTeam,
   loadUser,
+  logError,
   sendUpdate,
   StateCtx,
 } from "./app.tsx";
 import { Header } from "./header.tsx";
 import { Footer } from "./footer.tsx";
+import { enroll, signin } from "./webauthn.tsx";
 
 export function ProvideKey({ id }: { id: string }) {
   const state = useContext(StateCtx).value;
@@ -107,6 +109,14 @@ export function ProvideKey({ id }: { id: string }) {
 
           <div class="section">
             <p>To provide an API key, sign in or sign up first.</p>
+            <p>
+              <button onClick={() => enroll().catch(logError)}>
+                🤗 Sign up
+              </button>{" "}
+              <button onClick={() => signin().catch(logError)}>
+                🚪 Sign in
+              </button>
+            </p>
           </div>
         </main>
         <Footer />
