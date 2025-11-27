@@ -73,9 +73,8 @@ export function Header({ session }: { session?: Session }) {
               onClick={(e) => {
                 e.preventDefault();
                 const currentPath = window.location.pathname;
-                if (currentPath === "/") {
-                  pendingRedirect = "/admin";
-                }
+                const search = window.location.search;
+                pendingRedirect = currentPath === "/" ? "/admin" : currentPath + search;
                 signin().catch(logError);
               }}
             >
