@@ -101,13 +101,13 @@ export function Home() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (
-                domainState.checkingDomain ||
-                !domainState.trimmedDomain
-              ) {
+              if (domainState.checkingDomain || !domainState.trimmedDomain) {
                 return;
               }
-              if (domainState.domainStatus !== "Taken" && session?.uid !== undefined) {
+              if (
+                domainState.domainStatus !== "Taken" &&
+                session?.uid !== undefined
+              ) {
                 route(
                   `/docs?domain=${encodeURIComponent(domainState.trimmedDomain)}`,
                 );

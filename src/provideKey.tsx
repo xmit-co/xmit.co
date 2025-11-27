@@ -162,12 +162,9 @@ export function ProvideKey({ id }: { id: string }) {
       <div class="with-header">
         <Header session={session} />
         <main class="home">
-          <h1>🔑 API Key Request</h1>
+          <h1>API Key Provided</h1>
           <div class="section">
-            <h2>
-              <span class="icon">✅</span>Already Provided
-            </h2>
-            <p>An API key has already been provided for this request.</p>
+            <p>You can close this and return to your application.</p>
           </div>
         </main>
         <Footer />
@@ -202,7 +199,6 @@ export function ProvideKey({ id }: { id: string }) {
   const handleApprove = () => {
     const approvalData = selectedTeam !== undefined ? { 1: selectedTeam } : {};
     sendUpdate(["r", id], approvalData);
-    window.close();
   };
 
   return (
