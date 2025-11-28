@@ -1,8 +1,8 @@
+import { route } from "preact-router";
 import { Link } from "preact-router/match";
+import { useContext, useEffect } from "preact/hooks";
 import { logError, Session, StateCtx } from "./app.tsx";
 import { enroll, signin, signout } from "./webauthn.tsx";
-import { useContext, useEffect } from "preact/hooks";
-import { route } from "preact-router";
 
 let pendingRedirect: string | null = null;
 
@@ -42,6 +42,9 @@ export function Header({ session }: { session?: Session }) {
             <Link activeClassName="header-active" href="/admin">
               🛠 admin
             </Link>
+            <Link activeClassName="header-active" href="/analytics">
+              📊 analytics
+            </Link>
             <a
               href="#"
               onClick={(e) => {
@@ -74,7 +77,8 @@ export function Header({ session }: { session?: Session }) {
                 e.preventDefault();
                 const currentPath = window.location.pathname;
                 const search = window.location.search;
-                pendingRedirect = currentPath === "/" ? "/admin" : currentPath + search;
+                pendingRedirect =
+                  currentPath === "/" ? "/admin" : currentPath + search;
                 signin().catch(logError);
               }}
             >

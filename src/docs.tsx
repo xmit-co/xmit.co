@@ -42,9 +42,15 @@ export function Docs() {
   const [selectedTeamID, setSelectedTeamID] = useState<number | undefined>(
     initialParams.current.team,
   );
-  const [installTab, setInstallTab] = useState<string>(initialParams.current.install);
-  const [configTab, setConfigTab] = useState<string>(initialParams.current.configTab);
-  const [configFormat, setConfigFormat] = useState<"toml" | "json5">(initialParams.current.configFormat);
+  const [installTab, setInstallTab] = useState<string>(
+    initialParams.current.install,
+  );
+  const [configTab, setConfigTab] = useState<string>(
+    initialParams.current.configTab,
+  );
+  const [configFormat, setConfigFormat] = useState<"toml" | "json5">(
+    initialParams.current.configFormat,
+  );
   const [deployMethod, setDeployMethod] = useState<"onclebob" | "cli">(
     initialParams.current.deploy,
   );
@@ -102,7 +108,14 @@ export function Docs() {
     const search = params.toString();
     const newUrl = search ? `?${search}` : window.location.pathname;
     window.history.replaceState(null, "", newUrl);
-  }, [domainState.trimmedDomain, selectedTeamID, deployMethod, installTab, configTab, configFormat]);
+  }, [
+    domainState.trimmedDomain,
+    selectedTeamID,
+    deployMethod,
+    installTab,
+    configTab,
+    configFormat,
+  ]);
 
   // Check if we're still loading (state not ready yet)
   const isLoading = !state.ready;

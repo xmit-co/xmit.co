@@ -1,10 +1,7 @@
-import { useContext } from "preact/hooks";
 import { route } from "preact-router";
 import { Link } from "preact-router/match";
-import { Header } from "./header.tsx";
-import { Site, Team, Upload } from "./models.tsx";
-import { EditableText } from "./editableText.tsx";
-import { Footer } from "./footer.tsx";
+import { useContext } from "preact/hooks";
+import { dateTime, nameAndID, SettingsView } from "./admin.tsx";
 import {
   loadDomain,
   loadLaunch,
@@ -16,7 +13,10 @@ import {
   sendUpdate,
   StateCtx,
 } from "./app.tsx";
-import { dateTime, nameAndID, SettingsView } from "./admin.tsx";
+import { EditableText } from "./editableText.tsx";
+import { Footer } from "./footer.tsx";
+import { Header } from "./header.tsx";
+import { Site, Team, Upload } from "./models.tsx";
 import { u8eq } from "./utils.ts";
 
 function shortHexHash(hash: Uint8Array | undefined) {
@@ -297,6 +297,9 @@ function SiteAdminBody({ site }: { site: Site }) {
           buttonText="rename"
           submit={(v) => sendUpdate(["s", siteID], new Map([[1, v]]))}
         />
+        <button onClick={() => route(`/analytics/site/${siteID}`)}>
+          📊 analytics
+        </button>
         <button
           class="delete"
           onClick={() => {

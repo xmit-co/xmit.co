@@ -1,13 +1,15 @@
-import "preact/debug";
-import "./app.css";
-import Router, { Route } from "preact-router";
 import { signal } from "@preact/signals";
-import Sockette from "sockette";
-import { Admin, UserAdmin, TeamAdmin } from "./admin.tsx";
-import { Docs } from "./docs.tsx";
-import { AuthRequired, Home } from "./home.tsx";
-import { ProvideKey } from "./provideKey.tsx";
 import { createContext } from "preact";
+import Router, { Route } from "preact-router";
+import "preact/debug";
+import Sockette from "sockette";
+import { Admin, TeamAdmin, UserAdmin } from "./admin.tsx";
+import { Analytics, SiteAnalytics } from "./analytics.tsx";
+import "./app.css";
+import { Docs } from "./docs.tsx";
+import { Footer } from "./footer.tsx";
+import { Header } from "./header.tsx";
+import { AuthRequired, Home } from "./home.tsx";
 import {
   CertStatus,
   Invite,
@@ -20,10 +22,9 @@ import {
   Upload,
   User,
 } from "./models.tsx";
+import { ProvideKey } from "./provideKey.tsx";
 import { SiteAdmin } from "./siteAdmin.tsx";
-import { Header } from "./header.tsx";
 import { decoder, encoder } from "./utils.ts";
-import { Footer } from "./footer.tsx";
 
 export const reconnectChannel = new BroadcastChannel("reconnect");
 new BroadcastChannel("reconnect").onmessage = connect;
@@ -494,6 +495,8 @@ export function App() {
         <Route path="/admin/user" component={UserAdmin} />
         <Route path="/admin/team/:id" component={TeamAdmin} />
         <Route path="/admin/site/:id" component={SiteAdmin} />
+        <Route path="/analytics" component={Analytics} />
+        <Route path="/analytics/site/:id" component={SiteAnalytics} />
         <Route path="/provide-key/:id" component={ProvideKey} />
         <Route path="/debug" component={Debug} />
       </Router>
