@@ -462,9 +462,6 @@ function AnalyticsChart({
 
       return (
         <>
-          <h3>
-            <span class="icon">📊</span>Visualization
-          </h3>
           <label class="stack-toggle">
             <input
               type="checkbox"
@@ -532,9 +529,6 @@ function AnalyticsChart({
 
     return (
       <>
-        <h3>
-          <span class="icon">📊</span>Visualization
-        </h3>
         {canStack && (
           <label class="stack-toggle">
             <input
@@ -583,9 +577,6 @@ function AnalyticsChart({
     const maxCount = Math.max(...data.buckets.map((b) => b.count), 1);
     return (
       <div class="analytics-chart">
-        <h3>
-          <span class="icon">📈</span>Visualization
-        </h3>
         <div class="chart-container">
           <div class="chart-bars">
             {data.buckets.map((bucket, idx) => {
@@ -643,9 +634,6 @@ function AnalyticsChart({
 
   return (
     <div class="analytics-chart">
-      <h3>
-        <span class="icon">📈</span>Visualization
-      </h3>
       <div class="chart-container">
         <div class="chart-bars">
           {times.map((timeKey, idx) => {
@@ -679,6 +667,17 @@ function AnalyticsChart({
             );
           })}
         </div>
+      </div>
+      <div class="chart-legend">
+        {groups.map((g) => (
+          <span key={g} class="legend-item">
+            <span
+              class="legend-color"
+              style={{ backgroundColor: groupColors.get(g) }}
+            />
+            {formatGroupLabel(JSON.parse(g))}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -729,15 +728,6 @@ function AnalyticsTable({ data, granularity }: AnalyticsTableProps) {
 
   return (
     <div class="analytics-table">
-      <h3>
-        <span class="icon">📋</span>Data{" "}
-        <button
-          class="download-csv"
-          onClick={() => downloadCSV(data, granularity)}
-        >
-          Download CSV
-        </button>
-      </h3>
       <table>
         <thead>
           <tr>
@@ -1125,7 +1115,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
             </button>
             {data && data.buckets.length >= limit && (
               <span class="limit-warning">
-                Limit of {limit.toLocaleString()} reached, data might be missing
+                Limit of {limit.toLocaleString()} reached
               </span>
             )}
           </div>
@@ -1135,6 +1125,9 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
       {data && (
         <>
           <section>
+            <h2>
+              <span class="icon">📊</span>Visualization
+            </h2>
             <AnalyticsChart
               data={data}
               granularity={granularity}
@@ -1143,6 +1136,15 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
             />
           </section>
           <section>
+            <h2>
+              <span class="icon">📋</span>Data{" "}
+              <button
+                class="download-csv"
+                onClick={() => downloadCSV(data, granularity)}
+              >
+                Download CSV
+              </button>
+            </h2>
             <AnalyticsTable data={data} granularity={granularity} />
           </section>
         </>
