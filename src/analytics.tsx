@@ -1,18 +1,19 @@
 import { JSX } from "preact";
 import { route } from "preact-router";
-import { Link } from "preact-router/match";
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import {
   loadSession,
   loadSite,
   loadTeam,
   loadUser,
+  loadUserSettings,
   logError,
+  sendUpdate,
   StateCtx,
 } from "./app.tsx";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
-import { Site } from "./models.tsx";
+import { AnalyticsView, Site } from "./models.tsx";
 import { decoder, encoder } from "./utils.ts";
 
 function Tappable({
@@ -751,11 +752,16 @@ function AnalyticsTable({ data, granularity }: AnalyticsTableProps) {
   );
 }
 
-function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
+function AnalyticsBody({
+  site,
+  allSites,
+}: {
+  site: Site;
+  allSites: Site[];
+}) {
   const state = useContext(StateCtx).value;
   const siteID = site.id ?? 0;
-  const teamID = site.teamID || 0;
-  const team = loadTeam(state, teamID);
+  const userSettings = loadUserSettings(state);
 
   const params = getQueryParams();
   const initialTimeRange = params.get("range") || DEFAULT_TIME_RANGE;
@@ -779,6 +785,8 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [saveViewName, setSaveViewName] = useState("");
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   const updateUrl = (newSiteID?: number) => {
     const query = buildQueryString({
@@ -906,6 +914,64 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
     route(`/analytics/site/${newSiteID}${window.location.search}`);
   };
 
+  const savedViews = userSettings?.analyticsViews
+    ? Array.from(userSettings.analyticsViews.entries()).sort((a, b) =>
+        a[0].localeCompare(b[0]),
+      )
+    : [];
+
+  const saveView = (name: string) => {
+    if (!name.trim()) return;
+    const view = new Map<number, any>();
+    view.set(2, timeRange);
+    view.set(3, granularity);
+    if (groupBy.length > 0) view.set(4, groupBy);
+    if (filters.length > 0) view.set(5, encodeFilters(filters));
+    view.set(6, limit);
+    if (stacked) view.set(7, true);
+    if (timeRange === "custom") {
+      // For custom ranges, save start/end as part of filters JSON
+      const filtersWithDates = {
+        filters,
+        customStart,
+        customEnd,
+      };
+      view.set(5, JSON.stringify(filtersWithDates));
+    }
+    sendUpdate(["v", name.trim()], view);
+    setShowSaveDialog(false);
+    setSaveViewName("");
+  };
+
+  const loadView = (view: AnalyticsView) => {
+    if (view.range) setTimeRange(view.range);
+    if (view.granularity) setGranularity(view.granularity);
+    if (view.groupBy) setGroupBy(view.groupBy);
+    if (view.limit) setLimit(view.limit);
+    if (view.stacked !== undefined) setStacked(view.stacked);
+    if (view.filters) {
+      try {
+        const parsed = JSON.parse(view.filters);
+        if (parsed.filters) {
+          // Custom range with dates
+          setFilters(parsed.filters);
+          if (parsed.customStart) setCustomStart(parsed.customStart);
+          if (parsed.customEnd) setCustomEnd(parsed.customEnd);
+        } else if (Array.isArray(parsed)) {
+          setFilters(parsed);
+        }
+      } catch {
+        setFilters([]);
+      }
+    } else {
+      setFilters([]);
+    }
+  };
+
+  const deleteView = (name: string) => {
+    sendUpdate(["v", name], undefined);
+  };
+
   return (
     <>
       <h1>
@@ -935,6 +1001,71 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
             <span class="icon">🔍</span>Query
             {loading && <span class="spinner query-spinner">⟳</span>}
           </h2>
+          <div class="query-row">
+            <span class="query-label">Bookmarks:</span>
+            <div class="saved-views">
+              {savedViews.length === 0 && !showSaveDialog && <em>None</em>}
+              {savedViews.map(([name, view]) => (
+                <span key={name} class="saved-view-item">
+                  <a href="#" onClick={(e) => { e.preventDefault(); loadView(view); }}>
+                    {name}
+                  </a>
+                  <button
+                    type="button"
+                    class="delete"
+                    onClick={() => deleteView(name)}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              {showSaveDialog ? (
+                <span class="save-dialog">
+                  <input
+                    type="text"
+                    value={saveViewName}
+                    placeholder="Bookmark name"
+                    style={{ width: "10em" }}
+                    ref={(e) => e && e.focus()}
+                    onInput={(e) => {
+                      const t = e.target as HTMLInputElement;
+                      setSaveViewName(t.value);
+                      t.style.width = `max(10em, ${t.value.length}ch)`;
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        saveView(saveViewName);
+                      } else if (e.key === "Escape") {
+                        setShowSaveDialog(false);
+                        setSaveViewName("");
+                      }
+                    }}
+                  />
+                  <button type="button" onClick={() => saveView(saveViewName)}>
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSaveDialog(false);
+                      setSaveViewName("");
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  class="add"
+                  onClick={() => setShowSaveDialog(true)}
+                >
+                  + Bookmark
+                </button>
+              )}
+            </div>
+          </div>
           <div class="query-row">
             <span class="query-label">Range:</span>
             <select

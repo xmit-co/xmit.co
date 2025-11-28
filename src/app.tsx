@@ -21,6 +21,7 @@ import {
   Team,
   Upload,
   User,
+  UserSettings,
 } from "./models.tsx";
 import { ProvideKey } from "./provideKey.tsx";
 import { SiteAdmin } from "./siteAdmin.tsx";
@@ -118,6 +119,21 @@ const domainMapping = {
   cert: 5,
 };
 
+const analyticsViewMapping = {
+  name: 1,
+  range: 2,
+  granularity: 3,
+  groupBy: 4,
+  filters: 5,
+  limit: 6,
+  stacked: 7,
+  sortByCount: 8,
+};
+
+const userSettingsMapping = {
+  analyticsViews: 1,
+};
+
 export const StateCtx = createContext(state);
 
 function loadKey(node: Node, key: any) {
@@ -157,6 +173,10 @@ export function loadSession(state: State) {
 
 export function loadUser(state: State, id: number | undefined) {
   return loadKey(state.root, ["u", id || 0]) as User | undefined;
+}
+
+export function loadUserSettings(state: State) {
+  return loadKey(state.root, "U") as UserSettings | undefined;
 }
 
 export function loadTeam(state: State, id: number | undefined) {
@@ -221,6 +241,18 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
             uid: 1,
             createdAPIKeys: 2,
           });
+        }
+        if (key[0] === "U") {
+          const us = map(value, userSettingsMapping);
+          if (us.analyticsViews) {
+            us.analyticsViews = new Map(
+              Array.from(us.analyticsViews, ([k, v]) => [
+                k,
+                map(v, analyticsViewMapping),
+              ]),
+            );
+          }
+          return us;
         }
         break;
       case 2:

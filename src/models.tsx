@@ -41,6 +41,17 @@ export interface CredInfo {
   createdBy: number | undefined;
 }
 
+export interface AnalyticsView {
+  name: string | undefined;
+  range: string | undefined;
+  granularity: string | undefined;
+  groupBy: string[] | undefined;
+  filters: string | undefined;
+  limit: number | undefined;
+  stacked: boolean | undefined;
+  sortByCount: boolean | undefined;
+}
+
 export interface User {
   id: number | undefined;
   name: string | undefined;
@@ -49,6 +60,10 @@ export interface User {
   webKeys: Map<string, CredInfo> | undefined;
   phone: string | undefined;
   email: string | undefined;
+}
+
+export interface UserSettings {
+  analyticsViews: Map<string, AnalyticsView> | undefined;
 }
 
 export interface Team {
