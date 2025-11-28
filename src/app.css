@@ -500,10 +500,17 @@ span.icon {
   display: flex;
   align-items: center;
   gap: 0.25em;
+  max-width: 20em;
 }
 .legend-color {
   width: 1em;
   height: 1em;
+  flex-shrink: 0;
+}
+.legend-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .hbar-fill {
   height: 100%;

@@ -509,12 +509,12 @@ function AnalyticsChart({
           </div>
           <div class="chart-legend">
             {segments.map((seg) => (
-              <span key={seg} class="legend-item">
+              <span key={seg} class="legend-item" title={seg}>
                 <span
                   class="legend-color"
                   style={{ backgroundColor: segmentColors.get(seg) }}
                 />
-                {seg}
+                <span class="legend-text">{seg}</span>
               </span>
             ))}
           </div>
@@ -665,12 +665,12 @@ function AnalyticsChart({
       </div>
       <div class="chart-legend">
         {groups.map((g) => (
-          <span key={g} class="legend-item">
+          <span key={g} class="legend-item" title={formatGroupLabel(JSON.parse(g))}>
             <span
               class="legend-color"
               style={{ backgroundColor: groupColors.get(g) }}
             />
-            {formatGroupLabel(JSON.parse(g))}
+            <span class="legend-text">{formatGroupLabel(JSON.parse(g))}</span>
           </span>
         ))}
       </div>
