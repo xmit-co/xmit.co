@@ -620,7 +620,7 @@ function AnalyticsTable({ data, granularity }: AnalyticsTableProps) {
 
 function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   const state = useContext(StateCtx).value;
-  const siteID = site.id || 0;
+  const siteID = site.id ?? 0;
   const teamID = site.teamID || 0;
   const team = loadTeam(state, teamID);
 
@@ -876,7 +876,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
               <div class="filters-list">
                 {filters.map((filter, idx) => (
                   <FilterRow
-                    key={idx}
+                    key={`${siteID}-${idx}`}
                     filter={filter}
                     onChange={(f) => updateFilter(idx, f)}
                     onRemove={() => removeFilter(idx)}
