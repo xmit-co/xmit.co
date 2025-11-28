@@ -70,6 +70,7 @@ const DEFAULT_TIME_RANGE = "7d";
 const DEFAULT_GRANULARITY = "day";
 const DEFAULT_LIMIT = 10000;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const CHART_HEIGHT_EM = 30;
 
 const FILTER_COLUMNS = [
   { value: "domain", label: "Domain" },
@@ -568,7 +569,6 @@ function AnalyticsChart({
   }
 
   const hasGroups = data.groupKeys.length > 0;
-  const chartHeight = "40em";
 
   if (!hasGroups) {
     const maxCount = Math.max(...data.buckets.map((b) => b.count), 1);
@@ -577,7 +577,7 @@ function AnalyticsChart({
         <div class="chart-container">
           <div class="chart-bars">
             {data.buckets.map((bucket, idx) => {
-              const height = `${(bucket.count / maxCount) * 40}em`;
+              const height = `${(bucket.count / maxCount) * CHART_HEIGHT_EM}em`;
               const label = formatTimeLabel(new Date(bucket.time), granularity);
               return (
                 <Tappable
@@ -638,10 +638,10 @@ function AnalyticsChart({
 
             return (
               <div key={idx} class="chart-bar-wrapper">
-                <div class="chart-bar-stack" style={{ height: chartHeight }}>
+                <div class="chart-bar-stack" style={{ height: `${CHART_HEIGHT_EM}em` }}>
                   {groups.map((g) => {
                     const count = counts.get(g) || 0;
-                    const height = `${(count / maxTotal) * 40}em`;
+                    const height = `${(count / maxTotal) * CHART_HEIGHT_EM}em`;
                     return (
                       <Tappable
                         key={g}
