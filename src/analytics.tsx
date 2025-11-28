@@ -1,3 +1,4 @@
+import { JSX } from "preact";
 import { route } from "preact-router";
 import { Link } from "preact-router/match";
 import { useContext, useEffect, useRef, useState } from "preact/hooks";
@@ -13,6 +14,30 @@ import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
 import { Site } from "./models.tsx";
 import { decoder, encoder } from "./utils.ts";
+
+// Touch-friendly tooltip wrapper
+function Tappable({
+  tip,
+  children,
+  ...props
+}: {
+  tip: string;
+  children: JSX.Element;
+} & JSX.HTMLAttributes<HTMLDivElement>) {
+  const [show, setShow] = useState(false);
+  return (
+    <div
+      {...props}
+      data-tappable
+      title={tip}
+      onTouchStart={() => setShow(true)}
+      onTouchEnd={() => setTimeout(() => setShow(false), 2000)}
+    >
+      {children}
+      {show && <div class="touch-tooltip">{tip}</div>}
+    </div>
+  );
+}
 
 // Analytics API types
 interface AnalyticsFilter {
@@ -466,15 +491,17 @@ function AnalyticsChart({
                       const count = counts.get(seg) || 0;
                       const width = (count / maxTotal) * 100;
                       return (
-                        <div
+                        <Tappable
                           key={seg}
                           class="hbar-fill"
                           style={{
                             width: `${width}%`,
                             backgroundColor: segmentColors.get(seg),
                           }}
-                          title={`${seg}: ${count.toLocaleString()}`}
-                        />
+                          tip={`${seg}: ${count.toLocaleString()}`}
+                        >
+                          <></>
+                        </Tappable>
                       );
                     })}
                   </div>
@@ -530,11 +557,13 @@ function AnalyticsChart({
                   {label}
                 </span>
                 <div class="hbar-track">
-                  <div
+                  <Tappable
                     class="hbar-fill"
                     style={{ width: `${width}%` }}
-                    title={`${bucket.count.toLocaleString()} requests`}
-                  />
+                    tip={`${bucket.count.toLocaleString()} requests`}
+                  >
+                    <></>
+                  </Tappable>
                 </div>
                 <span class="hbar-count" style={{ width: countWidth }}>
                   {bucket.count.toLocaleString()}
@@ -563,16 +592,16 @@ function AnalyticsChart({
               const height = `${(bucket.count / maxCount) * 40}em`;
               const label = formatTimeLabel(new Date(bucket.time), granularity);
               return (
-                <div
+                <Tappable
                   key={idx}
                   class="chart-bar-wrapper"
-                  title={`${label}: ${bucket.count.toLocaleString()} requests`}
+                  tip={`${label}: ${bucket.count.toLocaleString()} requests`}
                 >
-                  <div class="chart-bar" style={{ height }} />
-                  <span class="chart-label" title={label}>
-                    {label}
-                  </span>
-                </div>
+                  <>
+                    <div class="chart-bar" style={{ height }} />
+                    <span class="chart-label">{label}</span>
+                  </>
+                </Tappable>
               );
             })}
           </div>
@@ -641,32 +670,31 @@ function AnalyticsChart({
             const label = formatTimeLabel(date, granularity);
 
             return (
-              <div
+              <Tappable
                 key={idx}
                 class="chart-bar-wrapper"
-                title={buildTooltip(timeKey, counts)}
+                tip={buildTooltip(timeKey, counts)}
               >
-                <div class="chart-bar-stack" style={{ height: chartHeight }}>
-                  {groups.map((g) => {
-                    const count = counts.get(g) || 0;
-                    const height = `${(count / maxTotal) * 40}em`;
-                    return (
-                      <div
-                        key={g}
-                        class="chart-bar-segment"
-                        style={{
-                          height,
-                          backgroundColor: groupColors.get(g),
-                        }}
-                        title={`${formatGroupLabel(JSON.parse(g))}: ${count.toLocaleString()}`}
-                      />
-                    );
-                  })}
-                </div>
-                <span class="chart-label" title={label}>
-                  {label}
-                </span>
-              </div>
+                <>
+                  <div class="chart-bar-stack" style={{ height: chartHeight }}>
+                    {groups.map((g) => {
+                      const count = counts.get(g) || 0;
+                      const height = `${(count / maxTotal) * 40}em`;
+                      return (
+                        <div
+                          key={g}
+                          class="chart-bar-segment"
+                          style={{
+                            height,
+                            backgroundColor: groupColors.get(g),
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                  <span class="chart-label">{label}</span>
+                </>
+              </Tappable>
             );
           })}
         </div>

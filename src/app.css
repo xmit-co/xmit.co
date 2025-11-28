@@ -479,6 +479,23 @@ span.icon {
   gap: 1em;
   margin-top: 0.75em;
 }
+[data-tappable] {
+  position: relative;
+}
+.touch-tooltip {
+  position: absolute;
+  background: #333;
+  border: 1px solid #555;
+  padding: 0.5em;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  z-index: 100;
+  font-size: 90%;
+  max-width: 20em;
+  top: 100%;
+  left: 0;
+  pointer-events: none;
+}
 .legend-item {
   display: flex;
   align-items: center;
