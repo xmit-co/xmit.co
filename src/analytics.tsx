@@ -1124,7 +1124,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
           </section>
           <section>
             <h2>
-              <span class="icon">📋</span>Data{" "}
+              <span class="icon">📋</span>Table{" "}
               <button
                 class="download-csv"
                 onClick={() => downloadCSV(data, granularity)}
