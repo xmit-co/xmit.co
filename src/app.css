@@ -464,9 +464,29 @@ span.icon {
   text-align: right;
 }
 .hbar-track {
+  display: flex;
   flex: 1;
   height: 1.2em;
   background: #222;
+}
+.stack-toggle {
+  display: block;
+  margin-bottom: 0.5em;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  margin-top: 0.75em;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+}
+.legend-color {
+  width: 1em;
+  height: 1em;
 }
 .hbar-fill {
   height: 100%;
@@ -527,7 +547,7 @@ span.icon {
   text-align: right;
 }
 .limit-input {
-  width: 5ch;
+  width: 7ch;
 }
 .download-csv {
   margin-left: auto;

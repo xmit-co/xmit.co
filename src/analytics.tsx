@@ -292,6 +292,12 @@ function FilterRow({
             if (e.key === "Enter") {
               e.preventDefault();
               addValue();
+            } else if (e.key === "Backspace" && !inputValue) {
+              if (values.length > 0) {
+                removeValue(values.length - 1);
+              } else {
+                onRemove();
+              }
             }
           }}
         />
@@ -361,17 +367,140 @@ function formatGroupLabel(groups: any[]): string {
 interface AnalyticsChartProps {
   data: AnalyticsResponse;
   granularity: string;
+  stacked: boolean;
+  setStacked: (stacked: boolean) => void;
 }
 
-function AnalyticsChart({ data, granularity }: AnalyticsChartProps) {
+function AnalyticsChart({
+  data,
+  granularity,
+  stacked,
+  setStacked,
+}: AnalyticsChartProps) {
   if (data.buckets.length === 0) {
     return null;
   }
 
   // Horizontal bar chart for totals (no granularity)
   if (granularity === "none") {
-    const maxCount = Math.max(...data.buckets.map((b) => b.count), 1);
     const hasGroups = data.groupKeys.length > 0;
+    const canStack = data.groupKeys.length > 1;
+
+    if (stacked && canStack) {
+      // Group by all but last dimension, stack by last dimension
+      const rowMap = new Map<string, Map<string, number>>();
+      const allSegments = new Set<string>();
+
+      for (const bucket of data.buckets) {
+        const rowKey =
+          bucket.groups
+            .slice(0, -1)
+            .map((g) => g || "empty")
+            .join(", ") || "empty";
+        const segmentKey = bucket.groups[bucket.groups.length - 1] || "empty";
+        allSegments.add(segmentKey);
+
+        if (!rowMap.has(rowKey)) {
+          rowMap.set(rowKey, new Map());
+        }
+        rowMap.get(rowKey)!.set(segmentKey, bucket.count);
+      }
+
+      const segments = Array.from(allSegments);
+      const segmentColors = new Map(
+        segments.map((s, i) => [s, GROUP_COLORS[i % GROUP_COLORS.length]]),
+      );
+
+      // Sort rows by total count descending
+      const rows = Array.from(rowMap.keys()).sort((a, b) => {
+        const totalA = Array.from(rowMap.get(a)!.values()).reduce(
+          (sum, c) => sum + c,
+          0,
+        );
+        const totalB = Array.from(rowMap.get(b)!.values()).reduce(
+          (sum, c) => sum + c,
+          0,
+        );
+        return totalB - totalA;
+      });
+
+      let maxTotal = 1;
+      for (const counts of rowMap.values()) {
+        let total = 0;
+        for (const count of counts.values()) {
+          total += count;
+        }
+        maxTotal = Math.max(maxTotal, total);
+      }
+
+      const countWidth = `${maxTotal.toLocaleString().length}ch`;
+
+      return (
+        <>
+          <h3>
+            <span class="icon">📊</span>Visualization
+          </h3>
+          <label class="stack-toggle">
+            <input
+              type="checkbox"
+              checked={stacked}
+              onChange={(e) =>
+                setStacked((e.target as HTMLInputElement).checked)
+              }
+            />{" "}
+            Stack by {data.groupKeys[data.groupKeys.length - 1]}
+          </label>
+          <div class="hbar-chart">
+            {rows.map((rowKey) => {
+              const counts = rowMap.get(rowKey)!;
+              let total = 0;
+              for (const c of counts.values()) total += c;
+
+              return (
+                <div key={rowKey} class="hbar-row">
+                  <span class="hbar-label" title={rowKey}>
+                    {rowKey}
+                  </span>
+                  <div class="hbar-track">
+                    {segments.map((seg) => {
+                      const count = counts.get(seg) || 0;
+                      const width = (count / maxTotal) * 100;
+                      return (
+                        <div
+                          key={seg}
+                          class="hbar-fill"
+                          style={{
+                            width: `${width}%`,
+                            backgroundColor: segmentColors.get(seg),
+                          }}
+                          title={`${seg}: ${count.toLocaleString()}`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <span class="hbar-count" style={{ width: countWidth }}>
+                    {total.toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div class="chart-legend">
+            {segments.map((seg) => (
+              <span key={seg} class="legend-item">
+                <span
+                  class="legend-color"
+                  style={{ backgroundColor: segmentColors.get(seg) }}
+                />
+                {seg}
+              </span>
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    const maxCount = Math.max(...data.buckets.map((b) => b.count), 1);
     const countWidth = `${maxCount.toLocaleString().length}ch`;
 
     return (
@@ -379,6 +508,18 @@ function AnalyticsChart({ data, granularity }: AnalyticsChartProps) {
         <h3>
           <span class="icon">📊</span>Visualization
         </h3>
+        {canStack && (
+          <label class="stack-toggle">
+            <input
+              type="checkbox"
+              checked={stacked}
+              onChange={(e) =>
+                setStacked((e.target as HTMLInputElement).checked)
+              }
+            />{" "}
+            Stack by {data.groupKeys[data.groupKeys.length - 1]}
+          </label>
+        )}
         <div class="hbar-chart">
           {data.buckets.map((bucket, idx) => {
             const width = (bucket.count / maxCount) * 100;
@@ -634,6 +775,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   const initialLimit = Number(params.get("limit")) || 10000;
   const initialStart = params.get("start") || "";
   const initialEnd = params.get("end") || "";
+  const initialStacked = params.get("stacked") === "1";
 
   // Component state
   const [timeRange, setTimeRange] = useState(initialTimeRange);
@@ -643,6 +785,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   const [limit, setLimit] = useState(initialLimit);
   const [customStart, setCustomStart] = useState(initialStart);
   const [customEnd, setCustomEnd] = useState(initialEnd);
+  const [stacked, setStacked] = useState(initialStacked);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -657,6 +800,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
       limit: limit !== 10000 ? String(limit) : null,
       start: timeRange === "custom" && customStart ? customStart : null,
       end: timeRange === "custom" && customEnd ? customEnd : null,
+      stacked: stacked ? "1" : null,
     });
     const targetSiteID = newSiteID ?? siteID;
     window.history.replaceState(
@@ -669,7 +813,16 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   // Update URL when state changes
   useEffect(() => {
     updateUrl();
-  }, [timeRange, granularity, groupBy, filters, limit, customStart, customEnd]);
+  }, [
+    timeRange,
+    granularity,
+    groupBy,
+    filters,
+    limit,
+    customStart,
+    customEnd,
+    stacked,
+  ]);
 
   const getTimeRange = () => {
     let start: Date;
@@ -790,167 +943,175 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
       </h1>
 
       <section>
-        <h2>
-          <span class="icon">🔍</span>Query
-        </h2>
-        <div class="query-row">
-          <span class="query-label">Range:</span>
-          <select
-            value={timeRange}
-            onChange={(e) => {
-              const value = (e.target as HTMLSelectElement).value;
-              if (value === "custom" && !customStart && !customEnd) {
-                const today = new Date().toISOString().split("T")[0];
-                setCustomStart(today);
-                setCustomEnd(today);
-              }
-              setTimeRange(value);
-            }}
-          >
-            {TIME_RANGES.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
-          {timeRange === "custom" && (
-            <>
-              <input
-                type="date"
-                value={customStart}
-                onChange={(e) =>
-                  setCustomStart((e.target as HTMLInputElement).value)
-                }
-              />
-              <span>to</span>
-              <input
-                type="date"
-                value={customEnd}
-                onChange={(e) =>
-                  setCustomEnd((e.target as HTMLInputElement).value)
-                }
-              />
-            </>
-          )}
-        </div>
-        <div class="query-row">
-          <span class="query-label">Granularity:</span>
-          <select
-            value={granularity}
-            onChange={(e) =>
-              setGranularity((e.target as HTMLSelectElement).value)
-            }
-          >
-            {GRANULARITIES.map((g) => (
-              <option key={g.value} value={g.value}>
-                {g.label}
-              </option>
-            ))}
-          </select>
-          {granularity === "hour" &&
-            timeRange !== "1d" &&
-            timeRange !== "3d" &&
-            timeRange !== "custom" && (
-              <span class="warning">Limited to 3 days</span>
-            )}
-        </div>
-        <div class="query-row">
-          <span class="query-label">Limit:</span>
-          <input
-            type="number"
-            value={limit}
-            min={1}
-            max={10000}
-            class="limit-input"
-            onInput={(e) =>
-              setLimit(Number((e.target as HTMLInputElement).value) || 100)
-            }
-          />
-        </div>
-        <div class="query-row query-row-top">
-          <span class="query-label">Filters:</span>
-          <div class="filters-container">
-            {filters.length === 0 ? (
-              <em>None</em>
-            ) : (
-              <div class="filters-list">
-                {filters.map((filter, idx) => (
-                  <FilterRow
-                    key={`${siteID}-${idx}`}
-                    filter={filter}
-                    onChange={(f) => updateFilter(idx, f)}
-                    onRemove={() => removeFilter(idx)}
-                    siteID={siteID}
-                    timeRange={getTimeRange()}
-                    otherFilters={filters.filter((_, i) => i !== idx)}
-                  />
-                ))}
-              </div>
-            )}
-            <button class="add" onClick={addFilter}>
-              + Add filter
-            </button>
-          </div>
-        </div>
-        <div class="query-row">
-          <span class="query-label">Group by:</span>
-          <div class="group-by-options">
-            {FILTER_COLUMNS.map((col) => (
-              <label key={col.value}>
-                <input
-                  type="checkbox"
-                  checked={groupBy.includes(col.value)}
-                  onChange={(e) => {
-                    if ((e.target as HTMLInputElement).checked) {
-                      setGroupBy([...groupBy, col.value]);
-                    } else {
-                      setGroupBy(groupBy.filter((c) => c !== col.value));
-                    }
-                  }}
-                />{" "}
-                {col.label}
-              </label>
-            ))}
-          </div>
-        </div>
-        {groupBy.length > 1 && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            runQuery();
+          }}
+        >
+          <h2>
+            <span class="icon">🔍</span>Query
+          </h2>
           <div class="query-row">
-            <span class="query-label">Groups order:</span>
-            {groupBy.map((col, idx) => (
-              <span key={col} class="order-item">
-                {idx > 0 && (
-                  <button
-                    class="order-btn"
-                    onClick={() => {
-                      const newOrder = [...groupBy];
-                      [newOrder[idx - 1], newOrder[idx]] = [
-                        newOrder[idx],
-                        newOrder[idx - 1],
-                      ];
-                      setGroupBy(newOrder);
-                    }}
-                  >
-                    ↔
-                  </button>
-                )}
-                <span class="order-tag">
-                  {FILTER_COLUMNS.find((c) => c.value === col)?.label || col}
-                </span>
-              </span>
-            ))}
-          </div>
-        )}
-        <div class="run-query-row">
-          <button class="run-query" onClick={runQuery} disabled={loading}>
-            {loading ? (
-              <span class="spinner">⟳</span>
-            ) : (
+            <span class="query-label">Range:</span>
+            <select
+              value={timeRange}
+              onChange={(e) => {
+                const value = (e.target as HTMLSelectElement).value;
+                if (value === "custom" && !customStart && !customEnd) {
+                  const today = new Date().toISOString().split("T")[0];
+                  setCustomStart(today);
+                  setCustomEnd(today);
+                }
+                setTimeRange(value);
+              }}
+            >
+              {TIME_RANGES.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+            {timeRange === "custom" && (
               <>
-                <span class="icon">▶</span>Run query
+                <input
+                  type="date"
+                  value={customStart}
+                  onChange={(e) =>
+                    setCustomStart((e.target as HTMLInputElement).value)
+                  }
+                />
+                <span>to</span>
+                <input
+                  type="date"
+                  value={customEnd}
+                  onChange={(e) =>
+                    setCustomEnd((e.target as HTMLInputElement).value)
+                  }
+                />
               </>
             )}
-          </button>
-        </div>
+          </div>
+          <div class="query-row">
+            <span class="query-label">Granularity:</span>
+            <select
+              value={granularity}
+              onChange={(e) =>
+                setGranularity((e.target as HTMLSelectElement).value)
+              }
+            >
+              {GRANULARITIES.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+            {granularity === "hour" &&
+              timeRange !== "1d" &&
+              timeRange !== "3d" &&
+              timeRange !== "custom" && (
+                <span class="warning">Limited to 3 days</span>
+              )}
+          </div>
+          <div class="query-row">
+            <span class="query-label">Limit:</span>
+            <input
+              type="number"
+              value={limit}
+              min={1}
+              max={10000}
+              class="limit-input"
+              onInput={(e) =>
+                setLimit(Number((e.target as HTMLInputElement).value) || 100)
+              }
+            />
+          </div>
+          <div class="query-row query-row-top">
+            <span class="query-label">Filters:</span>
+            <div class="filters-container">
+              {filters.length === 0 ? (
+                <em>None</em>
+              ) : (
+                <div class="filters-list">
+                  {filters.map((filter, idx) => (
+                    <FilterRow
+                      key={`${siteID}-${idx}`}
+                      filter={filter}
+                      onChange={(f) => updateFilter(idx, f)}
+                      onRemove={() => removeFilter(idx)}
+                      siteID={siteID}
+                      timeRange={getTimeRange()}
+                      otherFilters={filters.filter((_, i) => i !== idx)}
+                    />
+                  ))}
+                </div>
+              )}
+              <button type="button" class="add" onClick={addFilter}>
+                + Add filter
+              </button>
+            </div>
+          </div>
+          <div class="query-row">
+            <span class="query-label">Group by:</span>
+            <div class="group-by-options">
+              {FILTER_COLUMNS.map((col) => (
+                <label key={col.value}>
+                  <input
+                    type="checkbox"
+                    checked={groupBy.includes(col.value)}
+                    onChange={(e) => {
+                      if ((e.target as HTMLInputElement).checked) {
+                        setGroupBy([...groupBy, col.value]);
+                      } else {
+                        setGroupBy(groupBy.filter((c) => c !== col.value));
+                      }
+                    }}
+                  />{" "}
+                  {col.label}
+                </label>
+              ))}
+            </div>
+          </div>
+          {groupBy.length > 1 && (
+            <div class="query-row">
+              <span class="query-label">Groups order:</span>
+              {groupBy.map((col, idx) => (
+                <span key={col} class="order-item">
+                  {idx > 0 && (
+                    <button
+                      type="button"
+                      class="order-btn"
+                      onClick={() => {
+                        const newOrder = [...groupBy];
+                        [newOrder[idx - 1], newOrder[idx]] = [
+                          newOrder[idx],
+                          newOrder[idx - 1],
+                        ];
+                        setGroupBy(newOrder);
+                      }}
+                    >
+                      ↔
+                    </button>
+                  )}
+                  <span class="order-tag">
+                    {FILTER_COLUMNS.find((c) => c.value === col)?.label || col}
+                  </span>
+                </span>
+              ))}
+            </div>
+          )}
+          <div class="run-query-row">
+            <button type="submit" class="run-query">
+              {loading ? (
+                <span class="spinner">⟳</span>
+              ) : (
+                <>
+                  <span class="icon">▶</span>Run query
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </section>
 
       {loading && (
@@ -962,7 +1123,12 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
       {data && !loading && (
         <>
           <section>
-            <AnalyticsChart data={data} granularity={granularity} />
+            <AnalyticsChart
+              data={data}
+              granularity={granularity}
+              stacked={stacked}
+              setStacked={setStacked}
+            />
           </section>
           <section>
             <AnalyticsTable data={data} granularity={granularity} />
