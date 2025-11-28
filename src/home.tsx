@@ -1,3 +1,5 @@
+import { route } from "preact-router";
+import { useContext } from "preact/hooks";
 import {
   loadSession,
   loadSite,
@@ -5,13 +7,10 @@ import {
   logError,
   StateCtx,
 } from "./app.tsx";
-import { signin } from "./webauthn.tsx";
-import { route } from "preact-router";
-import { useContext } from "preact/hooks";
+import { DomainChecker, useDomainChecker } from "./domainChecker.tsx";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
-import { DomainChecker, useDomainChecker } from "./domainChecker.tsx";
-import { enroll } from "./webauthn.tsx";
+import { enroll, signin } from "./webauthn.tsx";
 
 export function Home() {
   const state = useContext(StateCtx).value;
@@ -61,17 +60,16 @@ export function Home() {
             <span class="icon">🚀</span>Fast, free static hosting
           </h2>
           <p>
-            <span class="icon">⚡</span>Deploy your static web pages in seconds
-            with a single <code>xmit</code> command or through{" "}
-            <a href="https://onclebob.com" target="_blank">
-              Oncle Bob
-            </a>
-            .<br />
+            <span class="icon">⚡</span>Update your static website in seconds.
             Never send a file twice!
           </p>
           <p>
             <span class="icon">🔐</span>Authenticate with WebAuthn passkeys. No
             passwords to remember or leak.
+          </p>
+          <p>
+            <span class="icon">📊</span>Built-in analytics. No cookies, no
+            tracking scripts, no third parties.
           </p>
           <p>
             <span class="icon">🧰</span>The essentials are here.
