@@ -772,7 +772,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   const initialGroupBy =
     params.get("groupBy")?.split(",").filter(Boolean) || [];
   const initialFilters = decodeFilters(params.get("filters") || "");
-  const initialLimit = Number(params.get("limit")) || 10000;
+  const initialLimit = Number(params.get("limit")) || 1000;
   const initialStart = params.get("start") || "";
   const initialEnd = params.get("end") || "";
   const initialStacked = params.get("stacked") === "1";
@@ -797,7 +797,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
       granularity: granularity !== "day" ? granularity : null,
       groupBy: groupBy.length > 0 ? groupBy.join(",") : null,
       filters: encodeFilters(filters) || null,
-      limit: limit !== 10000 ? String(limit) : null,
+      limit: limit !== 1000 ? String(limit) : null,
       start: timeRange === "custom" && customStart ? customStart : null,
       end: timeRange === "custom" && customEnd ? customEnd : null,
       stacked: stacked ? "1" : null,
@@ -951,6 +951,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
         >
           <h2>
             <span class="icon">🔍</span>Query
+            {loading && <span class="spinner query-spinner">⟳</span>}
           </h2>
           <div class="query-row">
             <span class="query-label">Range:</span>
@@ -1102,25 +1103,18 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
           )}
           <div class="run-query-row">
             <button type="submit" class="run-query">
-              {loading ? (
-                <span class="spinner">⟳</span>
-              ) : (
-                <>
-                  <span class="icon">▶</span>Run query
-                </>
-              )}
+              <span class="icon">▶</span>Run query
             </button>
+            {data && data.buckets.length >= limit && (
+              <span class="limit-warning">
+                Limit of {limit.toLocaleString()} reached, data might be missing
+              </span>
+            )}
           </div>
         </form>
       </section>
 
-      {loading && (
-        <section class="loading-spinner">
-          <span class="spinner">⟳</span>
-        </section>
-      )}
-
-      {data && !loading && (
+      {data && (
         <>
           <section>
             <AnalyticsChart

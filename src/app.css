@@ -560,10 +560,13 @@ span.icon {
 }
 .run-query-row {
   margin-top: 1em;
+  display: flex;
+  align-items: center;
+  gap: 1em;
 }
-.loading-spinner {
-  text-align: center;
+.limit-warning {
+  color: #fa0;
 }
-.loading-spinner .spinner {
-  font-size: 2em;
+.query-spinner {
+  float: right;
 }
