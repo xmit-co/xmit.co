@@ -908,18 +908,6 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
 
   return (
     <>
-      <div class="breadcrumb">
-        <Link href="/admin">← Admin</Link>
-        <span> / </span>
-        <Link href={`/admin/team/${teamID}`}>
-          Team #{teamID}: {team?.name || <em>unnamed</em>}
-        </Link>
-        <span> / </span>
-        <Link href={`/admin/site/${siteID}`}>
-          Site #{siteID}: {site.name || <em>unnamed</em>}
-        </Link>
-      </div>
-
       <h1>
         <span class="icon">📊</span>Analytics for{" "}
         <select
