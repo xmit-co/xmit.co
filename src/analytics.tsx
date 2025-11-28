@@ -15,7 +15,6 @@ import { Header } from "./header.tsx";
 import { Site } from "./models.tsx";
 import { decoder, encoder } from "./utils.ts";
 
-// Touch-friendly tooltip wrapper
 function Tappable({
   tip,
   children,
@@ -39,7 +38,6 @@ function Tappable({
   );
 }
 
-// Analytics API types
 interface AnalyticsFilter {
   column: string;
   in?: string[];
@@ -67,7 +65,12 @@ interface AnalyticsResponse {
   buckets: AnalyticsBucket[];
 }
 
-// Available columns for filtering and grouping
+// Defaults
+const DEFAULT_TIME_RANGE = "7d";
+const DEFAULT_GRANULARITY = "day";
+const DEFAULT_LIMIT = 10000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
 const FILTER_COLUMNS = [
   { value: "domain", label: "Domain" },
   { value: "path", label: "Path" },
@@ -93,7 +96,6 @@ const TIME_RANGES = [
   { value: "custom", label: "Custom", days: 0 },
 ];
 
-// Query parameter helpers
 function getQueryParams(): URLSearchParams {
   return new URLSearchParams(window.location.search);
 }
@@ -151,7 +153,6 @@ function decodeResponse(data: Uint8Array): AnalyticsResponse {
 
   const buckets: AnalyticsBucket[] = rawBuckets.map((b: Map<number, any>) => {
     const rawTime = b.get(1);
-    // Time may be a Date object or Unix timestamp in seconds
     const time = rawTime instanceof Date ? rawTime : new Date(rawTime * 1000);
     return {
       time,
@@ -357,7 +358,6 @@ function FilterRow({
   );
 }
 
-// Color palette for grouped data
 const GROUP_COLORS = [
   "#0f0",
   "#0af",
@@ -406,13 +406,11 @@ function AnalyticsChart({
     return null;
   }
 
-  // Horizontal bar chart for totals (no granularity)
   if (granularity === "none") {
     const hasGroups = data.groupKeys.length > 0;
     const canStack = data.groupKeys.length > 1;
 
     if (stacked && canStack) {
-      // Group by all but last dimension, stack by last dimension
       const rowMap = new Map<string, Map<string, number>>();
       const allSegments = new Set<string>();
 
@@ -436,7 +434,6 @@ function AnalyticsChart({
         segments.map((s, i) => [s, GROUP_COLORS[i % GROUP_COLORS.length]]),
       );
 
-      // Sort rows by total count descending
       const rows = Array.from(rowMap.keys()).sort((a, b) => {
         const totalA = Array.from(rowMap.get(a)!.values()).reduce(
           (sum, c) => sum + c,
@@ -601,7 +598,6 @@ function AnalyticsChart({
     );
   }
 
-  // Grouped chart - organize by time, then stack by group
   const timeMap = new Map<string, Map<string, number>>();
   const allGroups = new Set<string>();
 
@@ -622,7 +618,6 @@ function AnalyticsChart({
     groups.map((g, i) => [g, GROUP_COLORS[i % GROUP_COLORS.length]]),
   );
 
-  // Find max stacked total for scaling
   let maxTotal = 1;
   for (const counts of timeMap.values()) {
     let total = 0;
@@ -718,8 +713,6 @@ function AnalyticsTable({ data, granularity }: AnalyticsTableProps) {
   }
 
   const hasTime = granularity !== "none";
-
-  // Always show time series data
   const tableData = data.buckets.map((b) => ({
     time: b.time,
     groups: b.groups,
@@ -764,19 +757,17 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   const teamID = site.teamID || 0;
   const team = loadTeam(state, teamID);
 
-  // Read initial state from query params
   const params = getQueryParams();
-  const initialTimeRange = params.get("range") || "7d";
-  const initialGranularity = params.get("granularity") || "day";
+  const initialTimeRange = params.get("range") || DEFAULT_TIME_RANGE;
+  const initialGranularity = params.get("granularity") || DEFAULT_GRANULARITY;
   const initialGroupBy =
     params.get("groupBy")?.split(",").filter(Boolean) || [];
   const initialFilters = decodeFilters(params.get("filters") || "");
-  const initialLimit = Number(params.get("limit")) || 1000;
+  const initialLimit = Number(params.get("limit")) || DEFAULT_LIMIT;
   const initialStart = params.get("start") || "";
   const initialEnd = params.get("end") || "";
   const initialStacked = params.get("stacked") === "1";
 
-  // Component state
   const [timeRange, setTimeRange] = useState(initialTimeRange);
   const [granularity, setGranularity] = useState(initialGranularity);
   const [groupBy, setGroupBy] = useState<string[]>(initialGroupBy);
@@ -789,14 +780,13 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Update URL when state changes
   const updateUrl = (newSiteID?: number) => {
     const query = buildQueryString({
-      range: timeRange !== "7d" ? timeRange : null,
-      granularity: granularity !== "day" ? granularity : null,
+      range: timeRange !== DEFAULT_TIME_RANGE ? timeRange : null,
+      granularity: granularity !== DEFAULT_GRANULARITY ? granularity : null,
       groupBy: groupBy.length > 0 ? groupBy.join(",") : null,
       filters: encodeFilters(filters) || null,
-      limit: limit !== 1000 ? String(limit) : null,
+      limit: limit !== DEFAULT_LIMIT ? String(limit) : null,
       start: timeRange === "custom" && customStart ? customStart : null,
       end: timeRange === "custom" && customEnd ? customEnd : null,
       stacked: stacked ? "1" : null,
@@ -809,7 +799,6 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
     );
   };
 
-  // Update URL when state changes
   useEffect(() => {
     updateUrl();
   }, [
@@ -834,21 +823,19 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
       const range =
         TIME_RANGES.find((r) => r.value === timeRange) || TIME_RANGES[1];
       end = new Date();
-      start = new Date(end.getTime() - range.days * 24 * 60 * 60 * 1000);
+      start = new Date(end.getTime() - range.days * MS_PER_DAY);
     }
     return { start, end };
   };
 
-  // Check if hourly granularity exceeds 3 day limit
   const hourlyLimitExceeded = (() => {
     if (granularity !== "hour") return false;
     const { start, end } = getTimeRange();
-    const daysDiff = (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000);
+    const daysDiff = (end.getTime() - start.getTime()) / MS_PER_DAY;
     return daysDiff > 3;
   })();
 
   const runQuery = async () => {
-    // Cancel any pending request
     if (abortRef.current) {
       abortRef.current.abort();
     }
@@ -858,7 +845,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
     setLoading(true);
 
     const { start, end } = getTimeRange();
-    const daysDiff = (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000);
+    const daysDiff = (end.getTime() - start.getTime()) / MS_PER_DAY;
     let effectiveGranularity = granularity;
     if (granularity === "hour" && daysDiff > 3) {
       effectiveGranularity = "day";
