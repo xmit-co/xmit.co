@@ -641,22 +641,6 @@ function AnalyticsChart({
     maxTotal = Math.max(maxTotal, total);
   }
 
-  // Build tooltip with breakdown by group
-  const buildTooltip = (timeKey: string, counts: Map<string, number>) => {
-    const date = new Date(timeKey);
-    const label = formatTimeLabel(date, granularity);
-    const lines = [`${label}`];
-    for (const g of groups) {
-      const count = counts.get(g) || 0;
-      if (count > 0) {
-        lines.push(
-          `${formatGroupLabel(JSON.parse(g))}: ${count.toLocaleString()}`,
-        );
-      }
-    }
-    return lines.join("\n");
-  };
-
   return (
     <div class="analytics-chart">
       <h3>
@@ -670,31 +654,28 @@ function AnalyticsChart({
             const label = formatTimeLabel(date, granularity);
 
             return (
-              <Tappable
-                key={idx}
-                class="chart-bar-wrapper"
-                tip={buildTooltip(timeKey, counts)}
-              >
-                <>
-                  <div class="chart-bar-stack" style={{ height: chartHeight }}>
-                    {groups.map((g) => {
-                      const count = counts.get(g) || 0;
-                      const height = `${(count / maxTotal) * 40}em`;
-                      return (
-                        <div
-                          key={g}
-                          class="chart-bar-segment"
-                          style={{
-                            height,
-                            backgroundColor: groupColors.get(g),
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                  <span class="chart-label">{label}</span>
-                </>
-              </Tappable>
+              <div key={idx} class="chart-bar-wrapper">
+                <div class="chart-bar-stack" style={{ height: chartHeight }}>
+                  {groups.map((g) => {
+                    const count = counts.get(g) || 0;
+                    const height = `${(count / maxTotal) * 40}em`;
+                    return (
+                      <Tappable
+                        key={g}
+                        class="chart-bar-segment"
+                        style={{
+                          height,
+                          backgroundColor: groupColors.get(g),
+                        }}
+                        tip={`${label}\n${formatGroupLabel(JSON.parse(g))}: ${count.toLocaleString()}`}
+                      >
+                        <></>
+                      </Tappable>
+                    );
+                  })}
+                </div>
+                <span class="chart-label">{label}</span>
+              </div>
             );
           })}
         </div>
@@ -868,6 +849,14 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
     return { start, end };
   };
 
+  // Check if hourly granularity exceeds 3 day limit
+  const hourlyLimitExceeded = (() => {
+    if (granularity !== "hour") return false;
+    const { start, end } = getTimeRange();
+    const daysDiff = (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000);
+    return daysDiff > 3;
+  })();
+
   const runQuery = async () => {
     // Cancel any pending request
     if (abortRef.current) {
@@ -1035,12 +1024,9 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
                 </option>
               ))}
             </select>
-            {granularity === "hour" &&
-              timeRange !== "1d" &&
-              timeRange !== "3d" &&
-              timeRange !== "custom" && (
-                <span class="warning">Limited to 3 days</span>
-              )}
+            {hourlyLimitExceeded && (
+              <span class="limit-warning">Limited to 3 days</span>
+            )}
           </div>
           <div class="query-row">
             <span class="query-label">Limit:</span>
@@ -1130,7 +1116,11 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
             </div>
           )}
           <div class="run-query-row">
-            <button type="submit" class="run-query">
+            <button
+              type="submit"
+              class="run-query"
+              disabled={hourlyLimitExceeded}
+            >
               <span class="icon">▶</span>Run query
             </button>
             {data && data.buckets.length >= limit && (

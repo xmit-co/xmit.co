@@ -1,5 +1,5 @@
 import { route } from "preact-router";
-import { Link } from "preact-router/match";
+import Match, { Link } from "preact-router/match";
 import { useContext, useEffect } from "preact/hooks";
 import { logError, Session, StateCtx } from "./app.tsx";
 import { enroll, signin, signout } from "./webauthn.tsx";
@@ -39,12 +39,20 @@ export function Header({ session }: { session?: Session }) {
         </Link>
         {!ready ? null : uid !== undefined ? (
           <>
-            <Link activeClassName="header-active" href="/admin">
-              🛠 admin
-            </Link>
-            <Link activeClassName="header-active" href="/analytics">
-              📊 analytics
-            </Link>
+            <Match path="/admin/:rest*">
+              {({ matches }: { matches: boolean }) => (
+                <a href="/admin" class={matches ? "header-active" : ""}>
+                  🛠 admin
+                </a>
+              )}
+            </Match>
+            <Match path="/analytics/:rest*">
+              {({ matches }: { matches: boolean }) => (
+                <a href="/analytics" class={matches ? "header-active" : ""}>
+                  📊 analytics
+                </a>
+              )}
+            </Match>
             <a
               href="#"
               onClick={(e) => {
