@@ -773,6 +773,7 @@ function AnalyticsBody({
   const initialStart = params.get("start") || "";
   const initialEnd = params.get("end") || "";
   const initialStacked = params.get("stacked") === "1";
+  const initialViewMode = params.get("view") === "table" ? "table" : "chart";
 
   const [timeRange, setTimeRange] = useState(initialTimeRange);
   const [granularity, setGranularity] = useState(initialGranularity);
@@ -782,6 +783,7 @@ function AnalyticsBody({
   const [customStart, setCustomStart] = useState(initialStart);
   const [customEnd, setCustomEnd] = useState(initialEnd);
   const [stacked, setStacked] = useState(initialStacked);
+  const [viewMode, setViewMode] = useState<"chart" | "table">(initialViewMode);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -798,6 +800,7 @@ function AnalyticsBody({
       start: timeRange === "custom" && customStart ? customStart : null,
       end: timeRange === "custom" && customEnd ? customEnd : null,
       stacked: stacked ? "1" : null,
+      view: viewMode !== "chart" ? viewMode : null,
     });
     const targetSiteID = newSiteID ?? siteID;
     window.history.replaceState(
@@ -818,6 +821,7 @@ function AnalyticsBody({
     customStart,
     customEnd,
     stacked,
+    viewMode,
   ]);
 
   const getTimeRange = () => {
@@ -1210,31 +1214,44 @@ function AnalyticsBody({
       </section>
 
       {data && (
-        <>
-          <section>
-            <h2>
-              <span class="icon">📊</span>Visualization
-            </h2>
-            <AnalyticsChart
-              data={data}
-              granularity={granularity}
-              stacked={stacked}
-              setStacked={setStacked}
-            />
-          </section>
-          <section>
-            <h2>
-              <span class="icon">📋</span>Table{" "}
+        <section>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1em" }}>
+            <div class="tabs" style={{ margin: 0 }}>
+              <button
+                type="button"
+                class={viewMode === "chart" ? "active" : ""}
+                onClick={() => setViewMode("chart")}
+              >
+                <span class="icon">📊</span>Chart
+              </button>
+              <button
+                type="button"
+                class={viewMode === "table" ? "active" : ""}
+                onClick={() => setViewMode("table")}
+              >
+                <span class="icon">📋</span>Table
+              </button>
+            </div>
+            {viewMode === "table" && (
               <button
                 class="download-csv"
                 onClick={() => downloadCSV(data, granularity)}
               >
                 Download CSV
               </button>
-            </h2>
+            )}
+          </div>
+          {viewMode === "chart" ? (
+            <AnalyticsChart
+              data={data}
+              granularity={granularity}
+              stacked={stacked}
+              setStacked={setStacked}
+            />
+          ) : (
             <AnalyticsTable data={data} granularity={granularity} />
-          </section>
-        </>
+          )}
+        </section>
       )}
     </>
   );
