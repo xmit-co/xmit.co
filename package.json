@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@preact/signals": "^1.2.3",
-    "cbor-x": "^1.5.9",
+    "cbor-x": "^1.6.0",
     "preact": "^10.20.2",
     "preact-router": "^4.1.2",
     "sockette": "^2.0.6",
