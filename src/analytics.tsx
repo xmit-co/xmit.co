@@ -178,7 +178,7 @@ async function fetchAnalytics(
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`Analytics request failed: ${text}`);
+    throw new Error(text || `Analytics request failed (${response.status})`);
   }
 
   const data = new Uint8Array(await response.arrayBuffer());
