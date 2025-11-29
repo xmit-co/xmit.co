@@ -64,6 +64,7 @@ interface AnalyticsBucket {
 interface AnalyticsResponse {
   groupKeys: string[];
   buckets: AnalyticsBucket[];
+  strings: string[]; // String interning table
 }
 
 // Defaults
@@ -152,18 +153,20 @@ function decodeResponse(data: Uint8Array): AnalyticsResponse {
   const m = decoder.decode(data) as Map<number, any>;
   const groupKeys = m.get(1) || [];
   const rawBuckets = m.get(2) || [];
+  const strings: string[] = m.get(3) || [];
 
   const buckets: AnalyticsBucket[] = rawBuckets.map((b: Map<number, any>) => {
     const rawTime = b.get(1);
     const time = rawTime instanceof Date ? rawTime : new Date(rawTime * 1000);
+    const groupIndices: number[] = b.get(2) || [];
     return {
       time,
-      groups: b.get(2) || [],
+      groups: groupIndices.map((idx) => strings[idx] ?? ""),
       count: b.get(3) || 0,
     };
   });
 
-  return { groupKeys, buckets };
+  return { groupKeys, buckets, strings };
 }
 
 async function fetchAnalytics(
@@ -836,13 +839,6 @@ function AnalyticsBody({
     return { start, end };
   };
 
-  const hourlyLimitExceeded = (() => {
-    if (granularity !== "hour") return false;
-    const { start, end } = getTimeRange();
-    const daysDiff = (end.getTime() - start.getTime()) / MS_PER_DAY;
-    return daysDiff > 3;
-  })();
-
   const runQuery = async () => {
     if (abortRef.current) {
       abortRef.current.abort();
@@ -853,11 +849,6 @@ function AnalyticsBody({
     setLoading(true);
 
     const { start, end } = getTimeRange();
-    const daysDiff = (end.getTime() - start.getTime()) / MS_PER_DAY;
-    let effectiveGranularity = granularity;
-    if (granularity === "hour" && daysDiff > 3) {
-      effectiveGranularity = "day";
-    }
 
     const validFilters = filters.filter(
       (f) =>
@@ -871,7 +862,7 @@ function AnalyticsBody({
           siteID,
           start,
           end,
-          granularity: effectiveGranularity,
+          granularity,
           filters: validFilters,
           groupBy,
           limit,
@@ -1120,9 +1111,6 @@ function AnalyticsBody({
                 </option>
               ))}
             </select>
-            {hourlyLimitExceeded && (
-              <span class="limit-warning">Limited to 3 days</span>
-            )}
           </div>
           <div class="query-row">
             <span class="query-label">Limit:</span>
@@ -1212,11 +1200,7 @@ function AnalyticsBody({
             </div>
           )}
           <div class="run-query-row">
-            <button
-              type="submit"
-              class="run-query"
-              disabled={hourlyLimitExceeded}
-            >
+            <button type="submit" class="run-query">
               <span class="icon">▶</span>Run query
             </button>
             {data && data.buckets.length >= limit && (
