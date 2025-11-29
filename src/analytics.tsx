@@ -378,14 +378,11 @@ function formatDateISO(date: Date): string {
   return date.toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
-function formatTimeLabel(date: Date, granularity: string): string {
+function formatChartLabel(date: Date, granularity: string): string {
   if (granularity === "hour") {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  } else if (granularity === "day") {
-    return date.toLocaleDateString([], { month: "short", day: "numeric" });
-  } else {
-    return date.toLocaleDateString([], { month: "short", year: "2-digit" });
+    return formatDateISO(date);
   }
+  return date.toISOString().slice(0, 10);
 }
 
 function formatGroupLabel(groups: any[]): string {
@@ -582,7 +579,7 @@ function AnalyticsChart({
           <div class="chart-bars">
             {data.buckets.map((bucket, idx) => {
               const height = `${(bucket.count / maxCount) * CHART_HEIGHT_EM}em`;
-              const label = formatTimeLabel(new Date(bucket.time), granularity);
+              const label = formatChartLabel(new Date(bucket.time), granularity);
               return (
                 <Tappable
                   key={idx}
@@ -638,7 +635,7 @@ function AnalyticsChart({
           {times.map((timeKey, idx) => {
             const counts = timeMap.get(timeKey)!;
             const date = new Date(timeKey);
-            const label = formatTimeLabel(date, granularity);
+            const label = formatChartLabel(date, granularity);
 
             return (
               <div key={idx} class="chart-bar-wrapper">
@@ -686,7 +683,7 @@ function downloadCSV(data: AnalyticsResponse, granularity: string) {
   const hasTime = granularity !== "none";
   const headers = [...(hasTime ? ["Time"] : []), ...data.groupKeys, "Requests"];
   const rows = data.buckets.map((b) => [
-    ...(hasTime ? [formatDateISO(new Date(b.time))] : []),
+    ...(hasTime ? [formatChartLabel(new Date(b.time), granularity)] : []),
     ...b.groups.map((g) => g || ""),
     String(b.count),
   ]);
@@ -739,7 +736,7 @@ function AnalyticsTable({ data, granularity }: AnalyticsTableProps) {
           {tableData.map((row, idx) => (
             <tr key={idx}>
               {hasTime && row.time && (
-                <td>{formatDateISO(new Date(row.time))}</td>
+                <td>{formatChartLabel(new Date(row.time), granularity)}</td>
               )}
               {row.groups.map((g, gidx) => (
                 <td key={gidx} title={g || ""}>
