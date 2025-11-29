@@ -53,6 +53,7 @@ interface AnalyticsRequest {
   filters: AnalyticsFilter[];
   groupBy: string[];
   limit: number;
+  minCount: number;
 }
 
 interface AnalyticsBucket {
@@ -145,6 +146,7 @@ function encodeRequest(req: AnalyticsRequest): Uint8Array {
   if (filters.length > 0) m.set(5, filters);
   if (req.groupBy.length > 0) m.set(6, req.groupBy);
   if (req.limit > 0) m.set(7, req.limit);
+  if (req.minCount > 0) m.set(8, req.minCount);
 
   return encoder.encode(m);
 }
@@ -226,6 +228,7 @@ function FilterRow({
         filters: validFilters,
         groupBy: [filter.column],
         limit: 100,
+        minCount: 1,
       });
       setSuggestions(
         result.buckets.map((b) => b.groups[0] || "").filter((v) => v !== ""),
@@ -770,6 +773,7 @@ function AnalyticsBody({
     params.get("groupBy")?.split(",").filter(Boolean) || [];
   const initialFilters = decodeFilters(params.get("filters") || "");
   const initialLimit = Number(params.get("limit")) || DEFAULT_LIMIT;
+  const initialMinCount = Number(params.get("minCount")) || 0;
   const initialStart = params.get("start") || "";
   const initialEnd = params.get("end") || "";
   const initialStacked = params.get("stacked") === "1";
@@ -780,6 +784,7 @@ function AnalyticsBody({
   const [groupBy, setGroupBy] = useState<string[]>(initialGroupBy);
   const [filters, setFilters] = useState<AnalyticsFilter[]>(initialFilters);
   const [limit, setLimit] = useState(initialLimit);
+  const [minCount, setMinCount] = useState(initialMinCount);
   const [customStart, setCustomStart] = useState(initialStart);
   const [customEnd, setCustomEnd] = useState(initialEnd);
   const [stacked, setStacked] = useState(initialStacked);
@@ -797,6 +802,7 @@ function AnalyticsBody({
       groupBy: groupBy.length > 0 ? groupBy.join(",") : null,
       filters: encodeFilters(filters) || null,
       limit: limit !== DEFAULT_LIMIT ? String(limit) : null,
+      minCount: minCount > 0 ? String(minCount) : null,
       start: timeRange === "custom" && customStart ? customStart : null,
       end: timeRange === "custom" && customEnd ? customEnd : null,
       stacked: stacked ? "1" : null,
@@ -818,6 +824,7 @@ function AnalyticsBody({
     groupBy,
     filters,
     limit,
+    minCount,
     customStart,
     customEnd,
     stacked,
@@ -867,6 +874,7 @@ function AnalyticsBody({
           filters: validFilters,
           groupBy,
           limit,
+          minCount,
         },
         controller.signal,
       );
@@ -1123,6 +1131,18 @@ function AnalyticsBody({
               class="limit-input"
               onInput={(e) =>
                 setLimit(Number((e.target as HTMLInputElement).value) || 100)
+              }
+            />
+          </div>
+          <div class="query-row">
+            <span class="query-label">Skip below:</span>
+            <input
+              type="number"
+              value={minCount}
+              min={0}
+              class="limit-input"
+              onInput={(e) =>
+                setMinCount(Number((e.target as HTMLInputElement).value) || 0)
               }
             />
           </div>
