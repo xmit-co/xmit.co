@@ -1,6 +1,6 @@
 import { JSX } from "preact";
 import { route } from "preact-router";
-import { useContext, useEffect, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import {
   loadSession,
   loadSite,
@@ -835,7 +835,7 @@ function AnalyticsBody({
     viewMode,
   ]);
 
-  const getTimeRange = () => {
+  const timeRangeDates = useMemo(() => {
     let start: Date;
     let end: Date;
     if (timeRange === "custom" && customStart && customEnd) {
@@ -849,7 +849,7 @@ function AnalyticsBody({
       start = new Date(end.getTime() - range.days * MS_PER_DAY);
     }
     return { start, end };
-  };
+  }, [timeRange, customStart, customEnd]);
 
   const runQuery = async () => {
     if (abortRef.current) {
@@ -860,7 +860,7 @@ function AnalyticsBody({
 
     setLoading(true);
 
-    const { start, end } = getTimeRange();
+    const { start, end } = timeRangeDates;
 
     const validFilters = filters.filter(
       (f) =>
@@ -918,11 +918,15 @@ function AnalyticsBody({
     route(`/analytics/site/${newSiteID}${window.location.search}`);
   };
 
-  const savedViews = userSettings?.analyticsViews
-    ? Array.from(userSettings.analyticsViews.entries()).sort((a, b) =>
-        a[0].localeCompare(b[0]),
-      )
-    : [];
+  const savedViews = useMemo(
+    () =>
+      userSettings?.analyticsViews
+        ? Array.from(userSettings.analyticsViews.entries()).sort((a, b) =>
+            a[0].localeCompare(b[0]),
+          )
+        : [],
+    [userSettings?.analyticsViews],
+  );
 
   const saveView = (name: string) => {
     if (!name.trim()) return;
@@ -1164,7 +1168,7 @@ function AnalyticsBody({
                       onChange={(f) => updateFilter(idx, f)}
                       onRemove={() => removeFilter(idx)}
                       siteID={siteID}
-                      timeRange={getTimeRange()}
+                      timeRange={timeRangeDates}
                       otherFilters={filters.filter((_, i) => i !== idx)}
                     />
                   ))}
