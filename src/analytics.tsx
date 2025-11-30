@@ -227,7 +227,12 @@ const FilterRow = memo(function FilterRow({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const listId = `filter-${filter.column}-suggestions`;
 
-  const onChange = (f: AnalyticsFilter) => onUpdate(idx, f);
+  const onChange = (f: AnalyticsFilter) => {
+    if (f.column !== filter.column) {
+      setSuggestions([]);
+    }
+    onUpdate(idx, f);
+  };
 
   const fetchSuggestions = async () => {
     if (suggestions.length > 0) return;
