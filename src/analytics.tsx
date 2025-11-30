@@ -1,6 +1,6 @@
-import { JSX } from "preact";
+import { JSX, memo } from "preact/compat";
 import { route } from "preact-router";
-import { useContext, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useContext, useEffect, useMemo, useRef, useState, useCallback } from "preact/hooks";
 import {
   loadSession,
   loadSite,
@@ -195,30 +195,35 @@ async function fetchAnalytics(
 }
 
 interface FilterRowProps {
+  idx: number;
   filter: AnalyticsFilter;
-  onChange: (filter: AnalyticsFilter) => void;
-  onRemove: () => void;
+  filters: AnalyticsFilter[];
+  onUpdate: (idx: number, filter: AnalyticsFilter) => void;
+  onRemove: (idx: number) => void;
   siteID: number;
   timeRange: { start: Date; end: Date };
-  otherFilters: AnalyticsFilter[];
 }
 
-function FilterRow({
+const FilterRow = memo(function FilterRow({
+  idx,
   filter,
-  onChange,
+  filters,
+  onUpdate,
   onRemove,
   siteID,
   timeRange,
-  otherFilters,
 }: FilterRowProps) {
   const [inputValue, setInputValue] = useState("");
   const [excludeMode, setExcludeMode] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const listId = `filter-${filter.column}-suggestions`;
 
+  const onChange = (f: AnalyticsFilter) => onUpdate(idx, f);
+
   const fetchSuggestions = async () => {
     if (suggestions.length > 0) return;
     try {
+      const otherFilters = filters.filter((_, i) => i !== idx);
       const validFilters = otherFilters.filter(
         (f) =>
           f.column &&
@@ -256,8 +261,8 @@ function FilterRow({
     setInputValue("");
   };
 
-  const removeValue = (idx: number) => {
-    const newValues = values.filter((_, i) => i !== idx);
+  const removeValue = (vidx: number) => {
+    const newValues = values.filter((_, i) => i !== vidx);
     if (isExclude) {
       onChange({
         ...filter,
@@ -307,13 +312,13 @@ function FilterRow({
         {isExclude ? "excludes" : "includes"}
       </button>
       <div class="filter-values">
-        {values.map((v, idx) => (
-          <span key={idx} class="filter-tag">
+        {values.map((v, vidx) => (
+          <span key={vidx} class="filter-tag">
             {v === "" ? <em>empty</em> : v}
             <button
               type="button"
               class="tag-remove"
-              onClick={() => removeValue(idx)}
+              onClick={() => removeValue(vidx)}
             >
               ×
             </button>
@@ -334,7 +339,7 @@ function FilterRow({
               if (values.length > 0) {
                 removeValue(values.length - 1);
               } else {
-                onRemove();
+                onRemove(idx);
               }
             }
           }}
@@ -363,12 +368,12 @@ function FilterRow({
           </button>
         )}
       </div>
-      <button type="button" class="delete" onClick={onRemove}>
+      <button type="button" class="delete" onClick={() => onRemove(idx)}>
         ×
       </button>
     </div>
   );
-}
+});
 
 const GROUP_COLORS = [
   "#0f0",
@@ -405,7 +410,7 @@ interface AnalyticsChartProps {
   setStacked: (stacked: boolean) => void;
 }
 
-function AnalyticsChart({
+const AnalyticsChart = memo(function AnalyticsChart({
   data,
   granularity,
   stacked,
@@ -684,7 +689,7 @@ function AnalyticsChart({
       </div>
     </div>
   );
-}
+});
 
 function downloadCSV(data: AnalyticsResponse, granularity: string) {
   const hasTime = granularity !== "none";
@@ -711,7 +716,7 @@ interface AnalyticsTableProps {
   granularity: string;
 }
 
-function AnalyticsTable({ data, granularity }: AnalyticsTableProps) {
+const AnalyticsTable = memo(function AnalyticsTable({ data, granularity }: AnalyticsTableProps) {
   if (data.buckets.length === 0) {
     return (
       <p>
@@ -721,11 +726,6 @@ function AnalyticsTable({ data, granularity }: AnalyticsTableProps) {
   }
 
   const hasTime = granularity !== "none";
-  const tableData = data.buckets.map((b) => ({
-    time: b.time,
-    groups: b.groups,
-    count: b.count,
-  }));
 
   return (
     <div class="analytics-table">
@@ -740,24 +740,24 @@ function AnalyticsTable({ data, granularity }: AnalyticsTableProps) {
           </tr>
         </thead>
         <tbody>
-          {tableData.map((row, idx) => (
+          {data.buckets.map((b, idx) => (
             <tr key={idx}>
-              {hasTime && row.time && (
-                <td>{formatChartLabel(new Date(row.time), granularity)}</td>
+              {hasTime && b.time && (
+                <td>{formatChartLabel(new Date(b.time), granularity)}</td>
               )}
-              {row.groups.map((g, gidx) => (
+              {b.groups.map((g, gidx) => (
                 <td key={gidx} title={g || ""}>
                   {g || <em>empty</em>}
                 </td>
               ))}
-              <td class="count">{row.count.toLocaleString()}</td>
+              <td class="count">{b.count.toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
   );
-}
+});
 
 function AnalyticsBody({
   site,
@@ -899,19 +899,21 @@ function AnalyticsBody({
     runQuery();
   }, []);
 
-  const addFilter = () => {
-    setFilters([...filters, { column: "path", in: [] }]);
-  };
+  const addFilter = useCallback(() => {
+    setFilters((f) => [...f, { column: "path", in: [] }]);
+  }, []);
 
-  const updateFilter = (idx: number, filter: AnalyticsFilter) => {
-    const newFilters = [...filters];
-    newFilters[idx] = filter;
-    setFilters(newFilters);
-  };
+  const updateFilter = useCallback((idx: number, filter: AnalyticsFilter) => {
+    setFilters((f) => {
+      const newFilters = [...f];
+      newFilters[idx] = filter;
+      return newFilters;
+    });
+  }, []);
 
-  const removeFilter = (idx: number) => {
-    setFilters(filters.filter((_, i) => i !== idx));
-  };
+  const removeFilter = useCallback((idx: number) => {
+    setFilters((f) => f.filter((_, i) => i !== idx));
+  }, []);
 
   const changeSite = (newSiteID: number) => {
     updateUrl(newSiteID);
@@ -1164,12 +1166,13 @@ function AnalyticsBody({
                   {filters.map((filter, idx) => (
                     <FilterRow
                       key={`${siteID}-${idx}`}
+                      idx={idx}
                       filter={filter}
-                      onChange={(f) => updateFilter(idx, f)}
-                      onRemove={() => removeFilter(idx)}
+                      filters={filters}
+                      onUpdate={updateFilter}
+                      onRemove={removeFilter}
                       siteID={siteID}
                       timeRange={timeRangeDates}
-                      otherFilters={filters.filter((_, i) => i !== idx)}
                     />
                   ))}
                 </div>
