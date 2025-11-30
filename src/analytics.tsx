@@ -227,7 +227,12 @@ const FilterRow = memo(function FilterRow({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const listId = `filter-${filter.column}-suggestions`;
 
-  const onChange = (f: AnalyticsFilter) => onUpdate(idx, f);
+  const onChange = (f: AnalyticsFilter) => {
+    if (f.column !== filter.column) {
+      setSuggestions([]);
+    }
+    onUpdate(idx, f);
+  };
 
   const fetchSuggestions = async () => {
     if (suggestions.length > 0) return;
@@ -662,6 +667,9 @@ const AnalyticsChart = memo(function AnalyticsChart({
     maxTotal = Math.max(maxTotal, total);
   }
 
+  // Hide labels if bars are too narrow (more than 3 days of hourly data)
+  const showLabels = times.length <= 75;
+
   return (
     <div class="analytics-chart">
       <div class="chart-container">
@@ -692,14 +700,14 @@ const AnalyticsChart = memo(function AnalyticsChart({
                     );
                   })}
                 </div>
-                <span class="chart-label">{label}</span>
+                {showLabels && <span class="chart-label">{label}</span>}
               </div>
             );
           })}
         </div>
       </div>
       <div class="chart-legend">
-        {groups.map((g) => (
+        {groups.slice(0, 100).map((g) => (
           <span key={g} class="legend-item" title={formatGroupLabel(JSON.parse(g))}>
             <span
               class="legend-color"
@@ -708,6 +716,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
             <span class="legend-text">{formatGroupLabel(JSON.parse(g))}</span>
           </span>
         ))}
+        {groups.length > 100 && <span class="legend-item">…</span>}
       </div>
     </div>
   );
@@ -749,16 +758,26 @@ const AnalyticsTable = memo(function AnalyticsTable({ result }: AnalyticsTablePr
 
   const hasTime = granularity !== "none";
 
+  // Calculate distinct counts per dimension and total count
+  const distinctTimes = hasTime
+    ? new Set(data.buckets.map((b) => new Date(b.time).toISOString())).size
+    : 0;
+  const distinctCounts = data.groupKeys.map((_, idx) => {
+    const values = new Set(data.buckets.map((b) => b.groups[idx]));
+    return values.size;
+  });
+  const totalCount = data.buckets.reduce((sum, b) => sum + b.count, 0);
+
   return (
     <div class="analytics-table">
       <table>
         <thead>
           <tr>
-            {hasTime && <th>Time</th>}
-            {data.groupKeys.map((key) => (
-              <th key={key}>{key}</th>
+            {hasTime && <th>Time ({distinctTimes})</th>}
+            {data.groupKeys.map((key, idx) => (
+              <th key={key}>{key} ({distinctCounts[idx]})</th>
             ))}
-            <th>{metric === "bytes" ? "Bytes" : "Requests"}</th>
+            <th>{metric === "bytes" ? "Bytes" : "Requests"} ({formatMetricValue(totalCount, metric)})</th>
           </tr>
         </thead>
         <tbody>
