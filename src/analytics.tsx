@@ -612,12 +612,12 @@ const AnalyticsChart = memo(function AnalyticsChart({
   }
 
   const timeMap = new Map<string, Map<string, number>>();
-  const allGroups = new Set<string>();
+  const groupTotals = new Map<string, number>();
 
   for (const bucket of data.buckets) {
     const timeKey = new Date(bucket.time).toISOString();
     const groupKey = JSON.stringify(bucket.groups);
-    allGroups.add(groupKey);
+    groupTotals.set(groupKey, (groupTotals.get(groupKey) || 0) + bucket.count);
 
     if (!timeMap.has(timeKey)) {
       timeMap.set(timeKey, new Map());
@@ -626,7 +626,9 @@ const AnalyticsChart = memo(function AnalyticsChart({
   }
 
   const times = Array.from(timeMap.keys()).sort();
-  const groups = Array.from(allGroups);
+  const groups = Array.from(groupTotals.keys()).sort(
+    (a, b) => (groupTotals.get(b) || 0) - (groupTotals.get(a) || 0),
+  );
   const groupColors = new Map(
     groups.map((g, i) => [g, GROUP_COLORS[i % GROUP_COLORS.length]]),
   );
