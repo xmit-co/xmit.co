@@ -39,7 +39,7 @@ export async function enroll() {
     body: encoder.encode(
       new Map<number, any>([
         [1, id],
-        [2, attestationObject],
+        [2, new Uint8Array(attestationObject)],
       ]),
     ),
   });
@@ -77,9 +77,9 @@ export async function signin() {
     body: encoder.encode(
       new Map<number, any>([
         [1, id],
-        [2, clientDataJSON],
-        [3, authenticatorData],
-        [4, signature],
+        [2, new Uint8Array(clientDataJSON)],
+        [3, new Uint8Array(authenticatorData)],
+        [4, new Uint8Array(signature)],
       ]),
     ),
   });
