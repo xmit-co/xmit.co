@@ -489,7 +489,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
         maxTotal = Math.max(maxTotal, total);
       }
 
-      const countWidth = `${formatMetricValue(maxTotal, metric).length}ch`;
+      const countWidth = `${formatMetricValue(maxTotal, metric).length + 2}ch`;
 
       return (
         <>
@@ -556,7 +556,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
     }
 
     const maxCount = Math.max(...data.buckets.map((b) => b.count), 1);
-    const countWidth = `${formatMetricValue(maxCount, metric).length}ch`;
+    const countWidth = `${formatMetricValue(maxCount, metric).length + 2}ch`;
 
     return (
       <>

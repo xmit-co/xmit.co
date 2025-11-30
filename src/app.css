@@ -521,6 +521,7 @@ span.icon {
   background: #0f0;
 }
 .hbar-count {
+  min-width: 5em;
   text-align: right;
 }
 .chart-bars {
