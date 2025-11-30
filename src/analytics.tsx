@@ -69,6 +69,12 @@ interface AnalyticsResponse {
   strings: string[]; // String interning table
 }
 
+interface AnalyticsResult {
+  data: AnalyticsResponse;
+  granularity: string;
+  metric: string;
+}
+
 // Defaults
 const DEFAULT_TIME_RANGE = "7d";
 const DEFAULT_GRANULARITY = "day";
@@ -419,20 +425,17 @@ function formatMetricValue(value: number, metric: string): string {
 }
 
 interface AnalyticsChartProps {
-  data: AnalyticsResponse;
-  granularity: string;
+  result: AnalyticsResult;
   stacked: boolean;
   setStacked: (stacked: boolean) => void;
-  metric: string;
 }
 
 const AnalyticsChart = memo(function AnalyticsChart({
-  data,
-  granularity,
+  result,
   stacked,
   setStacked,
-  metric,
 }: AnalyticsChartProps) {
+  const { data, granularity, metric } = result;
   if (data.buckets.length === 0) {
     return null;
   }
@@ -731,12 +734,11 @@ function downloadCSV(data: AnalyticsResponse, granularity: string) {
 }
 
 interface AnalyticsTableProps {
-  data: AnalyticsResponse;
-  granularity: string;
-  metric: string;
+  result: AnalyticsResult;
 }
 
-const AnalyticsTable = memo(function AnalyticsTable({ data, granularity, metric }: AnalyticsTableProps) {
+const AnalyticsTable = memo(function AnalyticsTable({ result }: AnalyticsTableProps) {
+  const { data, granularity, metric } = result;
   if (data.buckets.length === 0) {
     return (
       <p>
@@ -816,7 +818,7 @@ function AnalyticsBody({
   const [viewMode, setViewMode] = useState<"chart" | "table">(initialViewMode);
   const [metric, setMetric] = useState(initialMetric);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<AnalyticsResponse | null>(null);
+  const [result, setResult] = useState<AnalyticsResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const [saveViewName, setSaveViewName] = useState("");
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -893,7 +895,7 @@ function AnalyticsBody({
     );
 
     try {
-      const result = await fetchAnalytics(
+      const data = await fetchAnalytics(
         {
           siteID,
           start,
@@ -907,7 +909,7 @@ function AnalyticsBody({
         },
         controller.signal,
       );
-      setData(result);
+      setResult({ data, granularity, metric });
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
         return; // Cancelled, don't update state
@@ -1272,7 +1274,7 @@ function AnalyticsBody({
             <button type="submit" class="run-query">
               <span class="icon">▶</span>Run query
             </button>
-            {data && data.buckets.length >= limit && (
+            {result && result.data.buckets.length >= limit && (
               <span class="limit-warning">
                 Limit of {limit.toLocaleString()} reached
               </span>
@@ -1281,7 +1283,7 @@ function AnalyticsBody({
         </form>
       </section>
 
-      {data && (
+      {result && (
         <section>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1em" }}>
             <div class="tabs" style={{ margin: 0 }}>
@@ -1303,7 +1305,7 @@ function AnalyticsBody({
             {viewMode === "table" && (
               <button
                 class="download-csv"
-                onClick={() => downloadCSV(data, granularity)}
+                onClick={() => downloadCSV(result.data, result.granularity)}
               >
                 Download CSV
               </button>
@@ -1311,14 +1313,12 @@ function AnalyticsBody({
           </div>
           {viewMode === "chart" ? (
             <AnalyticsChart
-              data={data}
-              granularity={granularity}
+              result={result}
               stacked={stacked}
               setStacked={setStacked}
-              metric={metric}
             />
           ) : (
-            <AnalyticsTable data={data} granularity={granularity} metric={metric} />
+            <AnalyticsTable result={result} />
           )}
         </section>
       )}
