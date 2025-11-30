@@ -599,19 +599,26 @@ span.icon {
 .query-spinner {
   float: right;
 }
-.saved-views {
+.bookmarks {
+  margin-bottom: 1em;
+}
+.bookmarks summary {
+  cursor: pointer;
+  user-select: none;
+}
+.bookmarks-list {
+  margin-top: 0.5em;
+  padding-left: 1em;
+}
+.bookmark-item {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 0.5em;
-  align-items: center;
+  padding: 0.25em 0;
 }
-.saved-view-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3em;
+.bookmark-item a {
+  flex: 1;
 }
-.save-dialog {
-  display: inline-flex;
-  gap: 0.3em;
-  align-items: center;
+.bookmark-item input {
+  flex: 1;
 }

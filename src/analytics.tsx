@@ -1038,12 +1038,11 @@ function AnalyticsBody({
             <span class="icon">🔍</span>Query
             {loading && <span class="spinner query-spinner">⟳</span>}
           </h2>
-          <div class="query-row">
-            <span class="query-label">Bookmarks:</span>
-            <div class="saved-views">
-              {savedViews.length === 0 && !showSaveDialog && <em>None</em>}
+          <details class="bookmarks">
+            <summary>Bookmarks ({savedViews.length})</summary>
+            <div class="bookmarks-list">
               {savedViews.map(([name, view]) => (
-                <span key={name} class="saved-view-item">
+                <div key={name} class="bookmark-item">
                   <a href="#" onClick={(e) => { e.preventDefault(); loadView(view); }}>
                     {name}
                   </a>
@@ -1062,21 +1061,16 @@ function AnalyticsBody({
                   >
                     ×
                   </button>
-                </span>
+                </div>
               ))}
               {showSaveDialog ? (
-                <span class="save-dialog">
+                <div class="bookmark-item">
                   <input
                     type="text"
                     value={saveViewName}
                     placeholder="Bookmark name"
-                    style={{ width: "10em" }}
                     ref={(e) => e && e.focus()}
-                    onInput={(e) => {
-                      const t = e.target as HTMLInputElement;
-                      setSaveViewName(t.value);
-                      t.style.width = `max(10em, ${t.value.length}ch)`;
-                    }}
+                    onInput={(e) => setSaveViewName((e.target as HTMLInputElement).value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -1087,30 +1081,16 @@ function AnalyticsBody({
                       }
                     }}
                   />
-                  <button type="button" onClick={() => saveView(saveViewName)}>
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowSaveDialog(false);
-                      setSaveViewName("");
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </span>
+                  <button type="button" onClick={() => saveView(saveViewName)}>Save</button>
+                  <button type="button" onClick={() => { setShowSaveDialog(false); setSaveViewName(""); }}>Cancel</button>
+                </div>
               ) : (
-                <button
-                  type="button"
-                  class="add"
-                  onClick={() => setShowSaveDialog(true)}
-                >
-                  + Bookmark
-                </button>
+                <div class="bookmark-item">
+                  <button type="button" class="add" onClick={() => setShowSaveDialog(true)}>+ New bookmark</button>
+                </div>
               )}
             </div>
-          </div>
+          </details>
           <div class="query-row">
             <span class="query-label">Range:</span>
             <select
