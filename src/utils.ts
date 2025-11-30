@@ -1,4 +1,4 @@
-import { Decoder, Encoder } from "cbor-x";
+import { decode, encode } from "cbor2";
 
 export function u8eq(
   a: Uint8Array | undefined,
@@ -13,10 +13,5 @@ export function u8eq(
   return b.every((v, i) => a[i] === v);
 }
 
-const CBOROptions = {
-  useRecords: false,
-  mapsAsObjects: false,
-};
-
-export const encoder = new Encoder(CBOROptions);
-export const decoder = new Decoder(CBOROptions);
+export const encoder = { encode: (v: unknown) => encode(v) };
+export const decoder = { decode: (v: Uint8Array) => decode(v, { preferMap: true }) };

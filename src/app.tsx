@@ -387,7 +387,7 @@ function connect() {
       state.value = { ...state.value, ready: false };
     },
     onmessage: async (e) => {
-      const msg = decoder.decode(new Uint8Array(await e.data.arrayBuffer()));
+      const msg = decoder.decode(new Uint8Array(await e.data.arrayBuffer())) as Map<number, any>;
       state.value = ingestMessage(state.value, msg);
     },
   });
