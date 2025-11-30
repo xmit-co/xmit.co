@@ -1049,6 +1049,14 @@ function AnalyticsBody({
                   </a>
                   <button
                     type="button"
+                    class="update"
+                    title="Replace with current query"
+                    onClick={() => saveView(name)}
+                  >
+                    ↻
+                  </button>
+                  <button
+                    type="button"
                     class="delete"
                     onClick={() => deleteView(name)}
                   >

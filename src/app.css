@@ -129,6 +129,10 @@ button.delete {
   outline-color: #800;
 }
 
+button.update {
+  outline-color: #660;
+}
+
 .live {
   background-color: #080;
   outline-color: #080;
