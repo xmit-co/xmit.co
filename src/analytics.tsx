@@ -152,7 +152,18 @@ function encodeRequest(req: AnalyticsRequest): Uint8Array {
 }
 
 function decodeResponse(data: Uint8Array): AnalyticsResponse {
-  const m = decoder.decode(data) as Map<number, any>;
+  if (data.length === 0) {
+    return { groupKeys: [], buckets: [], strings: [] };
+  }
+
+  let m: Map<number, any>;
+  try {
+    m = decoder.decode(data) as Map<number, any>;
+  } catch (err) {
+    console.error("CBOR decode error:", err, "data length:", data.length, "first bytes:", Array.from(data.slice(0, 20)));
+    throw err;
+  }
+
   const groupKeys = m.get(1) || [];
   const rawBuckets = m.get(2) || [];
   const strings: string[] = m.get(3) || [];
@@ -186,8 +197,15 @@ async function fetchAnalytics(
     throw new Error(text || `Analytics request failed (${response.status})`);
   }
 
-  const data = new Uint8Array(await response.arrayBuffer());
-  return decodeResponse(data);
+  const buffer = await response.arrayBuffer();
+  const contentLength = response.headers.get("Content-Length");
+  if (contentLength && buffer.byteLength !== parseInt(contentLength, 10)) {
+    // Response was truncated (only for non-gzip responses)
+    if (!response.headers.get("Content-Encoding")) {
+      throw new Error(`Response truncated: got ${buffer.byteLength} bytes, expected ${contentLength}`);
+    }
+  }
+  return decodeResponse(new Uint8Array(buffer));
 }
 
 interface FilterRowProps {
