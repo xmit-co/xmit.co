@@ -54,6 +54,7 @@ interface AnalyticsRequest {
   groupBy: string[];
   limit: number;
   minCount: number;
+  metric: string; // "hits" or "bytes"
 }
 
 interface AnalyticsBucket {
@@ -82,6 +83,7 @@ const FILTER_COLUMNS = [
   { value: "referer", label: "Referrer" },
   { value: "status", label: "HTTP Status" },
   { value: "content_type", label: "Content Type" },
+  { value: "response_size", label: "Response Size" },
 ];
 
 const GRANULARITIES = [
@@ -147,6 +149,7 @@ function encodeRequest(req: AnalyticsRequest): Uint8Array {
   if (req.groupBy.length > 0) m.set(6, req.groupBy);
   if (req.limit > 0) m.set(7, req.limit);
   if (req.minCount > 0) m.set(8, req.minCount);
+  if (req.metric && req.metric !== "hits") m.set(9, req.metric);
 
   return encoder.encode(m);
 }
@@ -238,6 +241,7 @@ const FilterRow = memo(function FilterRow({
         groupBy: [filter.column],
         limit: 100,
         minCount: 1,
+        metric: "hits",
       });
       setSuggestions(
         result.buckets.map((b) => b.groups[0] || "").filter((v) => v !== ""),
@@ -403,11 +407,23 @@ function formatGroupLabel(groups: any[]): string {
     : "empty";
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function formatMetricValue(value: number, metric: string): string {
+  return metric === "bytes" ? formatBytes(value) : value.toLocaleString();
+}
+
 interface AnalyticsChartProps {
   data: AnalyticsResponse;
   granularity: string;
   stacked: boolean;
   setStacked: (stacked: boolean) => void;
+  metric: string;
 }
 
 const AnalyticsChart = memo(function AnalyticsChart({
@@ -415,6 +431,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
   granularity,
   stacked,
   setStacked,
+  metric,
 }: AnalyticsChartProps) {
   if (data.buckets.length === 0) {
     return null;
@@ -469,7 +486,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
         maxTotal = Math.max(maxTotal, total);
       }
 
-      const countWidth = `${maxTotal.toLocaleString().length}ch`;
+      const countWidth = `${formatMetricValue(maxTotal, metric).length}ch`;
 
       return (
         <>
@@ -506,7 +523,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
                             width: `${width}%`,
                             backgroundColor: segmentColors.get(seg),
                           }}
-                          tip={`${seg}: ${count.toLocaleString()}`}
+                          tip={`${seg}: ${formatMetricValue(count, metric)}`}
                         >
                           <></>
                         </Tappable>
@@ -514,7 +531,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
                     })}
                   </div>
                   <span class="hbar-count" style={{ width: countWidth }}>
-                    {total.toLocaleString()}
+                    {formatMetricValue(total, metric)}
                   </span>
                 </div>
               );
@@ -536,7 +553,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
     }
 
     const maxCount = Math.max(...data.buckets.map((b) => b.count), 1);
-    const countWidth = `${maxCount.toLocaleString().length}ch`;
+    const countWidth = `${formatMetricValue(maxCount, metric).length}ch`;
 
     return (
       <>
@@ -565,13 +582,13 @@ const AnalyticsChart = memo(function AnalyticsChart({
                   <Tappable
                     class="hbar-fill"
                     style={{ width: `${width}%` }}
-                    tip={`${bucket.count.toLocaleString()} requests`}
+                    tip={formatMetricValue(bucket.count, metric)}
                   >
                     <></>
                   </Tappable>
                 </div>
                 <span class="hbar-count" style={{ width: countWidth }}>
-                  {bucket.count.toLocaleString()}
+                  {formatMetricValue(bucket.count, metric)}
                 </span>
               </div>
             );
@@ -596,7 +613,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
                 <Tappable
                   key={idx}
                   class="chart-bar-wrapper"
-                  tip={`${label}: ${bucket.count.toLocaleString()} requests`}
+                  tip={`${label}: ${formatMetricValue(bucket.count, metric)}`}
                 >
                   <>
                     <div class="chart-bar" style={{ height }} />
@@ -665,7 +682,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
                           height,
                           backgroundColor: groupColors.get(g),
                         }}
-                        tip={`${label}\n${formatGroupLabel(JSON.parse(g))}: ${count.toLocaleString()}`}
+                        tip={`${label}\n${formatGroupLabel(JSON.parse(g))}: ${formatMetricValue(count, metric)}`}
                       >
                         <></>
                       </Tappable>
@@ -716,9 +733,10 @@ function downloadCSV(data: AnalyticsResponse, granularity: string) {
 interface AnalyticsTableProps {
   data: AnalyticsResponse;
   granularity: string;
+  metric: string;
 }
 
-const AnalyticsTable = memo(function AnalyticsTable({ data, granularity }: AnalyticsTableProps) {
+const AnalyticsTable = memo(function AnalyticsTable({ data, granularity, metric }: AnalyticsTableProps) {
   if (data.buckets.length === 0) {
     return (
       <p>
@@ -738,7 +756,7 @@ const AnalyticsTable = memo(function AnalyticsTable({ data, granularity }: Analy
             {data.groupKeys.map((key) => (
               <th key={key}>{key}</th>
             ))}
-            <th>Requests</th>
+            <th>{metric === "bytes" ? "Bytes" : "Requests"}</th>
           </tr>
         </thead>
         <tbody>
@@ -752,7 +770,7 @@ const AnalyticsTable = memo(function AnalyticsTable({ data, granularity }: Analy
                   {g || <em>empty</em>}
                 </td>
               ))}
-              <td class="count">{b.count.toLocaleString()}</td>
+              <td class="count">{formatMetricValue(b.count, metric)}</td>
             </tr>
           ))}
         </tbody>
@@ -784,6 +802,7 @@ function AnalyticsBody({
   const initialEnd = params.get("end") || "";
   const initialStacked = params.get("stacked") === "1";
   const initialViewMode = params.get("view") === "table" ? "table" : "chart";
+  const initialMetric = params.get("metric") === "bytes" ? "bytes" : "hits";
 
   const [timeRange, setTimeRange] = useState(initialTimeRange);
   const [granularity, setGranularity] = useState(initialGranularity);
@@ -795,6 +814,7 @@ function AnalyticsBody({
   const [customEnd, setCustomEnd] = useState(initialEnd);
   const [stacked, setStacked] = useState(initialStacked);
   const [viewMode, setViewMode] = useState<"chart" | "table">(initialViewMode);
+  const [metric, setMetric] = useState(initialMetric);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -813,6 +833,7 @@ function AnalyticsBody({
       end: timeRange === "custom" && customEnd ? customEnd : null,
       stacked: stacked ? "1" : null,
       view: viewMode !== "chart" ? viewMode : null,
+      metric: metric !== "hits" ? metric : null,
     });
     const targetSiteID = newSiteID ?? siteID;
     window.history.replaceState(
@@ -835,6 +856,7 @@ function AnalyticsBody({
     customEnd,
     stacked,
     viewMode,
+    metric,
   ]);
 
   const timeRangeDates = useMemo(() => {
@@ -881,6 +903,7 @@ function AnalyticsBody({
           groupBy,
           limit,
           minCount,
+          metric,
         },
         controller.signal,
       );
@@ -1134,6 +1157,18 @@ function AnalyticsBody({
             </select>
           </div>
           <div class="query-row">
+            <span class="query-label">Metric:</span>
+            <select
+              value={metric}
+              onChange={(e) =>
+                setMetric((e.target as HTMLSelectElement).value)
+              }
+            >
+              <option value="hits">Hits (request count)</option>
+              <option value="bytes">Bytes (response size)</option>
+            </select>
+          </div>
+          <div class="query-row">
             <span class="query-label">Limit:</span>
             <input
               type="number"
@@ -1280,9 +1315,10 @@ function AnalyticsBody({
               granularity={granularity}
               stacked={stacked}
               setStacked={setStacked}
+              metric={metric}
             />
           ) : (
-            <AnalyticsTable data={data} granularity={granularity} />
+            <AnalyticsTable data={data} granularity={granularity} metric={metric} />
           )}
         </section>
       )}
