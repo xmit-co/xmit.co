@@ -77,6 +77,20 @@ ul {
   padding: 0;
 }
 
+ul.emoji-list {
+  list-style: none;
+  margin-left: 0;
+  columns: auto 12em;
+}
+
+ul.emoji-list li {
+  break-inside: avoid;
+}
+
+ul.emoji-list li::before {
+  content: attr(data-emoji) " ";
+}
+
 /* Links and interactive elements */
 a {
   color: #ff0;

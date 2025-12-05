@@ -512,11 +512,11 @@ function TeamSummary({ teamID }: { teamID: number }) {
       )}
       <strong>Sites:</strong>
       {siteIDs.length > 0 ? (
-        <ul>
+        <ul class="emoji-list">
           {siteIDs.map((id) => {
             const site = loadSite(state, id);
             return (
-              <li key={id}>
+              <li key={id} data-emoji="🌐">
                 <Link href={`/admin/site/${id}`}>{site?.name || `#${id}`}</Link>
               </li>
             );
