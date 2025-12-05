@@ -48,7 +48,7 @@ interface TicketMessage {
   id: number;
   ticketId: number;
   userId: number;
-  isAdmin: boolean;
+  fromSupport: boolean;
   content: string;
   createdAt: Date;
 }
@@ -59,7 +59,7 @@ function decodeMessage(m: Map<number, any>): TicketMessage {
     id: m.get(1) || 0,
     ticketId: m.get(2) || 0,
     userId: m.get(3) || 0,
-    isAdmin: m.get(4) || false,
+    fromSupport: m.get(4) || false,
     content: m.get(5) || "",
     createdAt:
       rawCreatedAt instanceof Date
@@ -239,7 +239,7 @@ function TicketList({
 function TicketView({
   ticket,
   messages,
-  isAdmin,
+  isSupport,
   onBack,
   onUpdate,
   onSendMessage,
@@ -247,7 +247,7 @@ function TicketView({
 }: {
   ticket: Ticket;
   messages: TicketMessage[];
-  isAdmin: boolean;
+  isSupport: boolean;
   onBack: () => void;
   onUpdate: (title?: string, status?: TicketStatusType) => void;
   onSendMessage: (content: string, status?: TicketStatusType) => void;
@@ -268,12 +268,12 @@ function TicketView({
         newStatus = TicketStatus.Closed;
       } else if (waitOnMe) {
         // "Wait on me" keeps the ball in the sender's court
-        newStatus = isAdmin
+        newStatus = isSupport
           ? TicketStatus.AwaitingSupport
           : TicketStatus.AwaitingCustomer;
       } else {
         // Normal: flip to waiting on the other party
-        newStatus = isAdmin
+        newStatus = isSupport
           ? TicketStatus.AwaitingCustomer
           : TicketStatus.AwaitingSupport;
       }
@@ -397,7 +397,7 @@ function TicketView({
             }}
           />
           <div class="message-input-actions">
-            {isAdmin && (
+            {isSupport && (
               <label>
                 <input
                   type="checkbox"
@@ -436,11 +436,11 @@ function TicketView({
             return (
               <div
                 key={msg.id}
-                class={`message ${msg.isAdmin ? "admin" : "user"}`}
+                class={`message ${msg.fromSupport ? "support" : "user"}`}
               >
                 <div class="message-header">
                   <span class="message-author">
-                    {msg.isAdmin
+                    {msg.fromSupport
                       ? "🛡️ Support"
                       : `👤 ${user?.name || `User #${msg.userId}`}`}
                   </span>
@@ -497,7 +497,6 @@ export function Support({ id }: { id?: string }) {
     messageCount: t.messageCount,
     createdBy: t.createdBy,
   }));
-  const isAdmin = session?.isSupport || false;
 
   // Look up selected ticket from global state (so updates are reflected)
   const selectedTicket =
@@ -620,7 +619,7 @@ export function Support({ id }: { id?: string }) {
           <TicketView
             ticket={selectedTicket}
             messages={messages}
-            isAdmin={isAdmin}
+            isSupport={false}
             onBack={() => {
               route("/support");
               setMessages([]);
@@ -739,7 +738,7 @@ export function Helpdesk({ id }: { id?: string }) {
     messageCount: t.messageCount,
     createdBy: t.createdBy,
   }));
-  const isAdmin = session?.isSupport || false;
+  const isSupport = session?.isSupport || false;
 
   // Look up selected ticket from global state (so updates are reflected)
   const selectedTicket =
@@ -837,7 +836,7 @@ export function Helpdesk({ id }: { id?: string }) {
     );
   }
 
-  if (!isAdmin) {
+  if (!isSupport) {
     return (
       <div class="with-header">
         <Header session={session} />
@@ -871,7 +870,7 @@ export function Helpdesk({ id }: { id?: string }) {
           <TicketView
             ticket={selectedTicket}
             messages={messages}
-            isAdmin={isAdmin}
+            isSupport={true}
             onBack={() => {
               route("/helpdesk");
               setMessages([]);
