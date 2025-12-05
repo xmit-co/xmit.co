@@ -25,6 +25,7 @@ import {
 } from "./models.tsx";
 import { ProvideKey } from "./provideKey.tsx";
 import { SiteAdmin } from "./siteAdmin.tsx";
+import { Support, Helpdesk } from "./support.tsx";
 import { decoder, encoder } from "./utils.ts";
 
 export const reconnectChannel = new BroadcastChannel("reconnect");
@@ -134,6 +135,21 @@ const userSettingsMapping = {
   analyticsViews: 1,
 };
 
+const ticketMapping = {
+  id: 1,
+  teamId: 2,
+  title: 3,
+  createdAt: 4,
+  updatedAt: 5,
+  status: 6,
+  messageCount: 7,
+  createdBy: 8,
+};
+
+const openTicketsMapping = {
+  tickets: 1,
+};
+
 export const StateCtx = createContext(state);
 
 function loadKey(node: Node, key: any) {
@@ -165,6 +181,7 @@ function map(
 export interface Session {
   uid: number;
   createdAPIKeys: Map<Uint8Array, string>;
+  isSupport: boolean;
 }
 
 export function loadSession(state: State) {
@@ -215,6 +232,87 @@ export function loadKeyRequest(state: State, id: string) {
   return loadKey(state.root, ["r", id]) as KeyRequest | undefined;
 }
 
+// Ticket status enum (matches backend TicketStatus)
+export const TicketStatus = {
+  AwaitingCustomer: 0,
+  AwaitingSupport: 1,
+  Closed: 2,
+} as const;
+
+export interface Ticket {
+  id: number;
+  teamId: number;
+  title: string;
+  createdAt: Date;
+  updatedAt: Date;
+  status: number;
+  messageCount: number;
+  createdBy: number;
+}
+
+export interface TicketMessageRef {
+  id: number;
+  ticketId: number;
+  userId: number;
+  isAdmin: boolean;
+  contentHash: Uint8Array;
+  createdAt: Date;
+}
+
+export function loadTicket(state: State, id: number) {
+  return loadKey(state.root, ["T", id || 0]) as Ticket | undefined;
+}
+
+export function loadTicketMessageRef(state: State, ticketId: number, messageId: number) {
+  return loadKey(state.root, ["T", ticketId || 0, "m", messageId || 0]) as TicketMessageRef | undefined;
+}
+
+export function loadAllOpenTickets(state: State): Ticket[] {
+  const openTickets = loadKey(state.root, ["T", "open"]) as { tickets: Map<number, object> } | undefined;
+  if (!openTickets?.tickets) return [];
+
+  const tickets: Ticket[] = [];
+  for (const ticketID of openTickets.tickets.keys()) {
+    const ticket = loadTicket(state, ticketID);
+    if (ticket) {
+      tickets.push(ticket);
+    }
+  }
+  return tickets;
+}
+
+export function loadTeamTickets(state: State, teamIds: number[]): Ticket[] {
+  // Get the "T" node
+  const tNode = state.root.children?.get("T");
+  if (!tNode?.children) return [];
+
+  const tickets: Ticket[] = [];
+  for (const [key] of tNode.children) {
+    // Skip non-numeric keys like "open"
+    if (typeof key !== "number") continue;
+    const ticket = loadTicket(state, key);
+    if (ticket && teamIds.includes(ticket.teamId)) {
+      tickets.push(ticket);
+    }
+  }
+  return tickets;
+}
+
+export function countTicketsAwaitingCustomer(state: State): number {
+  const tickets = loadAllOpenTickets(state);
+  return tickets.filter(t => (t.status ?? TicketStatus.AwaitingCustomer) === TicketStatus.AwaitingCustomer).length;
+}
+
+export function countTicketsAwaitingSupport(state: State): number {
+  const tickets = loadAllOpenTickets(state);
+  return tickets.filter(t => t.status === TicketStatus.AwaitingSupport).length;
+}
+
+export function countTeamTicketsAwaitingCustomer(state: State, teamIds: number[]): number {
+  const tickets = loadTeamTickets(state, teamIds);
+  return tickets.filter(t => (t.status ?? TicketStatus.AwaitingCustomer) === TicketStatus.AwaitingCustomer).length;
+}
+
 export interface DomainInfo {
   cert: CertStatus | undefined;
 }
@@ -240,6 +338,7 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
           return map(value, {
             uid: 1,
             createdAPIKeys: 2,
+            isSupport: 4,
           });
         }
         if (key[0] === "U") {
@@ -297,6 +396,11 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
               d.cert = map(d.cert, certStatusMapping);
             }
             return d;
+          case "T":
+            if (key[1] === "open") {
+              return map(value, openTicketsMapping);
+            }
+            return map(value, ticketMapping);
         }
         break;
       case 4:
@@ -529,6 +633,10 @@ export function App() {
         <Route path="/admin/site/:id" component={SiteAdmin} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/analytics/site/:id" component={SiteAnalytics} />
+        <Route path="/support" component={Support} />
+        <Route path="/support/:id" component={Support} />
+        <Route path="/helpdesk" component={Helpdesk} />
+        <Route path="/helpdesk/:id" component={Helpdesk} />
         <Route path="/provide-key/:id" component={ProvideKey} />
         <Route path="/debug" component={Debug} />
       </Router>

@@ -1,7 +1,7 @@
 import { route } from "preact-router";
 import Match, { Link } from "preact-router/match";
 import { useContext, useEffect } from "preact/hooks";
-import { logError, Session, StateCtx } from "./app.tsx";
+import { countTeamTicketsAwaitingCustomer, countTicketsAwaitingSupport, loadUser, logError, Session, StateCtx } from "./app.tsx";
 import { enroll, signin, signout } from "./webauthn.tsx";
 
 let pendingRedirect: string | null = null;
@@ -16,6 +16,11 @@ export function Header({ session }: { session?: Session }) {
   const state = useContext(StateCtx).value;
   const uid = session?.uid;
   const ready = state.ready;
+  const isSupport = session?.isSupport;
+  const user = uid !== undefined ? loadUser(state, uid) : undefined;
+  const teamIds = user?.teams ? Array.from(user.teams.keys()) : [];
+  const awaitingCustomerCount = countTeamTicketsAwaitingCustomer(state, teamIds);
+  const awaitingSupportCount = isSupport ? countTicketsAwaitingSupport(state) : 0;
 
   // Check for pending redirect after sign-in
   useEffect(() => {
@@ -37,6 +42,16 @@ export function Header({ session }: { session?: Session }) {
         <Link activeClassName="header-active" href="/docs">
           📚 docs
         </Link>
+        {uid !== undefined && (
+          <Link activeClassName="header-active" href="/support">
+            💬 support{awaitingCustomerCount > 0 && <span class="badge">{awaitingCustomerCount}</span>}
+          </Link>
+        )}
+        {isSupport && (
+          <Link activeClassName="header-active" href="/helpdesk">
+            🎫 helpdesk{awaitingSupportCount > 0 && <span class="badge">{awaitingSupportCount}</span>}
+          </Link>
+        )}
         {!ready ? null : uid !== undefined ? (
           <>
             <Match path="/admin/:rest*">

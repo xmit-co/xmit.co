@@ -89,6 +89,46 @@ export function Home() {
           </p>
           {message}
         </section>
+        <section>
+          <h2>
+            <span class="icon">💬</span>Chat with us
+          </h2>
+          <p>Questions? Need help? We're here for you.</p>
+          {session?.uid !== undefined ? (
+            <p>
+              <button type="button" onClick={() => route("/support")}>
+                💬 Support
+              </button>
+            </p>
+          ) : state.ready ? (
+            <p>
+              <button
+                type="button"
+                onClick={() =>
+                  enroll()
+                    .then(() => route("/support"))
+                    .catch(logError)
+                }
+              >
+                🤗 Sign up
+              </button>{" "}
+              <button
+                type="button"
+                onClick={() =>
+                  signin()
+                    .then(() => route("/support"))
+                    .catch(logError)
+                }
+              >
+                🚪 Sign in
+              </button>
+            </p>
+          ) : (
+            <p>
+              <span class="spinner">⟳</span>
+            </p>
+          )}
+        </section>
         {credentialManagerMessage && (
           <section>{credentialManagerMessage}</section>
         )}
@@ -120,7 +160,7 @@ export function Home() {
                 <p>
                   <button type="submit">🚀 Launch</button>
                 </p>
-              ) : (
+              ) : state.ready ? (
                 <p>
                   <button
                     type="button"
@@ -150,6 +190,10 @@ export function Home() {
                   >
                     🚪 Sign in
                   </button>
+                </p>
+              ) : (
+                <p>
+                  <span class="spinner">⟳</span>
                 </p>
               ))}
           </form>

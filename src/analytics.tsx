@@ -92,6 +92,10 @@ const FILTER_COLUMNS = [
   { value: "response_size", label: "Response Size" },
 ];
 
+const GROUP_BY_COLUMNS = FILTER_COLUMNS.filter(
+  (col) => col.value !== "response_size"
+);
+
 const GRANULARITIES = [
   { value: "none", label: "None (totals only)" },
   { value: "hour", label: "Hourly" },
@@ -1235,7 +1239,7 @@ function AnalyticsBody({
           <div class="query-row">
             <span class="query-label">Group by:</span>
             <div class="group-by-options">
-              {FILTER_COLUMNS.map((col) => (
+              {GROUP_BY_COLUMNS.map((col) => (
                 <label key={col.value}>
                   <input
                     type="checkbox"

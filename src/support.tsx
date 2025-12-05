@@ -1,0 +1,810 @@
+import { useContext, useEffect, useState } from "preact/hooks";
+import { route } from "preact-router";
+import {
+  loadAllOpenTickets,
+  loadTeam,
+  loadTeamTickets,
+  loadSession,
+  loadUser,
+  logError,
+  sendUpdate,
+  StateCtx,
+  TicketStatus,
+} from "./app.tsx";
+import { EditableText } from "./editableText.tsx";
+import { Footer } from "./footer.tsx";
+import { Header } from "./header.tsx";
+import { decoder, encoder } from "./utils.ts";
+import { enroll, signin } from "./webauthn.tsx";
+
+type TicketStatusType = (typeof TicketStatus)[keyof typeof TicketStatus];
+
+function statusLabel(status: TicketStatusType | undefined): string {
+  switch (status) {
+    case TicketStatus.AwaitingCustomer:
+      return "Awaiting Customer";
+    case TicketStatus.AwaitingSupport:
+      return "Awaiting Support";
+    case TicketStatus.Closed:
+      return "Closed";
+    default:
+      return "Awaiting Customer";
+  }
+}
+
+interface Ticket {
+  id: number;
+  teamId: number;
+  title: string;
+  createdAt: Date;
+  updatedAt: Date;
+  status: TicketStatusType;
+  messageCount: number;
+  createdBy: number;
+}
+
+interface TicketMessage {
+  id: number;
+  ticketId: number;
+  userId: number;
+  isAdmin: boolean;
+  content: string;
+  createdAt: Date;
+}
+
+function decodeMessage(m: Map<number, any>): TicketMessage {
+  const rawCreatedAt = m.get(6);
+  return {
+    id: m.get(1) || 0,
+    ticketId: m.get(2) || 0,
+    userId: m.get(3) || 0,
+    isAdmin: m.get(4) || false,
+    content: m.get(5) || "",
+    createdAt:
+      rawCreatedAt instanceof Date
+        ? rawCreatedAt
+        : new Date((rawCreatedAt || 0) * 1000),
+  };
+}
+
+// Fetch message content from S3 via HTTP API
+async function fetchMessageContent(
+  ticketId: number,
+  afterId: number = 0,
+): Promise<TicketMessage[]> {
+  const m = new Map<number, any>();
+  m.set(1, ticketId);
+  if (afterId > 0) m.set(2, afterId);
+
+  const response = await fetch("/api/web/tickets/content", {
+    method: "POST",
+    body: encoder.encode(m),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch messages: ${response.status}`);
+  }
+
+  const data = new Uint8Array(await response.arrayBuffer());
+  if (data.length === 0) return [];
+
+  const resp = decoder.decode(data) as Map<number, any>;
+  const rawMessages = resp.get(1) || [];
+  return rawMessages.map((msg: Map<number, any>) => decodeMessage(msg));
+}
+
+// WebSocket mutations for tickets
+function createTicket(teamId: number, title: string, message: string) {
+  const m = new Map<number, any>();
+  m.set(1, title);
+  m.set(2, TicketStatus.AwaitingSupport); // New tickets with message await support
+  m.set(3, message);
+  sendUpdate(["T", teamId], m);
+}
+
+function updateTicketTitle(ticketId: number, title: string) {
+  sendUpdate(["T", ticketId], new Map([[1, title]]));
+}
+
+function updateTicketStatus(ticketId: number, status: TicketStatusType) {
+  sendUpdate(["T", ticketId], new Map([[2, status]]));
+}
+
+function addMessage(ticketId: number, content: string, keepWaiting: boolean = false) {
+  const msg = new Map<number, any>([[1, content]]);
+  if (keepWaiting) msg.set(2, true);
+  sendUpdate(["T", ticketId, "m"], msg);
+}
+
+function deleteTicket(ticketId: number) {
+  sendUpdate(["T", ticketId], undefined);
+}
+
+function formatDate(date: Date): string {
+  return date.toISOString().split(".")[0] + "Z";
+}
+
+function TicketList({
+  tickets,
+  onSelect,
+  onNew,
+  isHelpdesk,
+}: {
+  tickets: Ticket[];
+  onSelect: (ticket: Ticket) => void;
+  onNew?: () => void;
+  isHelpdesk?: boolean;
+}) {
+  const state = useContext(StateCtx).value;
+
+  const categoryLabel = (s: TicketStatusType | undefined) => {
+    const status = s ?? TicketStatus.AwaitingCustomer;
+    if (status === TicketStatus.Closed) return "Closed";
+    if (isHelpdesk) {
+      return status === TicketStatus.AwaitingSupport ? "Awaiting me" : "Awaiting customer";
+    }
+    return status === TicketStatus.AwaitingCustomer ? "Awaiting me" : "Awaiting support";
+  };
+
+  const statusOrder = (s: TicketStatusType | undefined) => {
+    const status = s ?? TicketStatus.AwaitingCustomer;
+    if (isHelpdesk) {
+      if (status === TicketStatus.AwaitingSupport) return 0;
+      if (status === TicketStatus.AwaitingCustomer) return 1;
+    } else {
+      if (status === TicketStatus.AwaitingCustomer) return 0;
+      if (status === TicketStatus.AwaitingSupport) return 1;
+    }
+    return 2; // Closed
+  };
+
+  const sortedTickets = [...tickets].sort((a, b) => {
+    const statusDiff = statusOrder(a.status) - statusOrder(b.status);
+    if (statusDiff !== 0) return statusDiff;
+    return b.updatedAt.getTime() - a.updatedAt.getTime();
+  });
+
+  // Group tickets by category
+  const categories = [
+    { label: "Awaiting me", icon: "🟡" },
+    { label: isHelpdesk ? "Awaiting customer" : "Awaiting support", icon: "🔵" },
+    { label: "Closed", icon: "⚫" },
+  ];
+  const grouped = new Map<string, Ticket[]>();
+  for (const cat of categories) grouped.set(cat.label, []);
+  for (const ticket of sortedTickets) {
+    const label = categoryLabel(ticket.status);
+    grouped.get(label)!.push(ticket);
+  }
+
+  return (
+    <section>
+      {onNew && (
+        <p>
+          <button onClick={onNew}>➕ New Conversation</button>
+        </p>
+      )}
+      {sortedTickets.length === 0 ? (
+        <p>
+          <em>No conversations yet.</em>
+        </p>
+      ) : (
+        categories.map((cat) => {
+          const catTickets = grouped.get(cat.label)!;
+          if (catTickets.length === 0) return null;
+          return (
+            <div key={cat.label}>
+              <h3>{cat.icon} {cat.label}</h3>
+              <ul class="ticket-list">
+                {catTickets.map((ticket) => {
+                  const team = loadTeam(state, ticket.teamId);
+                  const msgCount = ticket.messageCount || 0;
+                  return (
+                    <li key={ticket.id} class="ticket-item" onClick={() => onSelect(ticket)}>
+                      <span class="ticket-title">{ticket.title || "Untitled"}</span>
+                      <span class="ticket-meta">
+                        Team #{ticket.teamId}: {team?.name || <em>unnamed</em>} · {msgCount} message{msgCount === 1 ? "" : "s"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })
+      )}
+    </section>
+  );
+}
+
+function TicketView({
+  ticket,
+  messages,
+  isAdmin,
+  onBack,
+  onUpdate,
+  onSendMessage,
+  onDelete,
+}: {
+  ticket: Ticket;
+  messages: TicketMessage[];
+  isAdmin: boolean;
+  onBack: () => void;
+  onUpdate: (title?: string, status?: TicketStatusType) => void;
+  onSendMessage: (content: string, keepWaiting: boolean) => void;
+  onDelete?: () => void;
+}) {
+  const [newMessage, setNewMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [keepWaiting, setKeepWaiting] = useState(false);
+  const state = useContext(StateCtx).value;
+
+  const handleSend = async () => {
+    if (!newMessage.trim() || sending) return;
+    setSending(true);
+    try {
+      await onSendMessage(newMessage.trim(), keepWaiting);
+      setNewMessage("");
+      setKeepWaiting(false);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const sortedMessages = [...messages].sort(
+    (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+  );
+
+  const isClosed = ticket.status === TicketStatus.Closed;
+
+  return (
+    <section class="ticket-view">
+      <div class="ticket-actions">
+        <button onClick={onBack}>← Back</button>
+        <div class="ticket-actions-right">
+          <div class="ticket-actions-desktop">
+            {isAdmin && !isClosed && (
+              <button onClick={() => onUpdate(undefined, TicketStatus.Closed)}>
+                ✓ Close
+              </button>
+            )}
+            {isAdmin && isClosed && (
+              <button
+                onClick={() =>
+                  onUpdate(undefined, TicketStatus.AwaitingSupport)
+                }
+              >
+                ↺ Reopen
+              </button>
+            )}
+            {onDelete && (
+              <button
+                class="delete"
+                onClick={() => {
+                  if (confirm("Delete this conversation permanently?")) {
+                    onDelete();
+                  }
+                }}
+              >
+                🗑 Delete
+              </button>
+            )}
+          </div>
+          <div class="ticket-actions-mobile">
+            <button class="burger-btn" onClick={() => setMenuOpen(!menuOpen)}>
+              ☰
+            </button>
+            {menuOpen && (
+              <div class="burger-menu">
+                {isAdmin && !isClosed && (
+                  <button
+                    onClick={() => {
+                      onUpdate(undefined, TicketStatus.Closed);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    ✓ Close
+                  </button>
+                )}
+                {isAdmin && isClosed && (
+                  <button
+                    onClick={() => {
+                      onUpdate(undefined, TicketStatus.AwaitingSupport);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    ↺ Reopen
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={() => {
+                      if (confirm("Delete this conversation permanently?")) {
+                        onDelete();
+                        setMenuOpen(false);
+                      }
+                    }}
+                  >
+                    🗑 Delete
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <h2>
+        <EditableText
+          value={ticket.title}
+          placeholder="Conversation title"
+          whenMissing="Untitled"
+          buttonText="rename"
+          submit={(v) => onUpdate(v, undefined)}
+        />
+      </h2>
+      <p class="ticket-status">
+        Status: <strong>{statusLabel(ticket.status)}</strong> · Created:{" "}
+        {formatDate(ticket.createdAt)} · Updated: {formatDate(ticket.updatedAt)}
+      </p>
+
+      <div class="messages">
+        {sortedMessages.length === 0 ? (
+          <p>
+            <em>No messages yet. Start the conversation!</em>
+          </p>
+        ) : (
+          sortedMessages.map((msg) => {
+            const user = loadUser(state, msg.userId);
+            return (
+              <div
+                key={msg.id}
+                class={`message ${msg.isAdmin ? "admin" : "user"}`}
+              >
+                <div class="message-header">
+                  <span class="message-author">
+                    {msg.isAdmin ? "🛡️ Support" : "👤"}{" "}
+                    {user?.name || `User #${msg.userId}`}
+                  </span>
+                  <span class="message-time">{formatDate(msg.createdAt)}</span>
+                </div>
+                <div class="message-content">{msg.content}</div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {!isClosed && (
+        <div class="message-input">
+          <textarea
+            value={newMessage}
+            onInput={(e) =>
+              setNewMessage((e.target as HTMLTextAreaElement).value)
+            }
+            placeholder="Type your message…"
+            rows={3}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                handleSend();
+              }
+            }}
+          />
+          <div class="message-input-actions">
+            <label>
+              <input
+                type="checkbox"
+                checked={keepWaiting}
+                onChange={(e) =>
+                  setKeepWaiting((e.target as HTMLInputElement).checked)
+                }
+              />{" "}
+              Wait on me
+            </label>
+            <button onClick={handleSend} disabled={sending || !newMessage.trim()}>
+              {sending ? "Sending…" : "Send"}
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+export function Support({ id }: { id?: string }) {
+  const state = useContext(StateCtx).value;
+  const session = loadSession(state);
+  const uid = session?.uid;
+  const user = uid !== undefined ? loadUser(state, uid) : undefined;
+
+  const selectedTicketId = id ? Number(id) : null;
+  const [messages, setMessages] = useState<TicketMessage[]>([]);
+  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+  const [showNewTicketForm, setShowNewTicketForm] = useState(false);
+  const [newTicketTitle, setNewTicketTitle] = useState("");
+  const [newTicketMessage, setNewTicketMessage] = useState("");
+
+  // Get user's teams
+  const teamIds = user?.teams ? Array.from(user.teams.keys()) : [];
+
+  // Set default team if not set
+  useEffect(() => {
+    if (teamIds.length > 0 && selectedTeamId === null) {
+      setSelectedTeamId(teamIds[0]);
+    }
+  }, [teamIds, selectedTeamId]);
+
+  // Get all tickets for user's teams (including closed)
+  const allTeamTickets = loadTeamTickets(state, teamIds);
+  const tickets: Ticket[] = allTeamTickets
+    .map((t) => ({
+      id: t.id,
+      teamId: t.teamId,
+      title: t.title,
+      createdAt:
+        t.createdAt instanceof Date
+          ? t.createdAt
+          : new Date((t.createdAt as unknown as number) * 1000),
+      updatedAt:
+        t.updatedAt instanceof Date
+          ? t.updatedAt
+          : new Date((t.updatedAt as unknown as number) * 1000),
+      status: t.status as TicketStatusType,
+      messageCount: t.messageCount,
+      createdBy: t.createdBy,
+    }));
+  const isAdmin = session?.isSupport || false;
+
+  // Look up selected ticket from global state (so updates are reflected)
+  const selectedTicket = selectedTicketId !== null
+    ? tickets.find((t) => t.id === selectedTicketId) || null
+    : null;
+
+  const loadMessages = async (ticketId: number) => {
+    try {
+      const msgs = await fetchMessageContent(ticketId);
+      setMessages(msgs);
+    } catch (err) {
+      logError(err instanceof Error ? err : String(err));
+    }
+  };
+
+  useEffect(() => {
+    if (selectedTicketId) {
+      loadMessages(selectedTicketId);
+    }
+  }, [selectedTicketId]);
+
+  const handleNewTicket = () => {
+    setShowNewTicketForm(true);
+    setNewTicketTitle("");
+    setNewTicketMessage("");
+  };
+
+  const handleSubmitNewTicket = () => {
+    if (selectedTeamId === null || !newTicketTitle.trim() || !newTicketMessage.trim()) return;
+    createTicket(selectedTeamId, newTicketTitle.trim(), newTicketMessage.trim());
+    setShowNewTicketForm(false);
+    setNewTicketTitle("");
+    setNewTicketMessage("");
+  };
+
+  const handleUpdateTicket = (title?: string, status?: TicketStatusType) => {
+    if (!selectedTicket) return;
+    if (title !== undefined) {
+      updateTicketTitle(selectedTicket.id, title);
+    }
+    if (status !== undefined) {
+      updateTicketStatus(selectedTicket.id, status);
+    }
+  };
+
+  const handleSendMessage = async (content: string, keepWaiting: boolean) => {
+    if (!selectedTicket) return;
+    addMessage(selectedTicket.id, content, keepWaiting);
+    // Reload messages after a short delay to get the new message
+    setTimeout(() => loadMessages(selectedTicket.id), 500);
+  };
+
+  if (!state.ready) {
+    return (
+      <div class="with-header">
+        <Header session={session} />
+        <main>
+          <h1>
+            <span class="icon">💬</span>Support
+          </h1>
+          <p>Loading…</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (uid === undefined) {
+    return (
+      <div class="with-header">
+        <Header session={session} />
+        <main>
+          <h1>
+            <span class="icon">💬</span>Support
+          </h1>
+          <section>
+            <p>Sign in to access support.</p>
+            <p>
+              <button onClick={() => enroll().catch(logError)}>
+                🤗 Sign up
+              </button>{" "}
+              <button onClick={() => signin().catch(logError)}>
+                🚪 Sign in
+              </button>
+            </p>
+          </section>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div class="with-header">
+      <Header session={session} />
+      <main>
+        <h1>
+          <span class="icon">💬</span>Support
+        </h1>
+        {selectedTicket ? (
+          <TicketView
+            ticket={selectedTicket}
+            messages={messages}
+            isAdmin={isAdmin}
+            onBack={() => {
+              route("/support");
+              setMessages([]);
+            }}
+            onUpdate={handleUpdateTicket}
+            onSendMessage={handleSendMessage}
+          />
+        ) : showNewTicketForm ? (
+          <section>
+            <h2>New Conversation</h2>
+            {teamIds.length > 1 && (
+              <p>
+                <select
+                  value={selectedTeamId ?? ""}
+                  onChange={(e) =>
+                    setSelectedTeamId(
+                      Number((e.target as HTMLSelectElement).value),
+                    )
+                  }
+                >
+                  {teamIds.map((tid) => {
+                    const team = loadTeam(state, tid);
+                    const name = team?.name || "unnamed";
+                    return (
+                      <option key={tid} value={tid} style={team?.name ? {} : { fontStyle: "italic" }}>
+                        Team #{tid}: {name}
+                      </option>
+                    );
+                  })}
+                </select>
+              </p>
+            )}
+            <p>
+              <input
+                type="text"
+                value={newTicketTitle}
+                onInput={(e) =>
+                  setNewTicketTitle((e.target as HTMLInputElement).value)
+                }
+                placeholder="Title…"
+                class="full-width"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setShowNewTicketForm(false);
+                }}
+                autoFocus
+              />
+            </p>
+            <p>
+              <textarea
+                value={newTicketMessage}
+                onInput={(e) =>
+                  setNewTicketMessage((e.target as HTMLTextAreaElement).value)
+                }
+                placeholder="Start the conversation…"
+                class="full-width"
+                rows={5}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                    handleSubmitNewTicket();
+                  }
+                  if (e.key === "Escape") setShowNewTicketForm(false);
+                }}
+              />
+            </p>
+            <p>
+              <button
+                onClick={handleSubmitNewTicket}
+                disabled={!newTicketTitle.trim() || !newTicketMessage.trim() || selectedTeamId === null}
+              >
+                Start Conversation
+              </button>{" "}
+              <button onClick={() => setShowNewTicketForm(false)}>Cancel</button>
+            </p>
+          </section>
+        ) : (
+          <TicketList
+            tickets={tickets}
+            onSelect={(ticket) => route(`/support/${ticket.id}`)}
+            onNew={handleNewTicket}
+          />
+        )}
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export function Helpdesk({ id }: { id?: string }) {
+  const state = useContext(StateCtx).value;
+  const session = loadSession(state);
+  const uid = session?.uid;
+
+  const selectedTicketId = id ? Number(id) : null;
+  const [messages, setMessages] = useState<TicketMessage[]>([]);
+
+  // Get all tickets from WebSocket state (support team sees all non-closed)
+  const allOpenTickets = loadAllOpenTickets(state);
+  const tickets: Ticket[] = allOpenTickets.map((t) => ({
+    id: t.id,
+    teamId: t.teamId,
+    title: t.title,
+    createdAt:
+      t.createdAt instanceof Date
+        ? t.createdAt
+        : new Date((t.createdAt as unknown as number) * 1000),
+    updatedAt:
+      t.updatedAt instanceof Date
+        ? t.updatedAt
+        : new Date((t.updatedAt as unknown as number) * 1000),
+    status: t.status as TicketStatusType,
+    messageCount: t.messageCount,
+    createdBy: t.createdBy,
+  }));
+  const isAdmin = session?.isSupport || false;
+
+  // Look up selected ticket from global state (so updates are reflected)
+  const selectedTicket = selectedTicketId !== null
+    ? tickets.find((t) => t.id === selectedTicketId) || null
+    : null;
+
+  const loadMessages = async (ticketId: number) => {
+    try {
+      const msgs = await fetchMessageContent(ticketId);
+      setMessages(msgs);
+    } catch (err) {
+      logError(err instanceof Error ? err : String(err));
+    }
+  };
+
+  useEffect(() => {
+    if (selectedTicketId) {
+      loadMessages(selectedTicketId);
+    }
+  }, [selectedTicketId]);
+
+  const handleUpdateTicket = (title?: string, status?: TicketStatusType) => {
+    if (!selectedTicket) return;
+    if (title !== undefined) {
+      updateTicketTitle(selectedTicket.id, title);
+    }
+    if (status !== undefined) {
+      updateTicketStatus(selectedTicket.id, status);
+    }
+  };
+
+  const handleSendMessage = async (content: string, keepWaiting: boolean) => {
+    if (!selectedTicket) return;
+    addMessage(selectedTicket.id, content, keepWaiting);
+    // Reload messages after a short delay to get the new message
+    setTimeout(() => loadMessages(selectedTicket.id), 500);
+  };
+
+  const handleDeleteTicket = () => {
+    if (!selectedTicket) return;
+    deleteTicket(selectedTicket.id);
+    route("/helpdesk");
+    setMessages([]);
+  };
+
+  if (!state.ready) {
+    return (
+      <div class="with-header">
+        <Header session={session} />
+        <main>
+          <h1>
+            <span class="icon">🛡️</span>Helpdesk
+          </h1>
+          <p>Loading…</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (uid === undefined) {
+    return (
+      <div class="with-header">
+        <Header session={session} />
+        <main>
+          <h1>
+            <span class="icon">🛡️</span>Helpdesk
+          </h1>
+          <section>
+            <p>Sign in to access helpdesk.</p>
+            <p>
+              <button onClick={() => signin().catch(logError)}>
+                🚪 Sign in
+              </button>
+            </p>
+          </section>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div class="with-header">
+        <Header session={session} />
+        <main>
+          <h1>
+            <span class="icon">🛡️</span>Helpdesk
+          </h1>
+          <section>
+            <p>
+              You don't have access to the helpdesk. This area is for support
+              team members only.
+            </p>
+            <p>
+              <a href="/support">Go to Support</a>
+            </p>
+          </section>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div class="with-header">
+      <Header session={session} />
+      <main>
+        <h1>
+          <span class="icon">🛡️</span>Helpdesk
+        </h1>
+        {selectedTicket ? (
+          <TicketView
+            ticket={selectedTicket}
+            messages={messages}
+            isAdmin={isAdmin}
+            onBack={() => {
+              route("/helpdesk");
+              setMessages([]);
+            }}
+            onUpdate={handleUpdateTicket}
+            onSendMessage={handleSendMessage}
+            onDelete={handleDeleteTicket}
+          />
+        ) : (
+          <TicketList
+            tickets={tickets}
+            onSelect={(ticket) => route(`/helpdesk/${ticket.id}`)}
+            isHelpdesk
+          />
+        )}
+      </main>
+      <Footer />
+    </div>
+  );
+}

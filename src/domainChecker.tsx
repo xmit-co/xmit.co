@@ -228,6 +228,7 @@ export function DomainChecker({
                 );
                 setPresetDomain(subdomain ? `${subdomain}${suffix}` : "");
               }}
+              style={{ width: "auto" }}
             >
               <option value=".xmit.dev">.xmit.dev</option>
               <option value=".madethis.site">.madethis.site</option>

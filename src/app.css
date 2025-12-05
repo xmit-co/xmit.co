@@ -117,6 +117,16 @@ nav a.header-active {
   background-color: #333;
 }
 
+.badge {
+  background-color: #c00;
+  color: #fff;
+  font-size: 0.75em;
+  padding: 0.1em 0.4em;
+  border-radius: 0.5em;
+  margin-left: 0.3em;
+  vertical-align: middle;
+}
+
 button:hover {
   background-color: #444;
 }
@@ -140,7 +150,8 @@ button.update {
 
 /* Forms */
 input,
-select {
+select,
+textarea {
   font-family: ui-monospace, monospace;
   border: none;
   border-radius: 2pt;
@@ -166,25 +177,36 @@ input[type="radio"] {
   outline: none;
 }
 
+input.full-width,
+textarea.full-width {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* Layout */
 header {
   display: flex;
+  flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
   padding: 0.75em 1em;
   background-color: #000;
+  gap: 0.5em;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 1em;
+  flex-shrink: 0;
 }
 
 nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5em;
   align-items: center;
+  justify-content: flex-end;
 }
 
 main {
@@ -622,4 +644,163 @@ span.icon {
 }
 .bookmark-item input {
   flex: 1;
+}
+
+/* Support / Tickets */
+.ticket-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.ticket-item {
+  padding: 0.5em;
+  cursor: pointer;
+  border-radius: 0.25em;
+}
+.ticket-item:hover {
+  background-color: #1a1a1a;
+}
+.ticket-title {
+  font-weight: bold;
+}
+.ticket-meta {
+  font-size: 0.85em;
+  color: #888;
+  margin-left: 1.5em;
+}
+.ticket-status {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 1em;
+}
+.ticket-view h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.messages {
+  margin: 1em 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.message {
+  margin: 0.5em 0;
+  padding: 0.75em;
+  border-radius: 4px;
+}
+.message.user {
+  background-color: #2a3a4a;
+  margin-right: 2em;
+}
+.message.admin {
+  background-color: #2a4a3a;
+  margin-left: 2em;
+}
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5em;
+  font-size: 0.85em;
+}
+.message-author {
+  font-weight: bold;
+  color: #fff;
+}
+.message-time {
+  color: #888;
+}
+.message-content {
+  font-family: ui-monospace, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.message-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.message-input textarea {
+  width: 100%;
+  resize: vertical;
+  font-family: ui-monospace, monospace;
+  white-space: pre-wrap;
+  padding: 0.5em;
+  box-sizing: border-box;
+}
+.message-input-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1em;
+}
+.message-input-actions label {
+  font-size: 0.9em;
+  color: #888;
+}
+
+/* Ticket actions bar with responsive burger menu */
+.ticket-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1em;
+}
+.ticket-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.ticket-actions-desktop {
+  display: flex;
+  gap: 0.5em;
+}
+.ticket-actions-mobile {
+  display: none;
+  position: relative;
+}
+.burger-btn {
+  font-size: 1.2em;
+  padding: 0.3em 0.6em;
+}
+.burger-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #111;
+  border: 1px solid #444;
+  border-radius: 4px;
+  z-index: 10;
+  min-width: 150px;
+}
+.burger-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  margin: 0;
+}
+.burger-menu button:hover {
+  background-color: #333;
+}
+
+@media (max-width: 600px) {
+  .ticket-actions-desktop {
+    display: none;
+  }
+  .ticket-actions-mobile {
+    display: block;
+  }
+}
+a.button {
+  display: inline-block;
+  padding: 0.5em 1em;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+}
+a.button:hover {
+  background-color: #0056b3;
 }

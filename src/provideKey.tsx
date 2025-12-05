@@ -255,7 +255,7 @@ export function ProvideKey({ id }: { id: string }) {
                   checked={selectedTeam === teamID}
                   onChange={() => setSelectedTeam(teamID)}
                 />{" "}
-                🏭 #{teamID}: {team?.name || "Loading..."}
+                🏭 #{teamID}: {team?.name || "Loading…"}
               </label>
             ))}
           </div>
