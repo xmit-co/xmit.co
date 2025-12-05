@@ -16,7 +16,7 @@ import {
 import { EditableText } from "./editableText.tsx";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
-import { Site, Team, Upload } from "./models.tsx";
+import { Site, Team, TeamLabel, teamLabelText, Upload } from "./models.tsx";
 import { u8eq } from "./utils.ts";
 
 function shortHexHash(hash: Uint8Array | undefined) {
@@ -239,7 +239,7 @@ function TransferOwnership({ site }: { site: Site }) {
   teamIDs.sort((a, b) => a - b);
   return (
     <>
-      Belongs to team{" "}
+      Belongs to{" "}
       <select
         onChange={(e) => {
           const target = e.target as HTMLSelectElement;
@@ -254,8 +254,13 @@ function TransferOwnership({ site }: { site: Site }) {
           }
           const selected = site.teamID === team.id;
           return (
-            <option key={teamID} value={teamID} selected={selected}>
-              #{team.id}: {team.name || <em>unnamed</em>}
+            <option
+              key={teamID}
+              value={teamID}
+              selected={selected}
+              style={team.name ? {} : { fontStyle: "italic" }}
+            >
+              {teamLabelText(team.id || 0, team.name)}
             </option>
           );
         })}
@@ -286,7 +291,7 @@ function SiteAdminBody({ site }: { site: Site }) {
         <Link href="/admin">← Admin</Link>
         <span> / </span>
         <Link href={`/admin/team/${teamID}`}>
-          Team #{teamID}: {team?.name || <em>unnamed</em>}
+          <TeamLabel id={teamID} name={team?.name} />
         </Link>
       </div>
       <h1>

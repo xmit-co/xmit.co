@@ -28,7 +28,9 @@ export function EditableText({
         type={type || "text"}
         value={value}
         placeholder={placeholder}
-        ref={(e) => e && e.focus()}
+        ref={(e) => {
+          e?.focus();
+        }}
         onFocusIn={(e) => (e.target as HTMLInputElement).select()}
         onFocusOut={() => setEditing(false)}
         onKeyDown={(e) => {

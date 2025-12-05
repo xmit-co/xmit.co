@@ -76,6 +76,23 @@ export interface Team {
   defaultSettings: SiteSettings | undefined;
 }
 
+export function teamLabelPrefix(id: number): string {
+  return `Team #${id}: `;
+}
+
+export function teamLabelText(id: number, name?: string): string {
+  return teamLabelPrefix(id) + (name || "unnamed");
+}
+
+export function TeamLabel({ id, name }: { id: number; name?: string }) {
+  return (
+    <>
+      {teamLabelPrefix(id)}
+      {name || <em>unnamed</em>}
+    </>
+  );
+}
+
 export interface Invite {
   id: string;
   teamID: number | undefined;

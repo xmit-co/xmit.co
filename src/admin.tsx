@@ -16,7 +16,16 @@ import { enroll } from "./webauthn.tsx";
 import { Footer } from "./footer.tsx";
 import { Link } from "preact-router/match";
 import { EditableText } from "./editableText.tsx";
-import { CredInfo, Invite, Site, SiteSettings, Team, User } from "./models.tsx";
+import {
+  CredInfo,
+  Invite,
+  Site,
+  SiteSettings,
+  Team,
+  TeamLabel,
+  teamLabelPrefix,
+  User,
+} from "./models.tsx";
 import { u8eq } from "./utils.ts";
 
 export function dateTime(t: number | undefined) {
@@ -33,7 +42,9 @@ function JoinTeam() {
       <input
         type="password"
         placeholder="Invite code"
-        ref={(e) => e && e.focus()}
+        ref={(e) => {
+          e?.focus();
+        }}
         onFocusOut={() => setEditing(false)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -284,7 +295,8 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         <Link href="/admin">← Admin</Link>
       </div>
       <h1>
-        <span class="icon">🏭</span>Team #{team.id || 0}:{" "}
+        <span class="icon">🏭</span>
+        {teamLabelPrefix(team.id || 0)}
         <EditableText
           type="text"
           value={team.name}
@@ -481,7 +493,7 @@ function TeamSummary({ teamID }: { teamID: number }) {
     <div style={{ marginBottom: "1.5em" }}>
       <h4>
         <Link href={`/admin/team/${teamID}`}>
-          Team #{teamID}: {team.name || <em>unnamed</em>}
+          <TeamLabel id={teamID} name={team.name} />
         </Link>
       </h4>
       {memberIDs.length > 0 && (

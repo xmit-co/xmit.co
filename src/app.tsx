@@ -263,12 +263,20 @@ export function loadTicket(state: State, id: number) {
   return loadKey(state.root, ["T", id || 0]) as Ticket | undefined;
 }
 
-export function loadTicketMessageRef(state: State, ticketId: number, messageId: number) {
-  return loadKey(state.root, ["T", ticketId || 0, "m", messageId || 0]) as TicketMessageRef | undefined;
+export function loadTicketMessageRef(
+  state: State,
+  ticketId: number,
+  messageId: number,
+) {
+  return loadKey(state.root, ["T", ticketId || 0, "m", messageId || 0]) as
+    | TicketMessageRef
+    | undefined;
 }
 
 export function loadAllOpenTickets(state: State): Ticket[] {
-  const openTickets = loadKey(state.root, ["T", "open"]) as { tickets: Map<number, object> } | undefined;
+  const openTickets = loadKey(state.root, ["T", "open"]) as
+    | { tickets: Map<number, object> }
+    | undefined;
   if (!openTickets?.tickets) return [];
 
   const tickets: Ticket[] = [];
@@ -300,17 +308,29 @@ export function loadTeamTickets(state: State, teamIds: number[]): Ticket[] {
 
 export function countTicketsAwaitingCustomer(state: State): number {
   const tickets = loadAllOpenTickets(state);
-  return tickets.filter(t => (t.status ?? TicketStatus.AwaitingCustomer) === TicketStatus.AwaitingCustomer).length;
+  return tickets.filter(
+    (t) =>
+      (t.status ?? TicketStatus.AwaitingCustomer) ===
+      TicketStatus.AwaitingCustomer,
+  ).length;
 }
 
 export function countTicketsAwaitingSupport(state: State): number {
   const tickets = loadAllOpenTickets(state);
-  return tickets.filter(t => t.status === TicketStatus.AwaitingSupport).length;
+  return tickets.filter((t) => t.status === TicketStatus.AwaitingSupport)
+    .length;
 }
 
-export function countTeamTicketsAwaitingCustomer(state: State, teamIds: number[]): number {
+export function countTeamTicketsAwaitingCustomer(
+  state: State,
+  teamIds: number[],
+): number {
   const tickets = loadTeamTickets(state, teamIds);
-  return tickets.filter(t => (t.status ?? TicketStatus.AwaitingCustomer) === TicketStatus.AwaitingCustomer).length;
+  return tickets.filter(
+    (t) =>
+      (t.status ?? TicketStatus.AwaitingCustomer) ===
+      TicketStatus.AwaitingCustomer,
+  ).length;
 }
 
 export interface DomainInfo {
@@ -491,7 +511,9 @@ function connect() {
       state.value = { ...state.value, ready: false };
     },
     onmessage: async (e) => {
-      const msg = decoder.decode(new Uint8Array(await e.data.arrayBuffer())) as Map<number, any>;
+      const msg = decoder.decode(
+        new Uint8Array(await e.data.arrayBuffer()),
+      ) as Map<number, any>;
       state.value = ingestMessage(state.value, msg);
     },
   });

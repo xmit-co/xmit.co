@@ -1,6 +1,13 @@
 import { JSX, memo } from "preact/compat";
 import { route } from "preact-router";
-import { useContext, useEffect, useMemo, useRef, useState, useCallback } from "preact/hooks";
+import {
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "preact/hooks";
 import {
   loadSession,
   loadSite,
@@ -93,7 +100,7 @@ const FILTER_COLUMNS = [
 ];
 
 const GROUP_BY_COLUMNS = FILTER_COLUMNS.filter(
-  (col) => col.value !== "response_size"
+  (col) => col.value !== "response_size",
 );
 
 const GRANULARITIES = [
@@ -195,7 +202,7 @@ async function fetchAnalytics(
 ): Promise<AnalyticsResponse> {
   const response = await fetch("/api/web/analytics", {
     method: "POST",
-    body: encodeRequest(req),
+    body: encodeRequest(req) as BodyInit,
     signal,
   });
 
@@ -429,7 +436,8 @@ function formatGroupLabel(groups: any[]): string {
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
@@ -624,7 +632,10 @@ const AnalyticsChart = memo(function AnalyticsChart({
           <div class="chart-bars">
             {data.buckets.map((bucket, idx) => {
               const height = `${(bucket.count / maxCount) * CHART_HEIGHT_EM}em`;
-              const label = formatChartLabel(new Date(bucket.time), granularity);
+              const label = formatChartLabel(
+                new Date(bucket.time),
+                granularity,
+              );
               return (
                 <Tappable
                   key={idx}
@@ -689,7 +700,10 @@ const AnalyticsChart = memo(function AnalyticsChart({
 
             return (
               <div key={idx} class="chart-bar-wrapper">
-                <div class="chart-bar-stack" style={{ height: `${CHART_HEIGHT_EM}em` }}>
+                <div
+                  class="chart-bar-stack"
+                  style={{ height: `${CHART_HEIGHT_EM}em` }}
+                >
                   {groups.map((g) => {
                     const count = counts.get(g) || 0;
                     const height = `${(count / maxTotal) * CHART_HEIGHT_EM}em`;
@@ -716,7 +730,11 @@ const AnalyticsChart = memo(function AnalyticsChart({
       </div>
       <div class="chart-legend">
         {groups.slice(0, 100).map((g) => (
-          <span key={g} class="legend-item" title={formatGroupLabel(JSON.parse(g))}>
+          <span
+            key={g}
+            class="legend-item"
+            title={formatGroupLabel(JSON.parse(g))}
+          >
             <span
               class="legend-color"
               style={{ backgroundColor: groupColors.get(g) }}
@@ -754,7 +772,9 @@ interface AnalyticsTableProps {
   result: AnalyticsResult;
 }
 
-const AnalyticsTable = memo(function AnalyticsTable({ result }: AnalyticsTableProps) {
+const AnalyticsTable = memo(function AnalyticsTable({
+  result,
+}: AnalyticsTableProps) {
   const { data, granularity, metric } = result;
   if (data.buckets.length === 0) {
     return (
@@ -783,9 +803,14 @@ const AnalyticsTable = memo(function AnalyticsTable({ result }: AnalyticsTablePr
           <tr>
             {hasTime && <th>Time ({distinctTimes})</th>}
             {data.groupKeys.map((key, idx) => (
-              <th key={key}>{key} ({distinctCounts[idx]})</th>
+              <th key={key}>
+                {key} ({distinctCounts[idx]})
+              </th>
             ))}
-            <th>{metric === "bytes" ? "Bytes" : "Requests"} ({formatMetricValue(totalCount, metric)})</th>
+            <th>
+              {metric === "bytes" ? "Bytes" : "Requests"} (
+              {formatMetricValue(totalCount, metric)})
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -808,13 +833,7 @@ const AnalyticsTable = memo(function AnalyticsTable({ result }: AnalyticsTablePr
   );
 });
 
-function AnalyticsBody({
-  site,
-  allSites,
-}: {
-  site: Site;
-  allSites: Site[];
-}) {
+function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   const state = useContext(StateCtx).value;
   const siteID = site.id ?? 0;
   const userSettings = loadUserSettings(state);
@@ -1070,7 +1089,13 @@ function AnalyticsBody({
             <div class="bookmarks-list">
               {savedViews.map(([name, view]) => (
                 <div key={name} class="bookmark-item">
-                  <a href="#" onClick={(e) => { e.preventDefault(); loadView(view); }}>
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      loadView(view);
+                    }}
+                  >
                     {name}
                   </a>
                   <button
@@ -1096,8 +1121,12 @@ function AnalyticsBody({
                     type="text"
                     value={saveViewName}
                     placeholder="Bookmark name"
-                    ref={(e) => e && e.focus()}
-                    onInput={(e) => setSaveViewName((e.target as HTMLInputElement).value)}
+                    ref={(e) => {
+                      e?.focus();
+                    }}
+                    onInput={(e) =>
+                      setSaveViewName((e.target as HTMLInputElement).value)
+                    }
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -1108,12 +1137,28 @@ function AnalyticsBody({
                       }
                     }}
                   />
-                  <button type="button" onClick={() => saveView(saveViewName)}>Save</button>
-                  <button type="button" onClick={() => { setShowSaveDialog(false); setSaveViewName(""); }}>Cancel</button>
+                  <button type="button" onClick={() => saveView(saveViewName)}>
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSaveDialog(false);
+                      setSaveViewName("");
+                    }}
+                  >
+                    Cancel
+                  </button>
                 </div>
               ) : (
                 <div class="bookmark-item">
-                  <button type="button" class="add" onClick={() => setShowSaveDialog(true)}>+ New bookmark</button>
+                  <button
+                    type="button"
+                    class="add"
+                    onClick={() => setShowSaveDialog(true)}
+                  >
+                    + New bookmark
+                  </button>
                 </div>
               )}
             </div>
@@ -1177,9 +1222,7 @@ function AnalyticsBody({
             <span class="query-label">Metric:</span>
             <select
               value={metric}
-              onChange={(e) =>
-                setMetric((e.target as HTMLSelectElement).value)
-              }
+              onChange={(e) => setMetric((e.target as HTMLSelectElement).value)}
             >
               <option value="hits">Hits (request count)</option>
               <option value="bytes">Bytes (response size)</option>
@@ -1300,7 +1343,14 @@ function AnalyticsBody({
 
       {result && (
         <section>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1em" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "1em",
+            }}
+          >
             <div class="tabs" style={{ margin: 0 }}>
               <button
                 type="button"

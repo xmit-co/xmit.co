@@ -1,10 +1,11 @@
-import { Header } from "./header.tsx";
-import { loadSession, loadTeam, loadUser, logError, StateCtx } from "./app.tsx";
-import { useContext, useState, useEffect, useRef } from "preact/hooks";
-import { Footer } from "./footer.tsx";
 import { Link } from "preact-router/match";
+import { useContext, useEffect, useRef, useState } from "preact/hooks";
 import tlds from "tlds";
+import { loadSession, loadTeam, loadUser, logError, StateCtx } from "./app.tsx";
 import { DomainChecker, useDomainChecker } from "./domainChecker.tsx";
+import { Footer } from "./footer.tsx";
+import { Header } from "./header.tsx";
+import { teamLabelText } from "./models.tsx";
 
 function CopiableCode({ children }: { children: string }) {
   return (
@@ -221,8 +222,7 @@ export function Docs() {
                             checked={selectedTeamID === teamID}
                             onChange={() => setSelectedTeamID(teamID)}
                           />{" "}
-                          #{teamID}
-                          {team?.name ? `: ${team.name}` : ""}
+                          {teamLabelText(teamID, team?.name)}
                         </label>
                       </p>
                     );
@@ -490,7 +490,7 @@ export function Docs() {
               <p>
                 Keys are provisioned for users or teams from the{" "}
                 <Link href="/admin">admin page</Link>. User keys have the same
-                rights as team keys in all teams a user belongs to.
+                rights as team keys in their teams.
               </p>
               <p>
                 For developer machines, create an API key for your user and

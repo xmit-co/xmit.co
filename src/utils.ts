@@ -14,4 +14,6 @@ export function u8eq(
 }
 
 export const encoder = { encode: (v: unknown) => encode(v) };
-export const decoder = { decode: (v: Uint8Array) => decode(v, { preferMap: true }) };
+export const decoder = {
+  decode: (v: Uint8Array) => decode(v, { preferMap: true }),
+};

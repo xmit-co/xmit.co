@@ -14,6 +14,7 @@ import {
 import { EditableText } from "./editableText.tsx";
 import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
+import { TeamLabel, teamLabelText } from "./models.tsx";
 import { decoder, encoder } from "./utils.ts";
 import { enroll, signin } from "./webauthn.tsx";
 
@@ -96,8 +97,7 @@ async function fetchMessageContent(
 function createTicket(teamId: number, title: string, message: string) {
   const m = new Map<number, any>();
   m.set(1, title);
-  m.set(2, TicketStatus.AwaitingSupport); // New tickets with message await support
-  m.set(3, message);
+  if (message) m.set(3, message);
   sendUpdate(["T", teamId], m);
 }
 
@@ -109,9 +109,13 @@ function updateTicketStatus(ticketId: number, status: TicketStatusType) {
   sendUpdate(["T", ticketId], new Map([[2, status]]));
 }
 
-function addMessage(ticketId: number, content: string, keepWaiting: boolean = false) {
+function addMessage(
+  ticketId: number,
+  content: string,
+  status?: TicketStatusType,
+) {
   const msg = new Map<number, any>([[1, content]]);
-  if (keepWaiting) msg.set(2, true);
+  if (status !== undefined) msg.set(2, status);
   sendUpdate(["T", ticketId, "m"], msg);
 }
 
@@ -140,9 +144,13 @@ function TicketList({
     const status = s ?? TicketStatus.AwaitingCustomer;
     if (status === TicketStatus.Closed) return "Closed";
     if (isHelpdesk) {
-      return status === TicketStatus.AwaitingSupport ? "Awaiting me" : "Awaiting customer";
+      return status === TicketStatus.AwaitingSupport
+        ? "Awaiting me"
+        : "Awaiting customer";
     }
-    return status === TicketStatus.AwaitingCustomer ? "Awaiting me" : "Awaiting support";
+    return status === TicketStatus.AwaitingCustomer
+      ? "Awaiting me"
+      : "Awaiting support";
   };
 
   const statusOrder = (s: TicketStatusType | undefined) => {
@@ -166,7 +174,10 @@ function TicketList({
   // Group tickets by category
   const categories = [
     { label: "Awaiting me", icon: "🟡" },
-    { label: isHelpdesk ? "Awaiting customer" : "Awaiting support", icon: "🔵" },
+    {
+      label: isHelpdesk ? "Awaiting customer" : "Awaiting support",
+      icon: "🔵",
+    },
     { label: "Closed", icon: "⚫" },
   ];
   const grouped = new Map<string, Ticket[]>();
@@ -193,16 +204,25 @@ function TicketList({
           if (catTickets.length === 0) return null;
           return (
             <div key={cat.label}>
-              <h3>{cat.icon} {cat.label}</h3>
+              <h3>
+                {cat.icon} {cat.label}
+              </h3>
               <ul class="ticket-list">
                 {catTickets.map((ticket) => {
                   const team = loadTeam(state, ticket.teamId);
                   const msgCount = ticket.messageCount || 0;
                   return (
-                    <li key={ticket.id} class="ticket-item" onClick={() => onSelect(ticket)}>
-                      <span class="ticket-title">{ticket.title || "Untitled"}</span>
+                    <li
+                      key={ticket.id}
+                      class="ticket-item"
+                      onClick={() => onSelect(ticket)}
+                    >
+                      <span class="ticket-title">
+                        {ticket.title || "Untitled"}
+                      </span>
                       <span class="ticket-meta">
-                        Team #{ticket.teamId}: {team?.name || <em>unnamed</em>} · {msgCount} message{msgCount === 1 ? "" : "s"}
+                        <TeamLabel id={ticket.teamId} name={team?.name} /> ·{" "}
+                        {msgCount} message{msgCount === 1 ? "" : "s"}
                       </span>
                     </li>
                   );
@@ -230,29 +250,43 @@ function TicketView({
   isAdmin: boolean;
   onBack: () => void;
   onUpdate: (title?: string, status?: TicketStatusType) => void;
-  onSendMessage: (content: string, keepWaiting: boolean) => void;
+  onSendMessage: (content: string, status?: TicketStatusType) => void;
   onDelete?: () => void;
 }) {
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [keepWaiting, setKeepWaiting] = useState(false);
+  const [waitOnMe, setWaitOnMe] = useState(false);
   const state = useContext(StateCtx).value;
 
-  const handleSend = async () => {
+  const handleSend = async (close: boolean = false) => {
     if (!newMessage.trim() || sending) return;
     setSending(true);
     try {
-      await onSendMessage(newMessage.trim(), keepWaiting);
+      let newStatus: TicketStatusType;
+      if (close) {
+        newStatus = TicketStatus.Closed;
+      } else if (waitOnMe) {
+        // "Wait on me" keeps the ball in the sender's court
+        newStatus = isAdmin
+          ? TicketStatus.AwaitingSupport
+          : TicketStatus.AwaitingCustomer;
+      } else {
+        // Normal: flip to waiting on the other party
+        newStatus = isAdmin
+          ? TicketStatus.AwaitingCustomer
+          : TicketStatus.AwaitingSupport;
+      }
+      await onSendMessage(newMessage.trim(), newStatus);
       setNewMessage("");
-      setKeepWaiting(false);
+      setWaitOnMe(false);
     } finally {
       setSending(false);
     }
   };
 
   const sortedMessages = [...messages].sort(
-    (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
   );
 
   const isClosed = ticket.status === TicketStatus.Closed;
@@ -263,12 +297,12 @@ function TicketView({
         <button onClick={onBack}>← Back</button>
         <div class="ticket-actions-right">
           <div class="ticket-actions-desktop">
-            {isAdmin && !isClosed && (
+            {!isClosed && (
               <button onClick={() => onUpdate(undefined, TicketStatus.Closed)}>
                 ✓ Close
               </button>
             )}
-            {isAdmin && isClosed && (
+            {isClosed && (
               <button
                 onClick={() =>
                   onUpdate(undefined, TicketStatus.AwaitingSupport)
@@ -296,7 +330,7 @@ function TicketView({
             </button>
             {menuOpen && (
               <div class="burger-menu">
-                {isAdmin && !isClosed && (
+                {!isClosed && (
                   <button
                     onClick={() => {
                       onUpdate(undefined, TicketStatus.Closed);
@@ -306,7 +340,7 @@ function TicketView({
                     ✓ Close
                   </button>
                 )}
-                {isAdmin && isClosed && (
+                {isClosed && (
                   <button
                     onClick={() => {
                       onUpdate(undefined, TicketStatus.AwaitingSupport);
@@ -347,6 +381,50 @@ function TicketView({
         {formatDate(ticket.createdAt)} · Updated: {formatDate(ticket.updatedAt)}
       </p>
 
+      {!isClosed && (
+        <div class="message-input">
+          <textarea
+            value={newMessage}
+            onInput={(e) =>
+              setNewMessage((e.target as HTMLTextAreaElement).value)
+            }
+            placeholder="Type your message…"
+            rows={3}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                handleSend(false);
+              }
+            }}
+          />
+          <div class="message-input-actions">
+            {isAdmin && (
+              <label>
+                <input
+                  type="checkbox"
+                  checked={waitOnMe}
+                  onChange={(e) =>
+                    setWaitOnMe((e.target as HTMLInputElement).checked)
+                  }
+                />{" "}
+                Wait on me
+              </label>
+            )}
+            <button
+              onClick={() => handleSend(false)}
+              disabled={sending || !newMessage.trim()}
+            >
+              {sending ? "Sending…" : "Send"}
+            </button>
+            <button
+              onClick={() => handleSend(true)}
+              disabled={sending || !newMessage.trim()}
+            >
+              Close & Send
+            </button>
+          </div>
+        </div>
+      )}
+
       <div class="messages">
         {sortedMessages.length === 0 ? (
           <p>
@@ -362,8 +440,9 @@ function TicketView({
               >
                 <div class="message-header">
                   <span class="message-author">
-                    {msg.isAdmin ? "🛡️ Support" : "👤"}{" "}
-                    {user?.name || `User #${msg.userId}`}
+                    {msg.isAdmin
+                      ? "🛡️ Support"
+                      : `👤 ${user?.name || `User #${msg.userId}`}`}
                   </span>
                   <span class="message-time">{formatDate(msg.createdAt)}</span>
                 </div>
@@ -373,39 +452,6 @@ function TicketView({
           })
         )}
       </div>
-
-      {!isClosed && (
-        <div class="message-input">
-          <textarea
-            value={newMessage}
-            onInput={(e) =>
-              setNewMessage((e.target as HTMLTextAreaElement).value)
-            }
-            placeholder="Type your message…"
-            rows={3}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                handleSend();
-              }
-            }}
-          />
-          <div class="message-input-actions">
-            <label>
-              <input
-                type="checkbox"
-                checked={keepWaiting}
-                onChange={(e) =>
-                  setKeepWaiting((e.target as HTMLInputElement).checked)
-                }
-              />{" "}
-              Wait on me
-            </label>
-            <button onClick={handleSend} disabled={sending || !newMessage.trim()}>
-              {sending ? "Sending…" : "Send"}
-            </button>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
@@ -435,29 +481,29 @@ export function Support({ id }: { id?: string }) {
 
   // Get all tickets for user's teams (including closed)
   const allTeamTickets = loadTeamTickets(state, teamIds);
-  const tickets: Ticket[] = allTeamTickets
-    .map((t) => ({
-      id: t.id,
-      teamId: t.teamId,
-      title: t.title,
-      createdAt:
-        t.createdAt instanceof Date
-          ? t.createdAt
-          : new Date((t.createdAt as unknown as number) * 1000),
-      updatedAt:
-        t.updatedAt instanceof Date
-          ? t.updatedAt
-          : new Date((t.updatedAt as unknown as number) * 1000),
-      status: t.status as TicketStatusType,
-      messageCount: t.messageCount,
-      createdBy: t.createdBy,
-    }));
+  const tickets: Ticket[] = allTeamTickets.map((t) => ({
+    id: t.id,
+    teamId: t.teamId,
+    title: t.title,
+    createdAt:
+      t.createdAt instanceof Date
+        ? t.createdAt
+        : new Date((t.createdAt as unknown as number) * 1000),
+    updatedAt:
+      t.updatedAt instanceof Date
+        ? t.updatedAt
+        : new Date((t.updatedAt as unknown as number) * 1000),
+    status: t.status as TicketStatusType,
+    messageCount: t.messageCount,
+    createdBy: t.createdBy,
+  }));
   const isAdmin = session?.isSupport || false;
 
   // Look up selected ticket from global state (so updates are reflected)
-  const selectedTicket = selectedTicketId !== null
-    ? tickets.find((t) => t.id === selectedTicketId) || null
-    : null;
+  const selectedTicket =
+    selectedTicketId !== null
+      ? tickets.find((t) => t.id === selectedTicketId) || null
+      : null;
 
   const loadMessages = async (ticketId: number) => {
     try {
@@ -474,6 +520,20 @@ export function Support({ id }: { id?: string }) {
     }
   }, [selectedTicketId]);
 
+  // Reload messages when the ticket's message count changes (new message from WebSocket)
+  useEffect(() => {
+    if (selectedTicket && selectedTicket.messageCount > messages.length) {
+      const lastMessageId = messages.length > 0 ? messages[messages.length - 1].id : 0;
+      fetchMessageContent(selectedTicket.id, lastMessageId)
+        .then((newMsgs) => {
+          if (newMsgs.length > 0) {
+            setMessages((prev) => [...prev, ...newMsgs]);
+          }
+        })
+        .catch((err) => logError(err instanceof Error ? err : String(err)));
+    }
+  }, [selectedTicket?.messageCount]);
+
   const handleNewTicket = () => {
     setShowNewTicketForm(true);
     setNewTicketTitle("");
@@ -481,8 +541,12 @@ export function Support({ id }: { id?: string }) {
   };
 
   const handleSubmitNewTicket = () => {
-    if (selectedTeamId === null || !newTicketTitle.trim() || !newTicketMessage.trim()) return;
-    createTicket(selectedTeamId, newTicketTitle.trim(), newTicketMessage.trim());
+    if (selectedTeamId === null || !newTicketTitle.trim()) return;
+    createTicket(
+      selectedTeamId,
+      newTicketTitle.trim(),
+      newTicketMessage.trim(),
+    );
     setShowNewTicketForm(false);
     setNewTicketTitle("");
     setNewTicketMessage("");
@@ -498,9 +562,9 @@ export function Support({ id }: { id?: string }) {
     }
   };
 
-  const handleSendMessage = async (content: string, keepWaiting: boolean) => {
+  const handleSendMessage = async (content: string, status?: TicketStatusType) => {
     if (!selectedTicket) return;
-    addMessage(selectedTicket.id, content, keepWaiting);
+    addMessage(selectedTicket.id, content, status);
     // Reload messages after a short delay to get the new message
     setTimeout(() => loadMessages(selectedTicket.id), 500);
   };
@@ -579,10 +643,13 @@ export function Support({ id }: { id?: string }) {
                 >
                   {teamIds.map((tid) => {
                     const team = loadTeam(state, tid);
-                    const name = team?.name || "unnamed";
                     return (
-                      <option key={tid} value={tid} style={team?.name ? {} : { fontStyle: "italic" }}>
-                        Team #{tid}: {name}
+                      <option
+                        key={tid}
+                        value={tid}
+                        style={team?.name ? {} : { fontStyle: "italic" }}
+                      >
+                        {teamLabelText(tid, team?.name)}
                       </option>
                     );
                   })}
@@ -624,11 +691,13 @@ export function Support({ id }: { id?: string }) {
             <p>
               <button
                 onClick={handleSubmitNewTicket}
-                disabled={!newTicketTitle.trim() || !newTicketMessage.trim() || selectedTeamId === null}
+                disabled={!newTicketTitle.trim() || selectedTeamId === null}
               >
                 Start Conversation
               </button>{" "}
-              <button onClick={() => setShowNewTicketForm(false)}>Cancel</button>
+              <button onClick={() => setShowNewTicketForm(false)}>
+                Cancel
+              </button>
             </p>
           </section>
         ) : (
@@ -673,9 +742,10 @@ export function Helpdesk({ id }: { id?: string }) {
   const isAdmin = session?.isSupport || false;
 
   // Look up selected ticket from global state (so updates are reflected)
-  const selectedTicket = selectedTicketId !== null
-    ? tickets.find((t) => t.id === selectedTicketId) || null
-    : null;
+  const selectedTicket =
+    selectedTicketId !== null
+      ? tickets.find((t) => t.id === selectedTicketId) || null
+      : null;
 
   const loadMessages = async (ticketId: number) => {
     try {
@@ -692,6 +762,20 @@ export function Helpdesk({ id }: { id?: string }) {
     }
   }, [selectedTicketId]);
 
+  // Reload messages when the ticket's message count changes (new message from WebSocket)
+  useEffect(() => {
+    if (selectedTicket && selectedTicket.messageCount > messages.length) {
+      const lastMessageId = messages.length > 0 ? messages[messages.length - 1].id : 0;
+      fetchMessageContent(selectedTicket.id, lastMessageId)
+        .then((newMsgs) => {
+          if (newMsgs.length > 0) {
+            setMessages((prev) => [...prev, ...newMsgs]);
+          }
+        })
+        .catch((err) => logError(err instanceof Error ? err : String(err)));
+    }
+  }, [selectedTicket?.messageCount]);
+
   const handleUpdateTicket = (title?: string, status?: TicketStatusType) => {
     if (!selectedTicket) return;
     if (title !== undefined) {
@@ -702,9 +786,9 @@ export function Helpdesk({ id }: { id?: string }) {
     }
   };
 
-  const handleSendMessage = async (content: string, keepWaiting: boolean) => {
+  const handleSendMessage = async (content: string, status?: TicketStatusType) => {
     if (!selectedTicket) return;
-    addMessage(selectedTicket.id, content, keepWaiting);
+    addMessage(selectedTicket.id, content, status);
     // Reload messages after a short delay to get the new message
     setTimeout(() => loadMessages(selectedTicket.id), 500);
   };

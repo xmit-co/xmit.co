@@ -680,8 +680,6 @@ span.icon {
 }
 .messages {
   margin: 1em 0;
-  max-height: 400px;
-  overflow-y: auto;
 }
 .message {
   margin: 0.5em 0;

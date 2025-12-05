@@ -11,6 +11,7 @@ import {
 } from "./app.tsx";
 import { Header } from "./header.tsx";
 import { Footer } from "./footer.tsx";
+import { teamLabelPrefix } from "./models.tsx";
 import { enroll, signin } from "./webauthn.tsx";
 
 export function ProvideKey({ id }: { id: string }) {
@@ -255,7 +256,8 @@ export function ProvideKey({ id }: { id: string }) {
                   checked={selectedTeam === teamID}
                   onChange={() => setSelectedTeam(teamID)}
                 />{" "}
-                🏭 #{teamID}: {team?.name || "Loading…"}
+                🏭 {teamLabelPrefix(teamID)}
+                {team?.name || "Loading…"}
               </label>
             ))}
           </div>
