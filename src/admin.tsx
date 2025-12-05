@@ -510,17 +510,18 @@ function TeamSummary({ teamID }: { teamID: number }) {
           <br />
         </>
       )}
-      <strong>Sites:</strong>{" "}
+      <strong>Sites:</strong>
       {siteIDs.length > 0 ? (
-        siteIDs.map((id, idx) => {
-          const site = loadSite(state, id);
-          return (
-            <span key={id}>
-              {idx > 0 && ", "}
-              <Link href={`/admin/site/${id}`}>{site?.name || `#${id}`}</Link>
-            </span>
-          );
-        })
+        <ul>
+          {siteIDs.map((id) => {
+            const site = loadSite(state, id);
+            return (
+              <li key={id}>
+                <Link href={`/admin/site/${id}`}>{site?.name || `#${id}`}</Link>
+              </li>
+            );
+          })}
+        </ul>
       ) : (
         <em>none</em>
       )}
