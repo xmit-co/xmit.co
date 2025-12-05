@@ -227,6 +227,10 @@ const FilterRow = memo(function FilterRow({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const listId = `filter-${filter.column}-suggestions`;
 
+  useEffect(() => {
+    setSuggestions([]);
+  }, [siteID]);
+
   const onChange = (f: AnalyticsFilter) => {
     if (f.column !== filter.column) {
       setSuggestions([]);
