@@ -511,20 +511,19 @@ function TeamSummary({ teamID }: { teamID: number }) {
         </>
       )}
       <strong>Sites:</strong>
-      {siteIDs.length > 0 ? (
-        <ul class="emoji-list">
-          {siteIDs.map((id) => {
-            const site = loadSite(state, id);
-            return (
-              <li key={id} data-emoji="🌐">
-                <Link href={`/admin/site/${id}`}>{site?.name || `#${id}`}</Link>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <em>none</em>
-      )}
+      <ul class="emoji-list">
+        {siteIDs.map((id) => {
+          const site = loadSite(state, id);
+          return (
+            <li key={id} data-emoji="🌐">
+              <Link href={`/admin/site/${id}`}>{site?.name || `#${id}`}</Link>
+            </li>
+          );
+        })}
+        <li data-emoji="➕">
+          <a onClick={() => route(`/docs?team=${teamID}`)}>New site</a>
+        </li>
+      </ul>
     </div>
   );
 }
