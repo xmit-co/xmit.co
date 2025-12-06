@@ -514,14 +514,14 @@ export function Support({ id }: { id?: string }) {
   };
 
   useEffect(() => {
-    if (selectedTicketId) {
+    if (selectedTicketId && uid !== undefined) {
       loadMessages(selectedTicketId);
     }
-  }, [selectedTicketId]);
+  }, [selectedTicketId, uid]);
 
   // Reload messages when the ticket's message count changes (new message from WebSocket)
   useEffect(() => {
-    if (selectedTicket && selectedTicket.messageCount > messages.length) {
+    if (uid !== undefined && selectedTicket && selectedTicket.messageCount > messages.length) {
       const lastMessageId = messages.length > 0 ? messages[messages.length - 1].id : 0;
       fetchMessageContent(selectedTicket.id, lastMessageId)
         .then((newMsgs) => {
@@ -531,7 +531,7 @@ export function Support({ id }: { id?: string }) {
         })
         .catch((err) => logError(err instanceof Error ? err : String(err)));
     }
-  }, [selectedTicket?.messageCount]);
+  }, [selectedTicket?.messageCount, uid]);
 
   const handleNewTicket = () => {
     setShowNewTicketForm(true);
@@ -756,14 +756,14 @@ export function Helpdesk({ id }: { id?: string }) {
   };
 
   useEffect(() => {
-    if (selectedTicketId) {
+    if (selectedTicketId && uid !== undefined) {
       loadMessages(selectedTicketId);
     }
-  }, [selectedTicketId]);
+  }, [selectedTicketId, uid]);
 
   // Reload messages when the ticket's message count changes (new message from WebSocket)
   useEffect(() => {
-    if (selectedTicket && selectedTicket.messageCount > messages.length) {
+    if (uid !== undefined && selectedTicket && selectedTicket.messageCount > messages.length) {
       const lastMessageId = messages.length > 0 ? messages[messages.length - 1].id : 0;
       fetchMessageContent(selectedTicket.id, lastMessageId)
         .then((newMsgs) => {
@@ -773,7 +773,7 @@ export function Helpdesk({ id }: { id?: string }) {
         })
         .catch((err) => logError(err instanceof Error ? err : String(err)));
     }
-  }, [selectedTicket?.messageCount]);
+  }, [selectedTicket?.messageCount, uid]);
 
   const handleUpdateTicket = (title?: string, status?: TicketStatusType) => {
     if (!selectedTicket) return;
