@@ -907,7 +907,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
     metric,
   ]);
 
-  const timeRangeDates = useMemo(() => {
+  const getTimeRangeDates = useCallback(() => {
     let start: Date;
     let end: Date;
     if (timeRange === "custom" && customStart && customEnd) {
@@ -932,7 +932,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
 
     setLoading(true);
 
-    const { start, end } = timeRangeDates;
+    const { start, end } = getTimeRangeDates();
 
     const validFilters = filters.filter(
       (f) =>
@@ -1269,7 +1269,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
                       onUpdate={updateFilter}
                       onRemove={removeFilter}
                       siteID={siteID}
-                      timeRange={timeRangeDates}
+                      timeRange={getTimeRangeDates()}
                     />
                   ))}
                 </div>
