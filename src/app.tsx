@@ -4,7 +4,7 @@ import Router, { Route } from "preact-router";
 import "preact/debug";
 import Sockette from "sockette";
 import { Admin, TeamAdmin, UserAdmin } from "./admin.tsx";
-import { Analytics, SiteAnalytics } from "./analytics.tsx";
+import { Analytics } from "./analytics.tsx";
 import "./app.css";
 import { Docs } from "./docs.tsx";
 import { Footer } from "./footer.tsx";
@@ -129,6 +129,7 @@ const analyticsViewMapping = {
   limit: 6,
   stacked: 7,
   sortByCount: 8,
+  siteIDs: 9,
 };
 
 const userSettingsMapping = {
@@ -654,7 +655,6 @@ export function App() {
         <Route path="/admin/team/:id" component={TeamAdmin} />
         <Route path="/admin/site/:id" component={SiteAdmin} />
         <Route path="/analytics" component={Analytics} />
-        <Route path="/analytics/site/:id" component={SiteAnalytics} />
         <Route path="/support" component={Support} />
         <Route path="/support/:id" component={Support} />
         <Route path="/helpdesk" component={Helpdesk} />

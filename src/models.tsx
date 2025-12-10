@@ -50,6 +50,7 @@ export interface AnalyticsView {
   limit: number | undefined;
   stacked: boolean | undefined;
   sortByCount: boolean | undefined;
+  siteIDs: number[] | undefined;
 }
 
 export interface User {

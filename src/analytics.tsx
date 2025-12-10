@@ -53,7 +53,7 @@ interface AnalyticsFilter {
 }
 
 interface AnalyticsRequest {
-  siteID: number;
+  siteIDs: number[];
   start: Date;
   end: Date;
   granularity: string;
@@ -92,6 +92,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const CHART_HEIGHT_EM = 30;
 
 const FILTER_COLUMNS = [
+  { value: "site", label: "Site" },
   { value: "domain", label: "Domain" },
   { value: "path", label: "Path" },
   { value: "type", label: "Client Type" },
@@ -160,7 +161,7 @@ function encodeRequest(req: AnalyticsRequest): Uint8Array {
   });
 
   const m = new Map<number, any>();
-  m.set(1, req.siteID);
+  m.set(1, req.siteIDs);
   m.set(2, req.start);
   m.set(3, req.end);
   if (req.granularity && req.granularity !== "none") m.set(4, req.granularity);
@@ -227,8 +228,9 @@ interface FilterRowProps {
   filters: AnalyticsFilter[];
   onUpdate: (idx: number, filter: AnalyticsFilter) => void;
   onRemove: (idx: number) => void;
-  siteID: number;
+  siteIDs: number[];
   timeRange: { start: Date; end: Date };
+  siteNames: Map<string, string>;
 }
 
 const FilterRow = memo(function FilterRow({
@@ -237,8 +239,9 @@ const FilterRow = memo(function FilterRow({
   filters,
   onUpdate,
   onRemove,
-  siteID,
+  siteIDs,
   timeRange,
+  siteNames,
 }: FilterRowProps) {
   const [inputValue, setInputValue] = useState("");
   const [excludeMode, setExcludeMode] = useState(false);
@@ -247,7 +250,7 @@ const FilterRow = memo(function FilterRow({
 
   useEffect(() => {
     setSuggestions([]);
-  }, [siteID]);
+  }, [siteIDs]);
 
   const onChange = (f: AnalyticsFilter) => {
     if (f.column !== filter.column) {
@@ -266,7 +269,7 @@ const FilterRow = memo(function FilterRow({
           ((f.in && f.in.length > 0) || (f.notIn && f.notIn.length > 0)),
       );
       const result = await fetchAnalytics({
-        siteID,
+        siteIDs,
         start: timeRange.start,
         end: timeRange.end,
         granularity: "none",
@@ -384,9 +387,13 @@ const FilterRow = memo(function FilterRow({
         <datalist id={listId}>
           {suggestions
             .filter((s) => !values.includes(s))
-            .map((s) => (
-              <option key={s} value={s} />
-            ))}
+            .map((s) => {
+              // For site column, show "ID: name" as label
+              const label = filter.column === "site" && siteNames.has(s)
+                ? `${s}: ${siteNames.get(s)}`
+                : s;
+              return <option key={s} value={s} label={label} />;
+            })}
         </datalist>
         {!values.includes("") && (
           <button
@@ -434,10 +441,16 @@ function formatChartLabel(date: Date, granularity: string): string {
   return date.toISOString().slice(0, 10);
 }
 
-function formatGroupLabel(groups: any[]): string {
-  return groups.length > 0
-    ? groups.map((g) => g || "empty").join(", ")
-    : "empty";
+function formatGroupLabel(groups: any[], groupKeys?: string[], siteNames?: Map<string, string>): string {
+  if (groups.length === 0) return "empty";
+  return groups.map((g, i) => {
+    if (!g) return "empty";
+    // If this is a site column and we have site names, show "ID: name"
+    if (groupKeys && groupKeys[i] === "site" && siteNames?.has(g)) {
+      return `${g}: ${siteNames.get(g)}`;
+    }
+    return g;
+  }).join(", ");
 }
 
 function generateTimeBuckets(
@@ -503,7 +516,7 @@ function generateTimeBuckets(
       Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), 1),
     );
 
-    while (current <= endMonth) {
+    while (current < endMonth) {
       const timeKey = current.toISOString();
       const existing = bucketMap.get(timeKey);
       if (existing) {
@@ -518,8 +531,8 @@ function generateTimeBuckets(
       current.setUTCMonth(current.getUTCMonth() + 1);
     }
   } else {
-    // For hours and days, use fixed step
-    for (let t = minTime; t <= maxTime; t += stepMs) {
+    // For hours and days, use fixed step (end is exclusive)
+    for (let t = minTime; t < maxTime; t += stepMs) {
       const date = new Date(t);
       const timeKey = date.toISOString();
       const existing = bucketMap.get(timeKey);
@@ -554,12 +567,14 @@ interface AnalyticsChartProps {
   result: AnalyticsResult;
   stacked: boolean;
   setStacked: (stacked: boolean) => void;
+  siteNames: Map<string, string>;
 }
 
 const AnalyticsChart = memo(function AnalyticsChart({
   result,
   stacked,
   setStacked,
+  siteNames,
 }: AnalyticsChartProps) {
   const { data, granularity, metric } = result;
   if (data.buckets.length === 0) {
@@ -701,7 +716,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
         <div class="hbar-chart">
           {data.buckets.map((bucket, idx) => {
             const width = (bucket.count / maxCount) * 100;
-            const label = hasGroups ? formatGroupLabel(bucket.groups) : "Total";
+            const label = hasGroups ? formatGroupLabel(bucket.groups, data.groupKeys, siteNames) : "Total";
             return (
               <div key={idx} class="hbar-row">
                 <span class="hbar-label" title={label}>
@@ -830,7 +845,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
                           height,
                           backgroundColor: groupColors.get(g),
                         }}
-                        tip={`${label}\n${formatGroupLabel(JSON.parse(g))}: ${formatMetricValue(count, metric)}`}
+                        tip={`${label}\n${formatGroupLabel(JSON.parse(g), data.groupKeys, siteNames)}: ${formatMetricValue(count, metric)}`}
                       >
                         <></>
                       </Tappable>
@@ -848,13 +863,13 @@ const AnalyticsChart = memo(function AnalyticsChart({
           <span
             key={g}
             class="legend-item"
-            title={formatGroupLabel(JSON.parse(g))}
+            title={formatGroupLabel(JSON.parse(g), data.groupKeys, siteNames)}
           >
             <span
               class="legend-color"
               style={{ backgroundColor: groupColors.get(g) }}
             />
-            <span class="legend-text">{formatGroupLabel(JSON.parse(g))}</span>
+            <span class="legend-text">{formatGroupLabel(JSON.parse(g), data.groupKeys, siteNames)}</span>
           </span>
         ))}
         {groups.length > 100 && <span class="legend-item">…</span>}
@@ -885,10 +900,12 @@ function downloadCSV(data: AnalyticsResponse, granularity: string) {
 
 interface AnalyticsTableProps {
   result: AnalyticsResult;
+  siteNames: Map<string, string>;
 }
 
 const AnalyticsTable = memo(function AnalyticsTable({
   result,
+  siteNames,
 }: AnalyticsTableProps) {
   const { data, granularity, metric } = result;
   if (data.buckets.length === 0) {
@@ -934,11 +951,17 @@ const AnalyticsTable = memo(function AnalyticsTable({
               {hasTime && b.time && (
                 <td>{formatChartLabel(new Date(b.time), granularity)}</td>
               )}
-              {b.groups.map((g, gidx) => (
-                <td key={gidx} title={g || ""}>
-                  {g || <em>empty</em>}
-                </td>
-              ))}
+              {b.groups.map((g, gidx) => {
+                const isSiteCol = data.groupKeys[gidx] === "site";
+                const displayValue = isSiteCol && siteNames.has(g)
+                  ? `${g}: ${siteNames.get(g)}`
+                  : g;
+                return (
+                  <td key={gidx} title={displayValue || ""}>
+                    {displayValue || <em>empty</em>}
+                  </td>
+                );
+              })}
               <td class="count">{formatMetricValue(b.count, metric)}</td>
             </tr>
           ))}
@@ -948,10 +971,20 @@ const AnalyticsTable = memo(function AnalyticsTable({
   );
 });
 
-function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
+function AnalyticsBody({ allSites }: { allSites: Site[] }) {
   const state = useContext(StateCtx).value;
-  const siteID = site.id ?? 0;
   const userSettings = loadUserSettings(state);
+
+  // Create a map of site ID -> name for display
+  const siteNames = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of allSites) {
+      if (s.id !== undefined) {
+        map.set(String(s.id), s.name || `Site #${s.id}`);
+      }
+    }
+    return map;
+  }, [allSites]);
 
   const params = getQueryParams();
   const initialTimeRange = params.get("range") || DEFAULT_TIME_RANGE;
@@ -967,6 +1000,13 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   const initialViewMode = params.get("view") === "table" ? "table" : "chart";
   const initialMetric = params.get("metric") === "bytes" ? "bytes" : "hits";
 
+  // Parse sites from URL or default to all
+  const sitesParam = params.get("sites");
+  const parsedSiteIDs = sitesParam && sitesParam.length > 0
+    ? sitesParam.split(",").map(Number).filter((n) => !isNaN(n))
+    : allSites.map((s) => s.id ?? 0);
+
+  const [selectedSiteIDs, setSelectedSiteIDs] = useState<number[]>(parsedSiteIDs);
   const [timeRange, setTimeRange] = useState(initialTimeRange);
   const [granularity, setGranularity] = useState(initialGranularity);
   const [groupBy, setGroupBy] = useState<string[]>(initialGroupBy);
@@ -984,8 +1024,20 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   const [saveViewName, setSaveViewName] = useState("");
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
-  const updateUrl = (newSiteID?: number) => {
+  const allSiteIDs = useMemo(() =>
+    allSites.map((s) => s.id ?? 0),
+    [allSites]
+  );
+
+  const updateUrl = () => {
+    // Only include sites param if not all sites are selected
+    const sitesParam = selectedSiteIDs.length === allSiteIDs.length &&
+      selectedSiteIDs.every((id) => allSiteIDs.includes(id))
+      ? null
+      : selectedSiteIDs.join(",");
+
     const query = buildQueryString({
+      sites: sitesParam,
       range: timeRange !== DEFAULT_TIME_RANGE ? timeRange : null,
       granularity: granularity !== DEFAULT_GRANULARITY ? granularity : null,
       groupBy: groupBy.length > 0 ? groupBy.join(",") : null,
@@ -998,17 +1050,13 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
       view: viewMode !== "chart" ? viewMode : null,
       metric: metric !== "hits" ? metric : null,
     });
-    const targetSiteID = newSiteID ?? siteID;
-    window.history.replaceState(
-      null,
-      "",
-      `/analytics/site/${targetSiteID}${query}`,
-    );
+    window.history.replaceState(null, "", `/analytics${query}`);
   };
 
   useEffect(() => {
     updateUrl();
   }, [
+    selectedSiteIDs,
     timeRange,
     granularity,
     groupBy,
@@ -1039,6 +1087,11 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
   }, [timeRange, customStart, customEnd]);
 
   const runQuery = async () => {
+    if (selectedSiteIDs.length === 0) {
+      logError("No sites selected");
+      return;
+    }
+
     if (abortRef.current) {
       abortRef.current.abort();
     }
@@ -1058,7 +1111,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
     try {
       const data = await fetchAnalytics(
         {
-          siteID,
+          siteIDs: selectedSiteIDs,
           start,
           end,
           granularity,
@@ -1103,11 +1156,6 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
     setFilters((f) => f.filter((_, i) => i !== idx));
   }, []);
 
-  const changeSite = (newSiteID: number) => {
-    updateUrl(newSiteID);
-    route(`/analytics/site/${newSiteID}${window.location.search}`);
-  };
-
   const savedViews = useMemo(
     () =>
       userSettings?.analyticsViews
@@ -1135,6 +1183,11 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
         customEnd,
       };
       view.set(5, JSON.stringify(filtersWithDates));
+    }
+    // Save site selection (key 9) - only if not all sites selected
+    if (selectedSiteIDs.length !== allSiteIDs.length ||
+        !selectedSiteIDs.every((id) => allSiteIDs.includes(id))) {
+      view.set(9, selectedSiteIDs);
     }
     sendUpdate(["v", name.trim()], view);
     setShowSaveDialog(false);
@@ -1164,28 +1217,33 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
     } else {
       setFilters([]);
     }
+    // Restore site selection, defaulting to all sites for old bookmarks
+    if (view.siteIDs && view.siteIDs.length > 0) {
+      setSelectedSiteIDs(view.siteIDs);
+    } else {
+      setSelectedSiteIDs(allSiteIDs);
+    }
   };
 
   const deleteView = (name: string) => {
     sendUpdate(["v", name], undefined);
   };
 
+  const toggleSite = (siteId: number) => {
+    setSelectedSiteIDs((prev) =>
+      prev.includes(siteId)
+        ? prev.filter((id) => id !== siteId)
+        : [...prev, siteId]
+    );
+  };
+
+  const selectAllSites = () => setSelectedSiteIDs(allSiteIDs);
+  const selectNoSites = () => setSelectedSiteIDs([]);
+
   return (
     <>
       <h1>
-        <span class="icon">📊</span>Analytics for{" "}
-        <select
-          value={siteID}
-          onChange={(e) =>
-            changeSite(Number((e.target as HTMLSelectElement).value))
-          }
-        >
-          {allSites.map((s) => (
-            <option key={s.id ?? 0} value={s.id ?? 0}>
-              #{s.id ?? 0}: {s.name || "unnamed"}
-            </option>
-          ))}
-        </select>
+        <span class="icon">📊</span>Analytics
       </h1>
 
       <section>
@@ -1199,7 +1257,7 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
             <span class="icon">🔍</span>Query
             {loading && <span class="spinner query-spinner">⟳</span>}
           </h2>
-          <details class="bookmarks">
+          <details class="query-details">
             <summary>Bookmarks ({savedViews.length})</summary>
             <div class="bookmarks-list">
               {savedViews.map(([name, view]) => (
@@ -1276,6 +1334,28 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
                   </button>
                 </div>
               )}
+            </div>
+          </details>
+          <details class="query-details">
+            <summary>Sites ({selectedSiteIDs.length} of {allSites.length})</summary>
+            <div class="site-selector-controls">
+              <button type="button" onClick={selectAllSites}>All</button>
+              <button type="button" onClick={selectNoSites}>None</button>
+            </div>
+            <div class="site-checkboxes">
+              {allSites.map((s) => {
+                const id = s.id ?? 0;
+                return (
+                  <label key={id}>
+                    <input
+                      type="checkbox"
+                      checked={selectedSiteIDs.includes(id)}
+                      onChange={() => toggleSite(id)}
+                    />{" "}
+                    #{id}: {s.name || "unnamed"}
+                  </label>
+                );
+              })}
             </div>
           </details>
           <div class="query-row">
@@ -1377,14 +1457,15 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
                 <div class="filters-list">
                   {filters.map((filter, idx) => (
                     <FilterRow
-                      key={`${siteID}-${idx}`}
+                      key={idx}
                       idx={idx}
                       filter={filter}
                       filters={filters}
                       onUpdate={updateFilter}
                       onRemove={removeFilter}
-                      siteID={siteID}
+                      siteIDs={selectedSiteIDs}
                       timeRange={getTimeRangeDates()}
+                      siteNames={siteNames}
                     />
                   ))}
                 </div>
@@ -1496,9 +1577,10 @@ function AnalyticsBody({ site, allSites }: { site: Site; allSites: Site[] }) {
               result={result}
               stacked={stacked}
               setStacked={setStacked}
+              siteNames={siteNames}
             />
           ) : (
-            <AnalyticsTable result={result} />
+            <AnalyticsTable result={result} siteNames={siteNames} />
           )}
         </section>
       )}
@@ -1524,7 +1606,7 @@ function getAllSites(state: any, session: any): Site[] {
   return allSites;
 }
 
-function AnalyticsPage({ id }: { id?: string }) {
+function AnalyticsPage() {
   const state = useContext(StateCtx);
   const ready = state.value.ready;
   const session = loadSession(state.value);
@@ -1535,18 +1617,6 @@ function AnalyticsPage({ id }: { id?: string }) {
   }
 
   const allSites = getAllSites(state.value, session);
-  const site = id !== undefined ? loadSite(state.value, Number(id)) : undefined;
-
-  if (ready) {
-    if (id === undefined && allSites.length > 0) {
-      route(`/analytics/site/${allSites[0].id}${window.location.search}`, true);
-      return <></>;
-    }
-    if (id && site === undefined) {
-      route("/admin");
-      return <></>;
-    }
-  }
 
   return (
     <div class="with-header">
@@ -1554,8 +1624,8 @@ function AnalyticsPage({ id }: { id?: string }) {
       <main>
         {!ready ? (
           <h1>Loading…</h1>
-        ) : site ? (
-          <AnalyticsBody site={site} allSites={allSites} />
+        ) : allSites.length > 0 ? (
+          <AnalyticsBody allSites={allSites} />
         ) : (
           <p>
             <em>No sites available.</em>
@@ -1569,8 +1639,4 @@ function AnalyticsPage({ id }: { id?: string }) {
 
 export function Analytics() {
   return <AnalyticsPage />;
-}
-
-export function SiteAnalytics({ id }: { id: string }) {
-  return <AnalyticsPage id={id} />;
 }

@@ -304,6 +304,12 @@ function TeamView({ session, id }: { session: Session; id: number }) {
           buttonText="rename"
           submit={(v) => sendUpdate(["t", id], new Map([[1, v]]))}
         />
+        <button onClick={() => {
+          const siteIDs = [...(team.sites?.keys() || [])];
+          route(`/analytics?sites=${siteIDs.join(",")}`);
+        }}>
+          📊 analytics
+        </button>
         <button
           class="delete"
           onClick={() => {

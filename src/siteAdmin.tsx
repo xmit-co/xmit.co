@@ -302,7 +302,7 @@ function SiteAdminBody({ site }: { site: Site }) {
           buttonText="rename"
           submit={(v) => sendUpdate(["s", siteID], new Map([[1, v]]))}
         />
-        <button onClick={() => route(`/analytics/site/${siteID}`)}>
+        <button onClick={() => route(`/analytics?sites=${siteID}`)}>
           📊 analytics
         </button>
         <button

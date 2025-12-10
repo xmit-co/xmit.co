@@ -476,6 +476,27 @@ span.icon {
   flex-wrap: wrap;
   gap: 1em;
 }
+.query-details {
+  margin-bottom: 1em;
+}
+.query-details summary {
+  cursor: pointer;
+  user-select: none;
+}
+.site-selector-controls {
+  display: flex;
+  gap: 0.25em;
+  margin: 0.5em 0;
+}
+.site-checkboxes {
+  columns: auto 12em;
+  column-gap: 1em;
+}
+.site-checkboxes label {
+  display: block;
+  white-space: nowrap;
+  break-inside: avoid;
+}
 .order-item {
   display: inline-flex;
   align-items: center;
@@ -635,13 +656,6 @@ span.icon {
 }
 .query-spinner {
   float: right;
-}
-.bookmarks {
-  margin-bottom: 1em;
-}
-.bookmarks summary {
-  cursor: pointer;
-  user-select: none;
 }
 .bookmarks-list {
   margin-top: 0.5em;
