@@ -74,6 +74,8 @@ interface AnalyticsResponse {
   groupKeys: string[];
   buckets: AnalyticsBucket[];
   strings: string[]; // String interning table
+  start?: Date; // Rounded start time for bucket generation
+  end?: Date; // Rounded end time for bucket generation
 }
 
 interface AnalyticsResult {
@@ -181,6 +183,8 @@ function decodeResponse(data: Uint8Array): AnalyticsResponse {
   const groupKeys = m.get(1) || [];
   const rawBuckets = m.get(2) || [];
   const strings: string[] = m.get(3) || [];
+  const rawStart = m.get(4);
+  const rawEnd = m.get(5);
 
   const buckets: AnalyticsBucket[] = rawBuckets.map((b: Map<number, any>) => {
     const rawTime = b.get(1);
@@ -193,7 +197,10 @@ function decodeResponse(data: Uint8Array): AnalyticsResponse {
     };
   });
 
-  return { groupKeys, buckets, strings };
+  const start = rawStart instanceof Date ? rawStart : rawStart ? new Date(rawStart * 1000) : undefined;
+  const end = rawEnd instanceof Date ? rawEnd : rawEnd ? new Date(rawEnd * 1000) : undefined;
+
+  return { groupKeys, buckets, strings, start, end };
 }
 
 async function fetchAnalytics(
@@ -436,23 +443,26 @@ function formatGroupLabel(groups: any[]): string {
 function generateTimeBuckets(
   buckets: AnalyticsBucket[],
   granularity: string,
+  start?: Date,
+  end?: Date,
 ): AnalyticsBucket[] {
-  if (buckets.length === 0 || granularity === "none") {
+  if (granularity === "none") {
     return buckets;
   }
 
-  // Get min and max times from existing buckets
-  const times = buckets.map((b) => new Date(b.time).getTime());
-  let minTime = Math.min(...times);
-  let maxTime = Math.max(...times);
+  // Use provided start/end or fall back to bucket min/max
+  let minTime: number;
+  let maxTime: number;
 
-  // Round to granularity boundaries
-  if (granularity === "hour") {
-    minTime = Math.floor(minTime / (60 * 60 * 1000)) * (60 * 60 * 1000);
-    maxTime = Math.floor(maxTime / (60 * 60 * 1000)) * (60 * 60 * 1000);
-  } else if (granularity === "day") {
-    minTime = Math.floor(minTime / (24 * 60 * 60 * 1000)) * (24 * 60 * 60 * 1000);
-    maxTime = Math.floor(maxTime / (24 * 60 * 60 * 1000)) * (24 * 60 * 60 * 1000);
+  if (start && end) {
+    minTime = start.getTime();
+    maxTime = end.getTime();
+  } else if (buckets.length > 0) {
+    const times = buckets.map((b) => new Date(b.time).getTime());
+    minTime = Math.min(...times);
+    maxTime = Math.max(...times);
+  } else {
+    return buckets;
   }
 
   // Calculate step size based on granularity
@@ -720,7 +730,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
   const hasGroups = data.groupKeys.length > 0;
 
   if (!hasGroups) {
-    const filledBuckets = generateTimeBuckets(data.buckets, granularity);
+    const filledBuckets = generateTimeBuckets(data.buckets, granularity, data.start, data.end);
     const maxCount = Math.max(...filledBuckets.map((b) => b.count), 1);
     return (
       <div class="analytics-chart">
@@ -766,7 +776,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
   }
 
   // Fill in missing time slots
-  const filledBuckets = generateTimeBuckets(data.buckets, granularity);
+  const filledBuckets = generateTimeBuckets(data.buckets, granularity, data.start, data.end);
   for (const bucket of filledBuckets) {
     const timeKey = new Date(bucket.time).toISOString();
     if (!timeMap.has(timeKey)) {
