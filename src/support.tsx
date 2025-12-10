@@ -7,6 +7,7 @@ import {
   loadSession,
   loadUser,
   logError,
+  mapFields,
   sendUpdate,
   StateCtx,
   TicketStatus,
@@ -53,14 +54,16 @@ interface TicketMessage {
   createdAt: Date;
 }
 
+const messageMapping = { id: 1, ticketId: 2, userId: 3, fromSupport: 4, content: 5, rawCreatedAt: 6 };
+
 function decodeMessage(m: Map<number, any>): TicketMessage {
-  const rawCreatedAt = m.get(6);
+  const { id = 0, ticketId = 0, userId = 0, fromSupport = false, content = "", rawCreatedAt } = mapFields(m, messageMapping);
   return {
-    id: m.get(1) || 0,
-    ticketId: m.get(2) || 0,
-    userId: m.get(3) || 0,
-    fromSupport: m.get(4) || false,
-    content: m.get(5) || "",
+    id,
+    ticketId,
+    userId,
+    fromSupport,
+    content,
     createdAt:
       rawCreatedAt instanceof Date
         ? rawCreatedAt
@@ -89,8 +92,8 @@ async function fetchMessageContent(
   if (data.length === 0) return [];
 
   const resp = decoder.decode(data) as Map<number, any>;
-  const rawMessages = resp.get(1) || [];
-  return rawMessages.map((msg: Map<number, any>) => decodeMessage(msg));
+  const { messages = [] } = mapFields(resp, { messages: 1 });
+  return messages.map((msg: Map<number, any>) => decodeMessage(msg));
 }
 
 // WebSocket mutations for tickets

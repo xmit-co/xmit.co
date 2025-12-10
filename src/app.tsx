@@ -168,16 +168,17 @@ function loadKey(node: Node, key: any) {
   return loadKey(child, tail);
 }
 
-function map(
-  v: Map<any, any>,
+export function mapFields(
+  v: Map<any, any> | Record<string, any>,
   mapping: Record<string, number>,
 ): Record<string, any> {
   const r: Record<string, any> = {};
   for (const [k, i] of Object.entries(mapping)) {
-    r[k] = v.get(i);
+    r[k] = v instanceof Map ? v.get(i) : v[i];
   }
   return r;
 }
+
 
 export interface Session {
   uid: number;
@@ -356,19 +357,19 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
     switch (key.length) {
       case 1:
         if (key[0] === "S") {
-          return map(value, {
+          return mapFields(value, {
             uid: 1,
             createdAPIKeys: 2,
             isSupport: 4,
           });
         }
         if (key[0] === "U") {
-          const us = map(value, userSettingsMapping);
+          const us = mapFields(value, userSettingsMapping);
           if (us.analyticsViews) {
             us.analyticsViews = new Map(
               Array.from(us.analyticsViews, ([k, v]) => [
                 k,
-                map(v, analyticsViewMapping),
+                mapFields(v, analyticsViewMapping),
               ]),
             );
           }
@@ -378,50 +379,52 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
       case 2:
         switch (key[0]) {
           case "u":
-            const u = map(value, userMapping);
+            const u = mapFields(value, userMapping);
             if (u.apiKeys) {
               u.apiKeys = new Map(
-                Array.from(u.apiKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
+                Array.from(u.apiKeys, ([k, v]) => [k, mapFields(v, credInfoMapping)]),
               );
             }
             if (u.webKeys) {
               u.webKeys = new Map(
-                Array.from(u.webKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
+                Array.from(u.webKeys, ([k, v]) => [k, mapFields(v, credInfoMapping)]),
               );
             }
             return u;
           case "t":
-            const t = map(value, teamMapping);
+            const t = mapFields(value, teamMapping);
             if (t.apiKeys) {
               t.apiKeys = new Map(
-                Array.from(t.apiKeys, ([k, v]) => [k, map(v, credInfoMapping)]),
+                Array.from(t.apiKeys, ([k, v]) => [k, mapFields(v, credInfoMapping)]),
               );
             }
             if (t.defaultSettings) {
-              t.defaultSettings = map(t.defaultSettings, settingsMapping);
+              t.defaultSettings = mapFields(t.defaultSettings, settingsMapping);
             }
             return t;
           case "i":
-            return map(value, inviteMapping);
+            return mapFields(value, inviteMapping);
           case "r":
-            return map(value, keyRequestMapping);
+            return mapFields(value, keyRequestMapping);
           case "s":
-            const s = map(value, siteMapping);
+            const s = mapFields(value, siteMapping);
             if (s.settings) {
-              s.settings = map(s.settings, settingsMapping);
+              s.settings = mapFields(s.settings, settingsMapping);
             }
             return s;
           case "d":
-            const d = map(value, domainMapping);
+            const d = mapFields(value, domainMapping);
             if (d.cert) {
-              d.cert = map(d.cert, certStatusMapping);
+              d.cert = mapFields(d.cert, certStatusMapping);
             }
             return d;
           case "T":
             if (key[1] === "open") {
-              return map(value, openTicketsMapping);
+              return mapFields(value, openTicketsMapping);
             }
-            return map(value, ticketMapping);
+            return mapFields(value, ticketMapping);
+          case "v":
+            return mapFields(value, analyticsViewMapping);
         }
         break;
       case 4:
@@ -429,9 +432,9 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
           case "s":
             switch (key[2]) {
               case "u":
-                return map(value, uploadMapping);
+                return mapFields(value, uploadMapping);
               case "l":
-                return map(value, launchMapping);
+                return mapFields(value, launchMapping);
             }
         }
     }

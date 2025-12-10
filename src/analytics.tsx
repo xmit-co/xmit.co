@@ -15,6 +15,7 @@ import {
   loadUser,
   loadUserSettings,
   logError,
+  mapFields,
   sendUpdate,
   StateCtx,
 } from "./app.tsx";
@@ -179,22 +180,19 @@ function decodeResponse(data: Uint8Array): AnalyticsResponse {
     return { groupKeys: [], buckets: [], strings: [] };
   }
 
-  const m = decoder.decode(data) as Map<number, any>;
+  const responseMapping = { groupKeys: 1, rawBuckets: 2, strings: 3, rawStart: 4, rawEnd: 5 };
+  const bucketMapping = { rawTime: 1, groupIndices: 2, count: 3 };
 
-  const groupKeys = m.get(1) || [];
-  const rawBuckets = m.get(2) || [];
-  const strings: string[] = m.get(3) || [];
-  const rawStart = m.get(4);
-  const rawEnd = m.get(5);
+  const m = decoder.decode(data) as Map<number, any>;
+  const { groupKeys = [], rawBuckets = [], strings = [], rawStart, rawEnd } = mapFields(m, responseMapping);
 
   const buckets: AnalyticsBucket[] = rawBuckets.map((b: Map<number, any>) => {
-    const rawTime = b.get(1);
+    const { rawTime, groupIndices = [], count = 0 } = mapFields(b, bucketMapping);
     const time = rawTime instanceof Date ? rawTime : new Date(rawTime * 1000);
-    const groupIndices: number[] = b.get(2) || [];
     return {
       time,
-      groups: groupIndices.map((idx) => strings[idx] ?? ""),
-      count: b.get(3) || 0,
+      groups: groupIndices.map((idx: number) => strings[idx] ?? ""),
+      count,
     };
   });
 
@@ -1209,11 +1207,8 @@ function AnalyticsBody({ allSites }: { allSites: Site[] }) {
       };
       view.set(5, JSON.stringify(filtersWithDates));
     }
-    // Save site selection (key 9) - only if not all sites selected
-    if (selectedSiteIDs.length !== allSiteIDs.length ||
-        !selectedSiteIDs.every((id) => allSiteIDs.includes(id))) {
-      view.set(9, selectedSiteIDs);
-    }
+    // Save site selection (key 9)
+    view.set(9, selectedSiteIDs);
     sendUpdate(["v", name.trim()], view);
     setShowSaveDialog(false);
     setSaveViewName("");
