@@ -438,7 +438,33 @@ function formatChartLabel(date: Date, granularity: string): string {
   if (granularity === "hour") {
     return formatDateISO(date);
   }
+  if (granularity === "month") {
+    return date.toISOString().slice(0, 7);
+  }
   return date.toISOString().slice(0, 10);
+}
+
+// Creates a labeler that shows labels at appropriate granularity with deduplication
+// Returns { text, visible } - invisible labels maintain consistent height
+function createChartLabeler(granularity: string, bucketCount: number) {
+  // Use coarser labels when there are many bars
+  const labelGranularity = bucketCount < 80 ? granularity
+    : granularity === "hour" ? "day"
+    : granularity === "day" ? "month"
+    : granularity;
+
+  let lastKey = "";
+
+  return (date: Date): { text: string; visible: boolean } => {
+    const key = labelGranularity === "hour" ? date.toISOString().slice(0, 13)
+      : labelGranularity === "month" ? date.toISOString().slice(0, 7)
+      : date.toISOString().slice(0, 10);
+
+    const text = formatChartLabel(date, labelGranularity);
+    if (key === lastKey) return { text, visible: false };
+    lastKey = key;
+    return { text, visible: true };
+  };
 }
 
 function formatGroupLabel(groups: any[], groupKeys?: string[], siteNames?: Map<string, string>): string {
@@ -747,26 +773,25 @@ const AnalyticsChart = memo(function AnalyticsChart({
   if (!hasGroups) {
     const filledBuckets = generateTimeBuckets(data.buckets, granularity, data.start, data.end);
     const maxCount = Math.max(...filledBuckets.map((b) => b.count), 1);
-    const showLabels = filledBuckets.length < 80;
+    const getLabel = createChartLabeler(granularity, filledBuckets.length);
     return (
       <div class="analytics-chart">
         <div class="chart-container">
           <div class="chart-bars">
             {filledBuckets.map((bucket, idx) => {
+              const date = new Date(bucket.time);
               const height = `${(bucket.count / maxCount) * CHART_HEIGHT_EM}em`;
-              const label = formatChartLabel(
-                new Date(bucket.time),
-                granularity,
-              );
+              const tip = formatChartLabel(date, granularity);
+              const label = getLabel(date);
               return (
                 <Tappable
                   key={idx}
                   class="chart-bar-wrapper"
-                  tip={`${label}: ${formatMetricValue(bucket.count, metric)}`}
+                  tip={`${tip}: ${formatMetricValue(bucket.count, metric)}`}
                 >
                   <>
                     <div class="chart-bar" style={{ height }} />
-                    {showLabels && <span class="chart-label">{label}</span>}
+                    <span class="chart-label" style={{ visibility: label.visible ? "visible" : "hidden" }}>{label.text}</span>
                   </>
                 </Tappable>
               );
@@ -817,8 +842,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
     maxTotal = Math.max(maxTotal, total);
   }
 
-  // Hide labels if there are too many bars
-  const showLabels = times.length < 80;
+  const getLabel = createChartLabeler(granularity, times.length);
 
   return (
     <div class="analytics-chart">
@@ -827,7 +851,8 @@ const AnalyticsChart = memo(function AnalyticsChart({
           {times.map((timeKey, idx) => {
             const counts = timeMap.get(timeKey)!;
             const date = new Date(timeKey);
-            const label = formatChartLabel(date, granularity);
+            const tip = formatChartLabel(date, granularity);
+            const label = getLabel(date);
 
             return (
               <div key={idx} class="chart-bar-wrapper">
@@ -846,14 +871,14 @@ const AnalyticsChart = memo(function AnalyticsChart({
                           height,
                           backgroundColor: groupColors.get(g),
                         }}
-                        tip={`${label}\n${formatGroupLabel(JSON.parse(g), data.groupKeys, siteNames)}: ${formatMetricValue(count, metric)}`}
+                        tip={`${tip}\n${formatGroupLabel(JSON.parse(g), data.groupKeys, siteNames)}: ${formatMetricValue(count, metric)}`}
                       >
                         <></>
                       </Tappable>
                     );
                   })}
                 </div>
-                {showLabels && <span class="chart-label">{label}</span>}
+                <span class="chart-label" style={{ visibility: label.visible ? "visible" : "hidden" }}>{label.text}</span>
               </div>
             );
           })}

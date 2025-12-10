@@ -611,6 +611,7 @@ span.icon {
   color: #888;
   writing-mode: vertical-lr;
   transform: rotate(180deg);
+  margin-top: 0.5em;
 }
 .analytics-table table {
   width: 100%;
