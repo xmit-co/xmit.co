@@ -979,9 +979,8 @@ function AnalyticsBody({ allSites }: { allSites: Site[] }) {
   const siteNames = useMemo(() => {
     const map = new Map<string, string>();
     for (const s of allSites) {
-      if (s.id !== undefined) {
-        map.set(String(s.id), s.name || `Site #${s.id}`);
-      }
+      const id = s.id ?? 0;
+      map.set(String(id), s.name || `Site #${id}`);
     }
     return map;
   }, [allSites]);
