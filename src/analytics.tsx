@@ -747,6 +747,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
   if (!hasGroups) {
     const filledBuckets = generateTimeBuckets(data.buckets, granularity, data.start, data.end);
     const maxCount = Math.max(...filledBuckets.map((b) => b.count), 1);
+    const showLabels = filledBuckets.length < 80;
     return (
       <div class="analytics-chart">
         <div class="chart-container">
@@ -765,7 +766,7 @@ const AnalyticsChart = memo(function AnalyticsChart({
                 >
                   <>
                     <div class="chart-bar" style={{ height }} />
-                    <span class="chart-label">{label}</span>
+                    {showLabels && <span class="chart-label">{label}</span>}
                   </>
                 </Tappable>
               );
@@ -816,8 +817,8 @@ const AnalyticsChart = memo(function AnalyticsChart({
     maxTotal = Math.max(maxTotal, total);
   }
 
-  // Hide labels if bars are too narrow (more than 3 days of hourly data)
-  const showLabels = times.length <= 75;
+  // Hide labels if there are too many bars
+  const showLabels = times.length < 80;
 
   return (
     <div class="analytics-chart">
