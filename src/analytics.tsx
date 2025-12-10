@@ -433,6 +433,101 @@ function formatGroupLabel(groups: any[]): string {
     : "empty";
 }
 
+function generateTimeBuckets(
+  buckets: AnalyticsBucket[],
+  granularity: string,
+): AnalyticsBucket[] {
+  if (buckets.length === 0 || granularity === "none") {
+    return buckets;
+  }
+
+  // Get min and max times from existing buckets
+  const times = buckets.map((b) => new Date(b.time).getTime());
+  let minTime = Math.min(...times);
+  let maxTime = Math.max(...times);
+
+  // Round to granularity boundaries
+  if (granularity === "hour") {
+    minTime = Math.floor(minTime / (60 * 60 * 1000)) * (60 * 60 * 1000);
+    maxTime = Math.floor(maxTime / (60 * 60 * 1000)) * (60 * 60 * 1000);
+  } else if (granularity === "day") {
+    minTime = Math.floor(minTime / (24 * 60 * 60 * 1000)) * (24 * 60 * 60 * 1000);
+    maxTime = Math.floor(maxTime / (24 * 60 * 60 * 1000)) * (24 * 60 * 60 * 1000);
+  }
+
+  // Calculate step size based on granularity
+  let stepMs: number;
+  switch (granularity) {
+    case "hour":
+      stepMs = 60 * 60 * 1000;
+      break;
+    case "day":
+      stepMs = 24 * 60 * 60 * 1000;
+      break;
+    case "month":
+      // For months, we'll handle specially below
+      stepMs = 0;
+      break;
+    default:
+      return buckets;
+  }
+
+  // Build a map of existing buckets by time key
+  const bucketMap = new Map<string, AnalyticsBucket>();
+  for (const bucket of buckets) {
+    const timeKey = new Date(bucket.time).toISOString();
+    bucketMap.set(timeKey, bucket);
+  }
+
+  // Generate all time slots
+  const allBuckets: AnalyticsBucket[] = [];
+
+  if (granularity === "month") {
+    // For months, iterate month by month
+    const startDate = new Date(minTime);
+    const endDate = new Date(maxTime);
+    const current = new Date(
+      Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), 1),
+    );
+    const endMonth = new Date(
+      Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), 1),
+    );
+
+    while (current <= endMonth) {
+      const timeKey = current.toISOString();
+      const existing = bucketMap.get(timeKey);
+      if (existing) {
+        allBuckets.push(existing);
+      } else {
+        allBuckets.push({
+          time: new Date(current),
+          groups: [],
+          count: 0,
+        });
+      }
+      current.setUTCMonth(current.getUTCMonth() + 1);
+    }
+  } else {
+    // For hours and days, use fixed step
+    for (let t = minTime; t <= maxTime; t += stepMs) {
+      const date = new Date(t);
+      const timeKey = date.toISOString();
+      const existing = bucketMap.get(timeKey);
+      if (existing) {
+        allBuckets.push(existing);
+      } else {
+        allBuckets.push({
+          time: date,
+          groups: [],
+          count: 0,
+        });
+      }
+    }
+  }
+
+  return allBuckets;
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -625,12 +720,13 @@ const AnalyticsChart = memo(function AnalyticsChart({
   const hasGroups = data.groupKeys.length > 0;
 
   if (!hasGroups) {
-    const maxCount = Math.max(...data.buckets.map((b) => b.count), 1);
+    const filledBuckets = generateTimeBuckets(data.buckets, granularity);
+    const maxCount = Math.max(...filledBuckets.map((b) => b.count), 1);
     return (
       <div class="analytics-chart">
         <div class="chart-container">
           <div class="chart-bars">
-            {data.buckets.map((bucket, idx) => {
+            {filledBuckets.map((bucket, idx) => {
               const height = `${(bucket.count / maxCount) * CHART_HEIGHT_EM}em`;
               const label = formatChartLabel(
                 new Date(bucket.time),
@@ -667,6 +763,15 @@ const AnalyticsChart = memo(function AnalyticsChart({
       timeMap.set(timeKey, new Map());
     }
     timeMap.get(timeKey)!.set(groupKey, bucket.count);
+  }
+
+  // Fill in missing time slots
+  const filledBuckets = generateTimeBuckets(data.buckets, granularity);
+  for (const bucket of filledBuckets) {
+    const timeKey = new Date(bucket.time).toISOString();
+    if (!timeMap.has(timeKey)) {
+      timeMap.set(timeKey, new Map());
+    }
   }
 
   const times = Array.from(timeMap.keys()).sort();
