@@ -412,6 +412,33 @@ span.icon {
   }
 }
 
+/* Optimistic UI */
+.pending {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.pending button {
+  pointer-events: none;
+}
+
+.deleting {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.deleting button {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.mutation-spinner {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-left: 0.5em;
+  color: #888;
+}
+
 /* Analytics */
 .query-row {
   display: flex;

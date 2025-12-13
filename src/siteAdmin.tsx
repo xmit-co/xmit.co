@@ -3,6 +3,9 @@ import { Link } from "preact-router/match";
 import { useContext } from "preact/hooks";
 import { dateTime, nameAndID, SettingsView } from "./admin.tsx";
 import {
+  getPendingCreates,
+  isDeleting,
+  isPending,
   loadDomain,
   loadLaunch,
   loadSession,
@@ -10,6 +13,7 @@ import {
   loadTeam,
   loadUpload,
   loadUser,
+  pendingMutations,
   sendUpdate,
   StateCtx,
 } from "./app.tsx";
@@ -18,6 +22,11 @@ import { Footer } from "./footer.tsx";
 import { Header } from "./header.tsx";
 import { Site, Team, TeamLabel, teamLabelText, Upload } from "./models.tsx";
 import { u8eq } from "./utils.ts";
+
+// Spinner component for pending mutations
+function MutationSpinner() {
+  return <span class="mutation-spinner">⟳</span>;
+}
 
 function shortHexHash(hash: Uint8Array | undefined) {
   if (hash === undefined) {
@@ -48,6 +57,9 @@ function UploadList({
   uploadIDs: number[];
 }) {
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
+
   if (uploadIDs.length === 0) {
     return (
       <p>
@@ -68,8 +80,11 @@ function UploadList({
         }
         const isDeployed = u8eq(deployedBundleID, upload.bundle);
         const uploadKey = ["s", site.id || 0, "u", upload.id || 0];
+        const deleting = isDeleting(uploadKey);
+        const pending = isPending(uploadKey);
+
         return (
-          <li key={upload.id || 0}>
+          <li key={upload.id || 0} class={deleting ? "deleting" : pending ? "pending" : ""}>
             <a href={previewURL(upload)} target="_blank">
               {upload.id} ({shortHexHash(upload.bundle)})
             </a>{" "}
@@ -77,14 +92,15 @@ function UploadList({
               <span class="live">live</span>
             ) : (
               <>
-                <button onClick={() => sendUpdate(uploadKey, true)}>
+                <button onClick={() => sendUpdate(uploadKey, true, "update")}>
                   🚀 launch
                 </button>
-                <button class="delete" onClick={() => sendUpdate(uploadKey)}>
+                <button class="delete" onClick={() => sendUpdate(uploadKey, undefined, "delete")}>
                   ✕ destroy
                 </button>
               </>
             )}
+            {pending && <MutationSpinner />}
             <br />
             at {dateTime(upload.at)} by{" "}
             {nameAndID(loadUser(state, upload.by || 0))}
@@ -105,6 +121,9 @@ function LaunchList({
   launchIDs: number[];
 }) {
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
+
   if (launchIDs.length === 0) {
     return (
       <p>
@@ -136,8 +155,11 @@ function LaunchList({
           );
         }
         const isDeployed = u8eq(deployedBundleID, upload.bundle);
+        const uploadKey = ["s", site.id || 0, "u", upload.id || 0];
+        const pending = isPending(uploadKey);
+
         return (
-          <li key={launch.id || 0}>
+          <li key={launch.id || 0} class={pending ? "pending" : ""}>
             <a href={previewURL(upload)} target="_blank">
               Upload {launch.uploadID} ({shortHexHash(upload?.bundle)})
             </a>{" "}
@@ -146,12 +168,13 @@ function LaunchList({
             ) : (
               <button
                 onClick={() =>
-                  sendUpdate(["s", site.id || 0, "u", upload.id || 0], true)
+                  sendUpdate(["s", site.id || 0, "u", upload.id || 0], true, "update")
                 }
               >
                 🚀 launch
               </button>
             )}
+            {pending && <MutationSpinner />}
             <br />
             {atBy}
           </li>
@@ -163,20 +186,39 @@ function LaunchList({
 
 function DomainsView({ site }: { site: Site }) {
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
+
+  const siteID = site.id || 0;
+  const existingDomains = Array.from(site.domains?.keys() || []);
+  const pendingDomains = getPendingCreates(["s", siteID, "d"]);
+  // Filter out pending domains that already exist (in case of race)
+  const newPendingDomains = pendingDomains.filter(
+    (d) => !existingDomains.includes(d)
+  );
+  const allDomains = [...existingDomains, ...newPendingDomains];
+
   const list =
-    site.domains === undefined || site.domains.size === 0 ? (
+    allDomains.length === 0 ? (
       <p>
         <em>None.</em>
       </p>
     ) : (
       <ul>
-        {Array.from(site.domains.keys()).map((domain) => {
-          const domainInfo = loadDomain(state, domain);
+        {allDomains.map((domain) => {
+          const domainKey = ["s", siteID, "d", domain];
+          const deleting = isDeleting(domainKey);
+          const pending = isPending(domainKey);
+          const isPendingCreate = newPendingDomains.includes(domain);
+
+          // Only load domain info for existing domains
+          const domainInfo = isPendingCreate ? undefined : loadDomain(state, domain);
           const certStatus = domainInfo?.cert;
           const hasCertError =
             certStatus && (certStatus.failures || certStatus.paused);
+
           return (
-            <li key={domain}>
+            <li key={domain} class={deleting ? "deleting" : pending ? "pending" : ""}>
               <a href={`https://${domain}/`} target="_blank">
                 {domain}
               </a>{" "}
@@ -184,11 +226,12 @@ function DomainsView({ site }: { site: Site }) {
                 class="delete"
                 onClick={() => {
                   if (window.confirm("Are you sure?"))
-                    sendUpdate(["s", site.id || 0, "d", domain]);
+                    sendUpdate(["s", siteID, "d", domain], undefined, "delete");
                 }}
               >
                 ✕ unmap
               </button>
+              {pending && <MutationSpinner />}
               {hasCertError && (
                 <div class="cert-error">
                   {certStatus.paused ? (
@@ -219,7 +262,7 @@ function DomainsView({ site }: { site: Site }) {
       <EditableText
         buttonText="add"
         buttonIcon="+"
-        submit={(v) => sendUpdate(["s", site.id || 0, "d", v], true)}
+        submit={(v) => sendUpdate(["s", siteID, "d", v], true, "create")}
       />
     </>
   );
@@ -227,6 +270,9 @@ function DomainsView({ site }: { site: Site }) {
 
 function TransferOwnership({ site }: { site: Site }) {
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
+
   const teams = state.root.children?.get("t")?.children;
   if (teams === undefined) {
     return null;
@@ -237,13 +283,21 @@ function TransferOwnership({ site }: { site: Site }) {
   }
   const teamIDs = Array.from(teams.keys());
   teamIDs.sort((a, b) => a - b);
+
+  // Check if any team transfer is pending
+  const transferPending = teamIDs.some((tid) =>
+    isPending(["s", site.id || 0, "t", tid])
+  );
+
   return (
     <>
       Belongs to{" "}
       <select
+        disabled={transferPending}
         onChange={(e) => {
           const target = e.target as HTMLSelectElement;
-          sendUpdate(["s", site.id || 0, "t", Number(target.value)]);
+          const newTeamID = Number(target.value);
+          sendUpdate(["s", site.id || 0, "t", newTeamID], undefined, "update");
           target.value = String(site.teamID || 0);
         }}
       >
@@ -265,12 +319,16 @@ function TransferOwnership({ site }: { site: Site }) {
           );
         })}
       </select>
+      {transferPending && <MutationSpinner />}
     </>
   );
 }
 
 function SiteAdminBody({ site }: { site: Site }) {
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
+
   const siteID = site.id || 0;
   const teamID = site.teamID || 0;
   const team = loadTeam(state, teamID);
@@ -285,8 +343,13 @@ function SiteAdminBody({ site }: { site: Site }) {
     site.id,
     latestLaunch?.uploadID,
   )?.bundle;
+
+  const siteKey = ["s", siteID];
+  const deleting = isDeleting(siteKey);
+  const pending = isPending(siteKey);
+
   return (
-    <>
+    <div class={deleting ? "deleting" : ""}>
       <div class="breadcrumb">
         <Link href="/admin">← Admin</Link>
         <span> / </span>
@@ -300,15 +363,16 @@ function SiteAdminBody({ site }: { site: Site }) {
           value={site.name}
           whenMissing="unnamed"
           buttonText="rename"
-          submit={(v) => sendUpdate(["s", siteID], new Map([[1, v]]))}
+          submit={(v) => sendUpdate(["s", siteID], new Map([[1, v]]), "update")}
         />
+        {pending && <MutationSpinner />}
         <button onClick={() => route(`/analytics?sites=${siteID}`)}>
           📊 analytics
         </button>
         <button
           class="delete"
           onClick={() => {
-            if (window.confirm("Are you sure?")) sendUpdate(["s", siteID]);
+            if (window.confirm("Are you sure?")) sendUpdate(["s", siteID], undefined, "delete");
           }}
         >
           ✕ destroy
@@ -352,7 +416,7 @@ function SiteAdminBody({ site }: { site: Site }) {
           deployedBundleID={deployedBundleID}
         />
       </section>
-    </>
+    </div>
   );
 }
 

@@ -1,11 +1,14 @@
 import { Header } from "./header.tsx";
 import {
+  isDeleting,
+  isPending,
   loadInvite,
   loadSession,
   loadSite,
   loadTeam,
   loadUser,
   logError,
+  pendingMutations,
   sendUpdate,
   Session,
   StateCtx,
@@ -28,6 +31,11 @@ import {
 } from "./models.tsx";
 import { u8eq } from "./utils.ts";
 
+// Spinner component for pending mutations
+function MutationSpinner() {
+  return <span class="mutation-spinner">⟳</span>;
+}
+
 export function dateTime(t: number | undefined) {
   if (t === undefined) {
     return "unknown";
@@ -49,7 +57,7 @@ function JoinTeam() {
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             const code = (e.target as HTMLInputElement).value;
-            if (code !== "") sendUpdate(["i", code]);
+            if (code !== "") sendUpdate(["i", code], undefined, "create");
             setEditing(false);
           } else if (e.key === "Escape") {
             setEditing(false);
@@ -66,23 +74,30 @@ function JoinTeam() {
 }
 
 function WebKey({ id, info }: { id: string; info: CredInfo }) {
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
+  const key = ["p", id];
+  const deleting = isDeleting(key);
+  const pending = isPending(key);
+
   return (
-    <li key={id}>
+    <li key={id} class={deleting ? "deleting" : pending ? "pending" : ""}>
       <EditableText
         value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
         buttonText="rename"
-        submit={(v) => sendUpdate(["p", id], new Map([[1, v]]))}
+        submit={(v) => sendUpdate(["p", id], new Map([[1, v]]), "update")}
       />
       <button
         class="delete"
         onClick={() => {
-          if (window.confirm("Are you sure?")) sendUpdate(["p", id]);
+          if (window.confirm("Are you sure?")) sendUpdate(["p", id], undefined, "delete");
         }}
       >
         ✕ forget
       </button>
+      {pending && <MutationSpinner />}
       <br />
       from {dateTime(info.createdAt)}
     </li>
@@ -110,15 +125,21 @@ function APIKey({
   raw: string | undefined;
 }) {
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
+  const key = ["k", id];
+  const deleting = isDeleting(key);
+  const pending = isPending(key);
   const createdBy = loadUser(state, info.createdBy);
+
   return (
-    <li key={id}>
+    <li key={id} class={deleting ? "deleting" : pending ? "pending" : ""}>
       <EditableText
         value={info.name}
         placeholder="Name"
         whenMissing="unnamed"
         buttonText="rename"
-        submit={(v) => sendUpdate(["k", id], new Map([[1, v]]))}
+        submit={(v) => sendUpdate(["k", id], new Map([[1, v]]), "update")}
       />
       {raw ? (
         <button
@@ -130,11 +151,12 @@ function APIKey({
       <button
         class="delete"
         onClick={() => {
-          if (window.confirm("Are you sure?")) sendUpdate(["k", id]);
+          if (window.confirm("Are you sure?")) sendUpdate(["k", id], undefined, "delete");
         }}
       >
         ✕ forget
       </button>
+      {pending && <MutationSpinner />}
       <br />
       from {dateTime(info.createdAt)} by{" "}
       {nameAndID(createdBy) || `#${info.createdBy}`}
@@ -151,29 +173,39 @@ function Members({ team }: { team: Team }) {
     );
   }
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
   const users = Array.from(team.users.keys()).map((id) => loadUser(state, id));
   const teamID = team.id || 0;
+
   return (
     <ul>
-      {users.map((u) => (
-        <li key={u?.id || 0}>
-          {nameAndID(u)}
-          {users.length > 1 && (
-            <>
-              {" "}
-              <button
-                class="delete"
-                onClick={() => {
-                  if (window.confirm("Are you sure?"))
-                    sendUpdate(["t", teamID, "u", u?.id || 0]);
-                }}
-              >
-                ✕ exclude
-              </button>
-            </>
-          )}
-        </li>
-      ))}
+      {users.map((u) => {
+        const key = ["t", teamID, "u", u?.id || 0];
+        const deleting = isDeleting(key);
+        const pending = isPending(key);
+
+        return (
+          <li key={u?.id || 0} class={deleting ? "deleting" : pending ? "pending" : ""}>
+            {nameAndID(u)}
+            {users.length > 1 && (
+              <>
+                {" "}
+                <button
+                  class="delete"
+                  onClick={() => {
+                    if (window.confirm("Are you sure?"))
+                      sendUpdate(["t", teamID, "u", u?.id || 0], undefined, "delete");
+                  }}
+                >
+                  ✕ exclude
+                </button>
+              </>
+            )}
+            {pending && <MutationSpinner />}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -183,36 +215,46 @@ function Invites({ team }: { team: Team }) {
     return null;
   }
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
   const entries = [...team.invites.keys()].map((id) => {
     const invite = loadInvite(state, id);
     const user = invite && loadUser(state, invite.creatingUserID);
     return { invite, user };
   }) as { invite: Invite; user: User | undefined }[];
   entries.sort((a, b) => (b.invite.createdAt || 0) - (a.invite.createdAt || 0));
+
   return (
     <>
       <h3>
         <span class="icon">💌</span>Invites
       </h3>
       <ul>
-        {entries.map((i) => (
-          <li key={i.invite.id}>
-            {dateTime(i.invite.createdAt)} by {i.user?.name || <em>unknown</em>}{" "}
-            <button
-              onClick={() =>
-                navigator.clipboard.writeText(i.invite.id).catch(logError)
-              }
-            >
-              📋 copy
-            </button>
-            <button
-              class="delete"
-              onClick={() => sendUpdate(["i", i.invite.id])}
-            >
-              ✕ revoke
-            </button>
-          </li>
-        ))}
+        {entries.map((i) => {
+          const key = ["i", i.invite.id];
+          const deleting = isDeleting(key);
+          const pending = isPending(key);
+
+          return (
+            <li key={i.invite.id} class={deleting ? "deleting" : pending ? "pending" : ""}>
+              {dateTime(i.invite.createdAt)} by {i.user?.name || <em>unknown</em>}{" "}
+              <button
+                onClick={() =>
+                  navigator.clipboard.writeText(i.invite.id).catch(logError)
+                }
+              >
+                📋 copy
+              </button>
+              <button
+                class="delete"
+                onClick={() => sendUpdate(["i", i.invite.id], undefined, "delete")}
+              >
+                ✕ revoke
+              </button>
+              {pending && <MutationSpinner />}
+            </li>
+          );
+        })}
       </ul>
     </>
   );
@@ -263,6 +305,7 @@ export function SettingsView({
             sendUpdate(
               updateKey,
               new Map([[1, (e.target as HTMLInputElement).checked]]),
+              "update",
             );
             e.preventDefault();
           }}
@@ -276,7 +319,7 @@ export function SettingsView({
           prefix="Password: "
           placeholder="Password"
           whenMissing="No password"
-          submit={(v) => sendUpdate(updateKey, new Map([[2, v]]))}
+          submit={(v) => sendUpdate(updateKey, new Map([[2, v]]), "update")}
         />
       </label>
     </div>
@@ -285,16 +328,22 @@ export function SettingsView({
 
 function TeamView({ session, id }: { session: Session; id: number }) {
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
   const team = loadTeam(state, id);
   if (team === undefined) {
     return <></>;
   }
+  const key = ["t", id];
+  const deleting = isDeleting(key);
+  const pending = isPending(key);
+
   return (
     <>
       <div class="breadcrumb">
         <Link href="/admin">← Admin</Link>
       </div>
-      <h1>
+      <h1 class={deleting ? "deleting" : ""}>
         <span class="icon">🏭</span>
         {teamLabelPrefix(team.id || 0)}
         <EditableText
@@ -302,8 +351,9 @@ function TeamView({ session, id }: { session: Session; id: number }) {
           value={team.name}
           whenMissing="unnamed"
           buttonText="rename"
-          submit={(v) => sendUpdate(["t", id], new Map([[1, v]]))}
+          submit={(v) => sendUpdate(["t", id], new Map([[1, v]]), "update")}
         />
+        {pending && <MutationSpinner />}
         <button onClick={() => {
           const siteIDs = [...(team.sites?.keys() || [])];
           route(`/analytics?sites=${siteIDs.join(",")}`);
@@ -313,7 +363,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
         <button
           class="delete"
           onClick={() => {
-            if (window.confirm("Are you sure?")) sendUpdate(["t", id]);
+            if (window.confirm("Are you sure?")) sendUpdate(["t", id], undefined, "delete");
           }}
         >
           ✕ destroy
@@ -322,7 +372,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
       <section>
         <h2>
           <span class="icon">🔑️</span>API keys{" "}
-          <button class="add" onClick={() => sendUpdate(["t", id, "k"])}>
+          <button class="add" onClick={() => sendUpdate(["t", id, "k"], undefined, "create")}>
             + create
           </button>
         </h2>
@@ -337,7 +387,7 @@ function TeamView({ session, id }: { session: Session; id: number }) {
       <section>
         <h2>
           <span class="icon">👥</span>Members{" "}
-          <button class="add" onClick={() => sendUpdate(["t", id, "i"])}>
+          <button class="add" onClick={() => sendUpdate(["t", id, "i"], undefined, "create")}>
             + invite
           </button>
         </h2>
@@ -424,7 +474,7 @@ export function UserAdminBody({ session }: { session: Session }) {
           value={user.name}
           whenMissing="anonymous"
           buttonText="rename"
-          submit={(v) => sendUpdate("u", new Map([[2, v]]))}
+          submit={(v) => sendUpdate("u", new Map([[2, v]]), "update")}
         />
       </h1>
       <section>
@@ -440,7 +490,7 @@ export function UserAdminBody({ session }: { session: Session }) {
             placeholder="Phone #"
             prefix="Phone #: "
             type="tel"
-            submit={(v) => sendUpdate("u", new Map([[6, v]]))}
+            submit={(v) => sendUpdate("u", new Map([[6, v]]), "update")}
           />
           <br />
           <EditableText
@@ -449,14 +499,14 @@ export function UserAdminBody({ session }: { session: Session }) {
             placeholder="Email"
             prefix="Email: "
             type="email"
-            submit={(v) => sendUpdate("u", new Map([[7, v]]))}
+            submit={(v) => sendUpdate("u", new Map([[7, v]]), "update")}
           />
         </div>
       </section>
       <section>
         <h2>
           <span class="icon">🔑</span>API keys{" "}
-          <button class="add" onClick={() => sendUpdate("k")}>
+          <button class="add" onClick={() => sendUpdate("k", undefined, "create")}>
             + create
           </button>
         </h2>
@@ -564,7 +614,7 @@ function AdminBody({ session }: { session: Session }) {
           <span class="icon">🏭</span>Teams
         </h2>
         <div style={{ display: "flex", gap: "0.5em" }}>
-          <button class="add" onClick={() => sendUpdate("t")}>
+          <button class="add" onClick={() => sendUpdate("t", undefined, "create")}>
             + new team
           </button>
           <JoinTeam />

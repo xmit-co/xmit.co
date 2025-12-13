@@ -1,6 +1,8 @@
 import { useContext, useEffect, useState } from "preact/hooks";
 import { route } from "preact-router";
 import {
+  isDeleting,
+  isPending,
   loadAllOpenTickets,
   loadTeam,
   loadTeamTickets,
@@ -8,6 +10,7 @@ import {
   loadUser,
   logError,
   mapFields,
+  pendingMutations,
   sendUpdate,
   StateCtx,
   TicketStatus,
@@ -96,20 +99,25 @@ async function fetchMessageContent(
   return messages.map((msg: Map<number, any>) => decodeMessage(msg));
 }
 
+// Spinner component for pending mutations
+function MutationSpinner() {
+  return <span class="mutation-spinner">⟳</span>;
+}
+
 // WebSocket mutations for tickets
 function createTicket(teamId: number, title: string, message: string) {
   const m = new Map<number, any>();
   m.set(1, title);
   if (message) m.set(3, message);
-  sendUpdate(["T", teamId], m);
+  sendUpdate(["T", teamId], m, "create");
 }
 
 function updateTicketTitle(ticketId: number, title: string) {
-  sendUpdate(["T", ticketId], new Map([[1, title]]));
+  sendUpdate(["T", ticketId], new Map([[1, title]]), "update");
 }
 
 function updateTicketStatus(ticketId: number, status: TicketStatusType) {
-  sendUpdate(["T", ticketId], new Map([[2, status]]));
+  sendUpdate(["T", ticketId], new Map([[2, status]]), "update");
 }
 
 function addMessage(
@@ -119,11 +127,11 @@ function addMessage(
 ) {
   const msg = new Map<number, any>([[1, content]]);
   if (status !== undefined) msg.set(2, status);
-  sendUpdate(["T", ticketId, "m"], msg);
+  sendUpdate(["T", ticketId, "m"], msg, "create");
 }
 
 function deleteTicket(ticketId: number) {
-  sendUpdate(["T", ticketId], undefined);
+  sendUpdate(["T", ticketId], undefined, "delete");
 }
 
 function formatDate(date: Date): string {
@@ -142,6 +150,8 @@ function TicketList({
   isHelpdesk?: boolean;
 }) {
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
 
   const categoryLabel = (s: TicketStatusType | undefined) => {
     const status = s ?? TicketStatus.AwaitingCustomer;
@@ -214,14 +224,19 @@ function TicketList({
                 {catTickets.map((ticket) => {
                   const team = loadTeam(state, ticket.teamId);
                   const msgCount = ticket.messageCount || 0;
+                  const ticketKey = ["T", ticket.id];
+                  const deleting = isDeleting(ticketKey);
+                  const pending = isPending(ticketKey);
+
                   return (
                     <li
                       key={ticket.id}
-                      class="ticket-item"
-                      onClick={() => onSelect(ticket)}
+                      class={`ticket-item ${deleting ? "deleting" : pending ? "pending" : ""}`}
+                      onClick={() => !deleting && onSelect(ticket)}
                     >
                       <span class="ticket-title">
                         {ticket.title || "Untitled"}
+                        {pending && <MutationSpinner />}
                       </span>
                       <span class="ticket-meta">
                         <TeamLabel id={ticket.teamId} name={team?.name} /> ·{" "}
@@ -261,6 +276,12 @@ function TicketView({
   const [menuOpen, setMenuOpen] = useState(false);
   const [waitOnMe, setWaitOnMe] = useState(false);
   const state = useContext(StateCtx).value;
+  // Subscribe to pending mutations for reactivity
+  const _ = pendingMutations.value;
+
+  const ticketKey = ["T", ticket.id];
+  const deleting = isDeleting(ticketKey);
+  const ticketPending = isPending(ticketKey);
 
   const handleSend = async (close: boolean = false) => {
     if (!newMessage.trim() || sending) return;
@@ -295,18 +316,22 @@ function TicketView({
   const isClosed = ticket.status === TicketStatus.Closed;
 
   return (
-    <section class="ticket-view">
+    <section class={`ticket-view ${deleting ? "deleting" : ""}`}>
       <div class="ticket-actions">
         <button onClick={onBack}>← Back</button>
         <div class="ticket-actions-right">
           <div class="ticket-actions-desktop">
             {!isClosed && (
-              <button onClick={() => onUpdate(undefined, TicketStatus.Closed)}>
+              <button
+                disabled={!!ticketPending}
+                onClick={() => onUpdate(undefined, TicketStatus.Closed)}
+              >
                 ✓ Close
               </button>
             )}
             {isClosed && (
               <button
+                disabled={!!ticketPending}
                 onClick={() =>
                   onUpdate(undefined, TicketStatus.AwaitingSupport)
                 }
@@ -317,6 +342,7 @@ function TicketView({
             {onDelete && (
               <button
                 class="delete"
+                disabled={!!ticketPending}
                 onClick={() => {
                   if (confirm("Delete this conversation permanently?")) {
                     onDelete();
@@ -326,6 +352,7 @@ function TicketView({
                 🗑 Delete
               </button>
             )}
+            {ticketPending && <MutationSpinner />}
           </div>
           <div class="ticket-actions-mobile">
             <button class="burger-btn" onClick={() => setMenuOpen(!menuOpen)}>
@@ -335,6 +362,7 @@ function TicketView({
               <div class="burger-menu">
                 {!isClosed && (
                   <button
+                    disabled={!!ticketPending}
                     onClick={() => {
                       onUpdate(undefined, TicketStatus.Closed);
                       setMenuOpen(false);
@@ -345,6 +373,7 @@ function TicketView({
                 )}
                 {isClosed && (
                   <button
+                    disabled={!!ticketPending}
                     onClick={() => {
                       onUpdate(undefined, TicketStatus.AwaitingSupport);
                       setMenuOpen(false);
@@ -355,6 +384,7 @@ function TicketView({
                 )}
                 {onDelete && (
                   <button
+                    disabled={!!ticketPending}
                     onClick={() => {
                       if (confirm("Delete this conversation permanently?")) {
                         onDelete();
@@ -365,6 +395,7 @@ function TicketView({
                     🗑 Delete
                   </button>
                 )}
+                {ticketPending && <MutationSpinner />}
               </div>
             )}
           </div>
@@ -378,6 +409,7 @@ function TicketView({
           buttonText="rename"
           submit={(v) => onUpdate(v, undefined)}
         />
+        {ticketPending && <MutationSpinner />}
       </h2>
       <p class="ticket-status">
         Status: <strong>{statusLabel(ticket.status)}</strong> · Created:{" "}

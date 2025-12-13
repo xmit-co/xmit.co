@@ -40,6 +40,10 @@ export function EditableText({
               setEditing(false);
             } else {
               submit(v);
+              // Close immediately for "add" operations (when original value was empty)
+              if (!value) {
+                setEditing(false);
+              }
             }
           } else if (e.key === "Escape") {
             setEditing(false);

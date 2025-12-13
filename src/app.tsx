@@ -38,6 +38,58 @@ const state = signal<State>({
   updates: null,
 });
 
+// Pending mutations tracking for optimistic UI
+export interface PendingMutation {
+  id: number;
+  key: string; // Stringified key for lookup
+  type: "create" | "update" | "delete";
+  startedAt: number;
+}
+
+let nextMutationId = 1;
+export const pendingMutations = signal<Map<number, PendingMutation>>(new Map());
+
+// Helper to create a string key for mutation lookup
+export function mutationKey(key: any): string {
+  return JSON.stringify(key);
+}
+
+// Check if an entity has a pending mutation
+export function isPending(key: any): PendingMutation | undefined {
+  const keyStr = mutationKey(key);
+  for (const m of pendingMutations.value.values()) {
+    if (m.key === keyStr) return m;
+  }
+  return undefined;
+}
+
+// Check if an entity is being deleted
+export function isDeleting(key: any): boolean {
+  const pending = isPending(key);
+  return pending?.type === "delete";
+}
+
+// Get pending creates that match a key prefix pattern
+// e.g., getPendingCreates(["s", 123, "d"]) returns domain names being added to site 123
+export function getPendingCreates(keyPrefix: any[]): string[] {
+  const prefix = JSON.stringify(keyPrefix).slice(0, -1) + ","; // e.g., '["s",123,"d",'
+  const results: string[] = [];
+  for (const m of pendingMutations.value.values()) {
+    if (m.type === "create" && m.key.startsWith(prefix)) {
+      // Extract the last element from the key
+      try {
+        const fullKey = JSON.parse(m.key) as any[];
+        if (fullKey.length === keyPrefix.length + 1) {
+          results.push(fullKey[fullKey.length - 1]);
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }
+  return results;
+}
+
 const userMapping = {
   id: 1,
   name: 2,
@@ -496,11 +548,29 @@ function ingestMessage(state: State, msg: Map<number, any>): State {
       }
     }
   }
-  const errs = msg.get(3) as Array<Map<number, string>> | undefined;
-  if (errs !== undefined) {
-    for (const error of errs) {
-      errors.push(error.get(1)!);
+  // Handle acknowledgements (successful mutations)
+  const acks = msg.get(4) as Array<number> | undefined;
+  if (acks !== undefined) {
+    const newPending = new Map(pendingMutations.value);
+    for (const ackId of acks) {
+      newPending.delete(ackId);
     }
+    pendingMutations.value = newPending;
+  }
+
+  // Handle errors (field 3) - now includes queryID (field 1) and message (field 2)
+  const errs = msg.get(3) as Array<Map<number, any>> | undefined;
+  if (errs !== undefined) {
+    const newPending = new Map(pendingMutations.value);
+    for (const error of errs) {
+      const queryId = error.get(1) as number | undefined;
+      const message = error.get(2) as string;
+      if (queryId !== undefined && queryId !== 0) {
+        newPending.delete(queryId);
+      }
+      errors.push(message);
+    }
+    pendingMutations.value = newPending;
   }
   return { ...state, ready, root, errors };
 }
@@ -535,7 +605,28 @@ export function logError(msg: string | Error) {
   state.value = { ...state.value, errors };
 }
 
-export function sendUpdate(key: any, value?: any) {
+export type MutationType = "create" | "update" | "delete";
+
+export function sendUpdate(
+  key: any,
+  value?: any,
+  mutationType?: MutationType,
+): number {
+  const mutationId = nextMutationId++;
+
+  // Track pending mutation if type is specified
+  if (mutationType) {
+    const newPending = new Map(pendingMutations.value);
+    newPending.set(mutationId, {
+      id: mutationId,
+      key: mutationKey(key),
+      type: mutationType,
+      startedAt: Date.now(),
+    });
+    pendingMutations.value = newPending;
+  }
+
+  // Update struct is [Key, Value, QueryID] as CBOR array
   const msg = new Map([
     [
       2,
@@ -543,6 +634,7 @@ export function sendUpdate(key: any, value?: any) {
         [
           encoder.encode(key),
           value === undefined ? undefined : encoder.encode(value),
+          mutationId,
         ],
       ],
     ],
@@ -551,9 +643,16 @@ export function sendUpdate(key: any, value?: any) {
   const sock = state.value.sock;
   if (sock === undefined) {
     logError("Socket not connected");
-    return;
+    // Remove pending mutation on immediate failure
+    if (mutationType) {
+      const newPending = new Map(pendingMutations.value);
+      newPending.delete(mutationId);
+      pendingMutations.value = newPending;
+    }
+    return mutationId;
   }
   sock.send(payload);
+  return mutationId;
 }
 
 function Errors() {

@@ -1215,7 +1215,7 @@ function AnalyticsBody({ allSites }: { allSites: Site[] }) {
     }
     // Save site selection (key 9)
     view.set(9, selectedSiteIDs);
-    sendUpdate(["v", name.trim()], view);
+    sendUpdate(["v", name.trim()], view, "create");
     setShowSaveDialog(false);
     setSaveViewName("");
   };
@@ -1252,7 +1252,7 @@ function AnalyticsBody({ allSites }: { allSites: Site[] }) {
   };
 
   const deleteView = (name: string) => {
-    sendUpdate(["v", name], undefined);
+    sendUpdate(["v", name], undefined, "delete");
   };
 
   const toggleSite = (siteId: number) => {

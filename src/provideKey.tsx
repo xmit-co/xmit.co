@@ -208,7 +208,7 @@ export function ProvideKey({ id }: { id: string }) {
 
   const handleApprove = () => {
     const approvalData = selectedTeam !== undefined ? { 1: selectedTeam } : {};
-    sendUpdate(["r", id], approvalData);
+    sendUpdate(["r", id], approvalData, "update");
   };
 
   return (
