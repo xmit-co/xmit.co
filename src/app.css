@@ -581,11 +581,25 @@ span.icon {
   min-width: 5em;
   text-align: right;
 }
+.chart-container {
+  display: flex;
+  gap: 0.5em;
+}
+.chart-y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 0.7em;
+  color: #888;
+  padding-bottom: 3em;
+}
 .chart-bars {
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
 }
 .chart-bar-wrapper {
   display: flex;

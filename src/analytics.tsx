@@ -775,6 +775,9 @@ const AnalyticsChart = memo(function AnalyticsChart({
     return (
       <div class="analytics-chart">
         <div class="chart-container">
+          <div class="chart-y-axis" style={{ height: `${CHART_HEIGHT_EM}em` }}>
+            {formatMetricValue(maxCount, metric)}
+          </div>
           <div class="chart-bars">
             {filledBuckets.map((bucket, idx) => {
               const date = new Date(bucket.time);
@@ -845,6 +848,9 @@ const AnalyticsChart = memo(function AnalyticsChart({
   return (
     <div class="analytics-chart">
       <div class="chart-container">
+        <div class="chart-y-axis" style={{ height: `${CHART_HEIGHT_EM}em` }}>
+          {formatMetricValue(maxTotal, metric)}
+        </div>
         <div class="chart-bars">
           {times.map((timeKey, idx) => {
             const counts = timeMap.get(timeKey)!;
