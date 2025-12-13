@@ -599,8 +599,6 @@ export function Support({ id }: { id?: string }) {
   const handleSendMessage = async (content: string, status?: TicketStatusType) => {
     if (!selectedTicket) return;
     addMessage(selectedTicket.id, content, status);
-    // Reload messages after a short delay to get the new message
-    setTimeout(() => loadMessages(selectedTicket.id), 500);
   };
 
   if (!state.ready) {
@@ -823,8 +821,6 @@ export function Helpdesk({ id }: { id?: string }) {
   const handleSendMessage = async (content: string, status?: TicketStatusType) => {
     if (!selectedTicket) return;
     addMessage(selectedTicket.id, content, status);
-    // Reload messages after a short delay to get the new message
-    setTimeout(() => loadMessages(selectedTicket.id), 500);
   };
 
   const handleDeleteTicket = () => {

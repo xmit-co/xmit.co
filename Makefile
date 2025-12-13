@@ -1,9 +1,9 @@
 .PHONY: dev localdev localdeploy deploy
 dev:
-	pnpm dev
+	bun dev
 localdev:
-	pnpm run localdev
+	bun run localdev
 localdeploy:
-	pnpm run localdeploy
+	bun run localdeploy
 deploy:
-	pnpm run deploy
+	bun run deploy

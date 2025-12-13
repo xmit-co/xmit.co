@@ -184,10 +184,17 @@ function decodeResponse(data: Uint8Array): AnalyticsResponse {
   const bucketMapping = { rawTime: 1, groupIndices: 2, count: 3 };
 
   const m = decoder.decode(data) as Map<number, any>;
-  const { groupKeys = [], rawBuckets = [], strings = [], rawStart, rawEnd } = mapFields(m, responseMapping);
+  const fields = mapFields(m, responseMapping);
+  const groupKeys = fields.groupKeys ?? [];
+  const rawBuckets = fields.rawBuckets ?? [];
+  const strings = fields.strings ?? [];
+  const { rawStart, rawEnd } = fields;
 
   const buckets: AnalyticsBucket[] = rawBuckets.map((b: Map<number, any>) => {
-    const { rawTime, groupIndices = [], count = 0 } = mapFields(b, bucketMapping);
+    const bucketFields = mapFields(b, bucketMapping);
+    const rawTime = bucketFields.rawTime;
+    const groupIndices = bucketFields.groupIndices ?? [];
+    const count = bucketFields.count ?? 0;
     const time = rawTime instanceof Date ? rawTime : new Date(rawTime * 1000);
     return {
       time,
