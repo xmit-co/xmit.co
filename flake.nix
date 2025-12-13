@@ -18,7 +18,7 @@
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            pnpm
+            bun
           ];
         };
       }
