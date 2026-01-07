@@ -151,7 +151,7 @@ function TicketList({
 }) {
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
 
   const categoryLabel = (s: TicketStatusType | undefined) => {
     const status = s ?? TicketStatus.AwaitingCustomer;
@@ -277,7 +277,7 @@ function TicketView({
   const [waitOnMe, setWaitOnMe] = useState(false);
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
 
   const ticketKey = ["T", ticket.id];
   const deleting = isDeleting(ticketKey);

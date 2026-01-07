@@ -75,7 +75,7 @@ function JoinTeam() {
 
 function WebKey({ id, info }: { id: string; info: CredInfo }) {
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
   const key = ["p", id];
   const deleting = isDeleting(key);
   const pending = isPending(key);
@@ -126,7 +126,7 @@ function APIKey({
 }) {
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
   const key = ["k", id];
   const deleting = isDeleting(key);
   const pending = isPending(key);
@@ -174,7 +174,7 @@ function Members({ team }: { team: Team }) {
   }
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
   const users = Array.from(team.users.keys()).map((id) => loadUser(state, id));
   const teamID = team.id || 0;
 
@@ -216,7 +216,7 @@ function Invites({ team }: { team: Team }) {
   }
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
   const entries = [...team.invites.keys()].map((id) => {
     const invite = loadInvite(state, id);
     const user = invite && loadUser(state, invite.creatingUserID);
@@ -329,7 +329,7 @@ export function SettingsView({
 function TeamView({ session, id }: { session: Session; id: number }) {
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
   const team = loadTeam(state, id);
   if (team === undefined) {
     return <></>;

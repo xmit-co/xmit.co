@@ -58,7 +58,7 @@ function UploadList({
 }) {
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
 
   if (uploadIDs.length === 0) {
     return (
@@ -122,7 +122,7 @@ function LaunchList({
 }) {
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
 
   if (launchIDs.length === 0) {
     return (
@@ -187,7 +187,7 @@ function LaunchList({
 function DomainsView({ site }: { site: Site }) {
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
 
   const siteID = site.id || 0;
   const existingDomains = Array.from(site.domains?.keys() || []);
@@ -271,7 +271,7 @@ function DomainsView({ site }: { site: Site }) {
 function TransferOwnership({ site }: { site: Site }) {
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
 
   const teams = state.root.children?.get("t")?.children;
   if (teams === undefined) {
@@ -327,7 +327,7 @@ function TransferOwnership({ site }: { site: Site }) {
 function SiteAdminBody({ site }: { site: Site }) {
   const state = useContext(StateCtx).value;
   // Subscribe to pending mutations for reactivity
-  const _ = pendingMutations.value;
+  void pendingMutations.value;
 
   const siteID = site.id || 0;
   const teamID = site.teamID || 0;
