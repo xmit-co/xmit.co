@@ -561,7 +561,11 @@ export function Support({ id }: { id?: string }) {
       fetchMessageContent(selectedTicket.id, lastMessageId)
         .then((newMsgs) => {
           if (newMsgs.length > 0) {
-            setMessages((prev) => [...prev, ...newMsgs]);
+            setMessages((prev) => {
+              const existingIds = new Set(prev.map((m) => m.id));
+              const uniqueNewMsgs = newMsgs.filter((m) => !existingIds.has(m.id));
+              return uniqueNewMsgs.length > 0 ? [...prev, ...uniqueNewMsgs] : prev;
+            });
           }
         })
         .catch((err) => logError(err instanceof Error ? err : String(err)));
@@ -801,7 +805,11 @@ export function Helpdesk({ id }: { id?: string }) {
       fetchMessageContent(selectedTicket.id, lastMessageId)
         .then((newMsgs) => {
           if (newMsgs.length > 0) {
-            setMessages((prev) => [...prev, ...newMsgs]);
+            setMessages((prev) => {
+              const existingIds = new Set(prev.map((m) => m.id));
+              const uniqueNewMsgs = newMsgs.filter((m) => !existingIds.has(m.id));
+              return uniqueNewMsgs.length > 0 ? [...prev, ...uniqueNewMsgs] : prev;
+            });
           }
         })
         .catch((err) => logError(err instanceof Error ? err : String(err)));
