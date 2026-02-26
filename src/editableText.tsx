@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 export function EditableText({
   value,
@@ -21,26 +21,27 @@ export function EditableText({
   submit: (v: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => setEditing(false), [value]);
   if (editing) {
     return (
       <input
         type={type || "text"}
-        value={value}
+        defaultValue={value}
         placeholder={placeholder}
         ref={(e) => {
+          inputRef.current = e;
           e?.focus();
         }}
-        onFocusIn={(e) => (e.target as HTMLInputElement).select()}
+        onFocusIn={() => inputRef.current?.select()}
         onFocusOut={() => setEditing(false)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            const v = (e.target as HTMLInputElement).value;
+            const v = inputRef.current!.value;
             if (v == value) {
               setEditing(false);
             } else {
               submit(v);
-              // Close immediately for "add" operations (when original value was empty)
               if (!value) {
                 setEditing(false);
               }
@@ -49,8 +50,8 @@ export function EditableText({
             setEditing(false);
           }
         }}
-        onInput={(e) => {
-          const t = e.target as HTMLInputElement;
+        onInput={() => {
+          const t = inputRef.current!;
           t.style.width = `max(10em, ${t.value.length}ch)`;
         }}
       />
