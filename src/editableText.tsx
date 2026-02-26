@@ -21,7 +21,7 @@ export function EditableText({
   submit: (v: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => setEditing(false), [value]);
   if (editing) {
     return (
